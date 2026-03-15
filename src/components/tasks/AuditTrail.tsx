@@ -1,7 +1,7 @@
 'use client';
 
 import type { AuditEntry } from '../../types';
-import { formatTime } from '../../utils/date';
+import { formatTime, formatHumanDate } from '../../utils/date';
 
 interface AuditTrailProps {
   entries: AuditEntry[];
@@ -51,7 +51,7 @@ export function AuditTrail({ entries }: AuditTrailProps) {
             <div className={`flex-1 ${isLast ? 'pb-2' : 'pb-4'}`}>
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="text-xs font-medium text-gray-500">{entry.role}</span>
-                <span className="text-xs text-gray-300">{entry.dateTag}</span>
+                <span className="text-xs text-gray-300">{formatHumanDate(entry.dateTag) || entry.dateTag}</span>
                 <span className="text-xs text-gray-300">{formatTime(entry.createdAt)}</span>
               </div>
               <span className="text-sm text-gray-700 leading-5">{entry.message}</span>

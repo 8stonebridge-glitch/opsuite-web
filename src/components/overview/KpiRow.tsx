@@ -15,7 +15,7 @@ interface KpiRowProps {
 
 export function KpiRow({ items }: KpiRowProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
       {items.map((kpi, i) => (
         <Card
           key={i}
@@ -27,7 +27,7 @@ export function KpiRow({ items }: KpiRowProps) {
             <span className="text-2xl font-bold" style={{ color: kpi.color }}>
               {kpi.value}
             </span>
-            <span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">
+            <span className="text-[10px] md:text-[11px] text-muted-foreground mt-1 uppercase tracking-wider">
               {kpi.label}
             </span>
           </CardContent>

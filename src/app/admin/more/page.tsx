@@ -299,7 +299,7 @@ function StepperRow({
       <div className="flex items-center gap-2">
         <button
           onClick={onMinus}
-          className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
+          className="w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
         >
           -
         </button>
@@ -308,7 +308,7 @@ function StepperRow({
         </span>
         <button
           onClick={onPlus}
-          className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
+          className="w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
         >
           +
         </button>

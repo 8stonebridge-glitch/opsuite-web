@@ -17,7 +17,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Select, type SelectOption } from '../ui/Select';
 import { AuditTrail } from './AuditTrail';
-import { getToday, getNowISO, formatDue, isOverdue } from '../../utils/date';
+import { getToday, getNowISO, formatDue, formatDateTime, isOverdue } from '../../utils/date';
 import { getNextStatuses, canDelegateTask } from '../../utils/task-helpers';
 
 interface TaskDetailScreenProps {
@@ -195,8 +195,11 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
       </div>
 
       <div className="flex-1 overflow-auto pb-24">
+        <div className="lg:grid lg:grid-cols-[1fr,400px] lg:gap-6 lg:px-5 lg:mt-4">
+        {/* Left column: Task info + actions */}
+        <div>
         {/* Task info */}
-        <Card className="mx-5 mt-4">
+        <Card className="mx-5 lg:mx-0 mt-4 lg:mt-0">
           <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">{task.title}</p>
           {task.description ? (
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{task.description}</p>
@@ -230,9 +233,9 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
               <InfoRow icon="shield-checkmark" label="Lead" value={accountableLead} />
             )}
             {task.delegatedAt && (
-              <InfoRow icon="arrow-redo" label="Delegated" value={task.delegatedAt.split('T')[0]} />
+              <InfoRow icon="arrow-redo" label="Delegated" value={formatDateTime(task.delegatedAt)} />
             )}
-            <InfoRow icon="time" label="Created" value={task.createdAt} />
+            <InfoRow icon="time" label="Created" value={formatDateTime(task.createdAt)} />
           </div>
 
           {task.note && (
@@ -245,7 +248,7 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
 
         {/* Delegate button for subadmins */}
         {showDelegateBtn && (
-          <div className="mx-5 mt-4 space-y-2">
+          <div className="mx-5 lg:mx-0 mt-4 space-y-2">
             {!showDelegate ? (
               <Button
                 onClick={() => setShowDelegate(true)}
@@ -282,14 +285,14 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
         )}
 
         {error ? (
-          <Card className="mx-5 mt-4">
+          <Card className="mx-5 lg:mx-0 mt-4">
             <span className="text-sm text-red-600">{error}</span>
           </Card>
         ) : null}
 
         {/* Action buttons */}
         {(canApprove || canVerify || canReject || canUpdate) && (
-          <div className="mx-5 mt-4 space-y-2">
+          <div className="mx-5 lg:mx-0 mt-4 space-y-2">
             {canApprove && (
               <Button onClick={handleApprove} style={{ backgroundColor: color }} disabled={isSubmittingStatus}>{isSubmittingStatus ? 'Saving...' : 'Approve Task'}</Button>
             )}
@@ -366,8 +369,12 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
           </div>
         )}
 
+        </div>
+
+        {/* Right column: Notes + Activity */}
+        <div>
         {/* Add note */}
-        <Card className="mx-5 mt-4">
+        <Card className="mx-5 lg:mx-0 mt-4 lg:mt-0">
           <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-2">Add a note</span>
           <div className="flex gap-2">
             <input
@@ -388,11 +395,13 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
         </Card>
 
         {/* Audit trail */}
-        <div className="mx-5 mt-4">
+        <div className="mx-5 lg:mx-0 mt-4">
           <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-3">
             Activity
           </span>
           <AuditTrail entries={audit} />
+        </div>
+        </div>
         </div>
       </div>
     </div>

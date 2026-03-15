@@ -39,6 +39,15 @@ export function formatTime(iso: string): string {
   });
 }
 
+/** Format an ISO datetime string to "D Mon YYYY, HH:mm" (e.g. "10 Mar 2026, 10:00") */
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const date = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return `${date}, ${time}`;
+}
+
 export function dueLabel(dueDate: string | null, status: string): { text: string; urgent: boolean } | null {
   if (!dueDate) return null;
   if (status === 'Verified' || status === 'Completed') return { text: formatDue(dueDate) || dueDate, urgent: false };

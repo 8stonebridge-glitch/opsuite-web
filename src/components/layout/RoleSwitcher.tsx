@@ -61,9 +61,9 @@ export function RoleSwitcher() {
     dispatch({ type: 'SWITCH_USER', role, userId: userId || null });
     // Navigate to appropriate home screen
     setTimeout(() => {
-      if (role === 'admin') router.replace('/(owner_admin)/overview');
-      else if (role === 'subadmin') router.replace('/(subadmin)/overview');
-      else router.replace('/(employee)/my-day');
+      if (role === 'admin') router.replace('/admin/overview');
+      else if (role === 'subadmin') router.replace('/subadmin/overview');
+      else router.replace('/employee/my-day');
     }, 50);
   };
 

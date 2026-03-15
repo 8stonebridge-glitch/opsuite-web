@@ -68,7 +68,7 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
 
       {/* Main Content */}
       <main className="flex-1 md:ml-56 pb-24 md:pb-0">
-        <div className="max-w-5xl mx-auto">{children}</div>
+        <div className="max-w-6xl mx-auto px-0 lg:px-4">{children}</div>
       </main>
 
       {/* Mobile Bottom Tab Bar */}

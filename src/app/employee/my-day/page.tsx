@@ -210,16 +210,16 @@ export default function EmployeeMyDayScreen() {
                         </p>
                         <p className="text-[10px] text-gray-400 dark:text-gray-500">{task.site}</p>
                       </div>
-                      <div className="flex flex-col gap-1 shrink-0">
+                      <div className="flex flex-col sm:flex-row gap-1 shrink-0">
                         <button
                           onClick={() => goToTask(task.id)}
-                          className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950 rounded-lg text-center"
+                          className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950 rounded-lg text-center min-w-[44px] min-h-[44px] sm:min-h-0 flex items-center justify-center"
                         >
                           <span className="text-[10px] font-semibold text-blue-600">Update</span>
                         </button>
                         <button
                           onClick={() => void handleNoChange(task.id)}
-                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-center"
+                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-center min-w-[44px] min-h-[44px] sm:min-h-0 flex items-center justify-center"
                         >
                           <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
                             {isSubmittingNoChangeId === task.id ? '...' : 'Skip'}

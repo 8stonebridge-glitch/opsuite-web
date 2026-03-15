@@ -7,7 +7,7 @@ import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { Card } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
-import { getToday } from '../../../../src/utils/date';
+import { getToday, formatHumanDate } from '../../../../src/utils/date';
 import { getCurrentWeekDays, getDayLabel } from '../../../../src/utils/checkin-helpers';
 
 export default function SubAdminCheckInsScreen() {
@@ -60,7 +60,7 @@ export default function SubAdminCheckInsScreen() {
         <Card className="mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold" style={{ color }}>{todayCount}</p>
+              <p className="text-2xl font-bold" style={{ color: todayCount > 0 ? color : '#dc2626' }}>{todayCount}</p>
               <p className="text-xs text-gray-400 dark:text-gray-500">Checked in today</p>
             </div>
             <div>
@@ -116,7 +116,7 @@ export default function SubAdminCheckInsScreen() {
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{getName(item.userId)}</p>
               <p className="text-xs text-gray-400 dark:text-gray-500">
-                {item.date} · {item.status === 'Checked-In' ? `${item.checkedInAt} · ${item.summary}` : 'Missed'}
+                {formatHumanDate(item.date) || item.date} · {item.status === 'Checked-In' ? `${item.checkedInAt} · ${item.summary}` : 'Missed'}
               </p>
             </div>
             <span style={{ color: item.status === 'Checked-In' ? '#059669' : '#dc2626' }}>

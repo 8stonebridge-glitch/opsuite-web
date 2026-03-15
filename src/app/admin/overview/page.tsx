@@ -53,6 +53,38 @@ export default function OwnerOverviewScreen() {
             ]}
           />
 
+          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-6">
+          {/* Main column */}
+          <div className="space-y-5">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+              {state.onboarding.industry?.sitesLabel || 'Sites'}
+            </p>
+            <div className="space-y-2">
+              {state.onboarding.sites.map((site) => (
+                <SiteHealthRow key={site.id} siteId={site.id} siteName={site.name} />
+              ))}
+            </div>
+          </div>
+
+          {!isDirect && teams.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+                Teams
+              </p>
+              <div className="space-y-2">
+                {teams.map((team) => (
+                  <TeamHealthRow key={team.id} teamId={team.id} teamName={team.name} teamColor={team.color} leadName={team.lead.name} memberCount={team.members.length + 1} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <AtRiskSection employees={atRisk} limit={5} />
+          </div>
+
+          {/* Right sidebar column */}
+          <div className="space-y-5 mt-5 lg:mt-0">
           {pendingRequests.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
@@ -112,32 +144,8 @@ export default function OwnerOverviewScreen() {
               </Card>
             </div>
           )}
-
-          <div>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-              {state.onboarding.industry?.sitesLabel || 'Sites'}
-            </p>
-            <div className="space-y-2">
-              {state.onboarding.sites.map((site) => (
-                <SiteHealthRow key={site.id} siteId={site.id} siteName={site.name} />
-              ))}
-            </div>
           </div>
-
-          {!isDirect && teams.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-                Teams
-              </p>
-              <div className="space-y-2">
-                {teams.map((team) => (
-                  <TeamHealthRow key={team.id} teamId={team.id} teamName={team.name} teamColor={team.color} leadName={team.lead.name} memberCount={team.members.length + 1} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          <AtRiskSection employees={atRisk} limit={5} />
+          </div>
         </div>
       </div>
     </div>
