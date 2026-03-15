@@ -2,8 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
+import { useSession } from '@/providers/SessionProvider';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Crown, Users, UserCircle } from 'lucide-react';
+import { Crown, Users, UserCircle, LogIn } from 'lucide-react';
+import Link from 'next/link';
 
 const roles = [
   {
@@ -37,6 +39,7 @@ const roles = [
 
 export default function HomePage() {
   const { state, dispatch } = useApp();
+  const { isLoading, isSignedIn } = useSession();
   const router = useRouter();
 
   const handleRoleSelect = (role: 'admin' | 'subadmin' | 'employee') => {
@@ -56,6 +59,55 @@ export default function HomePage() {
     router.push(pathMap[role]);
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50/60 via-white to-white dark:from-emerald-950/20 dark:via-gray-950 dark:to-gray-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not signed in — show sign-in prompt
+  if (!isSignedIn) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50/60 via-white to-white dark:from-emerald-950/20 dark:via-gray-950 dark:to-gray-950">
+        <div className="w-full max-w-md px-6">
+          <div className="text-center mb-10">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-600/20">
+              <Crown className="h-7 w-7 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-1">
+              OpSuite
+            </h1>
+            <p className="text-sm text-muted-foreground mb-8">
+              Operations management for teams
+            </p>
+          </div>
+
+          <Link
+            href="/sign-in"
+            className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-md shadow-emerald-600/20"
+          >
+            <LogIn className="h-4 w-4" />
+            Sign in to get started
+          </Link>
+
+          <p className="text-center text-xs text-muted-foreground mt-4">
+            Don&apos;t have an account?{' '}
+            <Link href="/sign-up" className="text-emerald-600 hover:underline font-medium">
+              Sign up
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Signed in — show demo role switcher
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50/60 via-white to-white dark:from-emerald-950/20 dark:via-gray-950 dark:to-gray-950">
       <div className="w-full max-w-md px-6">

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useIndustryColor, useDashboardCounters } from '../../../src/store/selectors';
 import { useApp } from '../../../src/store/AppContext';
 import { useTheme } from '../../../src/providers/ThemeProvider';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Home, ClipboardList, Bell, Users, Settings } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
 
@@ -30,6 +31,7 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
   }
 
   return (
+    <ProtectedRoute>
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
@@ -98,5 +100,6 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
         })}
       </nav>
     </div>
+    </ProtectedRoute>
   );
 }
