@@ -33,7 +33,7 @@ export default function AdminNamePage() {
         />
       </div>
       <div className="mt-8">
-        <Button title="Continue" onPress={next} disabled={!name.trim()} />
+        <Button onClick={next} disabled={!name.trim()}>Continue</Button>
       </div>
     </div>
   );

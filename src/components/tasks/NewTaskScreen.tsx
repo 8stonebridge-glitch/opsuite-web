@@ -12,7 +12,7 @@ import {
 } from '../../store/selectors';
 import { useTheme } from '../../providers/ThemeProvider';
 import { Select, type SelectOption } from '../ui/Select';
-import { Input } from '../ui/Input';
+import { FormInput as Input } from '../ui/FormInput';
 import { Button } from '../ui/Button';
 import { uid } from '../../utils/id';
 import { getToday, getNowISO, formatDue } from '../../utils/date';

@@ -8,7 +8,7 @@ import { useTheme } from '../../../../src/providers/ThemeProvider';
 import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
 import { Card } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
-import { Button } from '../../../../src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { OrgSwitcher } from '../../../../src/components/layout/OrgSwitcher';
 import { uid } from '../../../../src/utils/id';
@@ -182,15 +182,14 @@ export default function OwnerMoreScreen() {
           </Card>
 
           <Button
-            title="Sign Out"
             variant="outline"
-            onPress={() => {
+            onClick={() => {
               if (window.confirm('Are you sure you want to sign out?')) {
-                
+
                 router.replace('/');
               }
             }}
-          />
+          >Sign Out</Button>
         </div>
       </div>
 
@@ -235,11 +234,10 @@ export default function OwnerMoreScreen() {
             ) : null}
 
             <Button
-              title={isSavingSite ? 'Creating site...' : 'Create Site'}
-              onPress={() => void handleCreateSite()}
+              onClick={() => void handleCreateSite()}
               disabled={isSavingSite}
-              color={color}
-            />
+              style={{ backgroundColor: color }}
+            >{isSavingSite ? 'Creating site...' : 'Create Site'}</Button>
           </div>
         </div>
       )}
@@ -301,7 +299,7 @@ function StepperRow({
       <div className="flex items-center gap-2">
         <button
           onClick={onMinus}
-          className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"
+          className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
         >
           -
         </button>
@@ -310,7 +308,7 @@ function StepperRow({
         </span>
         <button
           onClick={onPlus}
-          className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"
+          className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
         >
           +
         </button>

@@ -7,6 +7,7 @@ import { useAllEmployees } from '../../store/selectors';
 import { useTheme } from '../../providers/ThemeProvider';
 import { Card } from '../ui/Card';
 import { Avatar } from '../ui/Avatar';
+import { Calendar } from 'lucide-react';
 
 const TYPE_CONFIG: Record<AvailabilityType, { icon: string; label: string; color: string }> = {
   leave: { icon: 'airplane', label: 'Leave', color: '#3b82f6' },
@@ -85,7 +86,7 @@ export function AvailabilityRequestCard({ record, approverId }: AvailabilityRequ
       </div>
 
       <div className="flex items-center gap-2 mb-2">
-        <span style={{ color: isDark ? '#6b7280' : '#9ca3af', fontSize: 14 }}>&#x1F4C5;</span>
+        <Calendar className="size-3.5 text-gray-400 dark:text-gray-500" />
         <span className="text-xs text-gray-500 dark:text-gray-400">{dateRange}</span>
       </div>
 

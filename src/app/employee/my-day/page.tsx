@@ -176,7 +176,7 @@ export default function EmployeeMyDayScreen() {
                   </Card>
                 </button>
               ) : (
-                <Card>
+                <Card className="px-4">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-base" style={{ color }}>🤚</span>
                     <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
@@ -201,29 +201,31 @@ export default function EmployeeMyDayScreen() {
                   {handoff.remaining.map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center gap-3 py-2.5 border-b border-gray-50 dark:border-gray-800"
+                      className="flex items-center gap-2 py-2.5 border-b border-gray-50 dark:border-gray-800"
                     >
-                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
                           {task.title}
                         </p>
                         <p className="text-[10px] text-gray-400 dark:text-gray-500">{task.site}</p>
                       </div>
-                      <button
-                        onClick={() => goToTask(task.id)}
-                        className="px-2.5 py-1.5 bg-blue-50 rounded-lg"
-                      >
-                        <span className="text-[10px] font-semibold text-blue-600">Update</span>
-                      </button>
-                      <button
-                        onClick={() => void handleNoChange(task.id)}
-                        className="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg"
-                      >
-                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">
-                          {isSubmittingNoChangeId === task.id ? 'Saving...' : 'No change'}
-                        </span>
-                      </button>
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <button
+                          onClick={() => goToTask(task.id)}
+                          className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950 rounded-lg text-center"
+                        >
+                          <span className="text-[10px] font-semibold text-blue-600">Update</span>
+                        </button>
+                        <button
+                          onClick={() => void handleNoChange(task.id)}
+                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-center"
+                        >
+                          <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                            {isSubmittingNoChangeId === task.id ? '...' : 'Skip'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   ))}
 

@@ -63,7 +63,7 @@ export function TaskCard({ task, onPress, quickActions, stalledDays, assigneeAwa
             <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 truncate">
               {task.title}
             </span>
-            <StatusBadge status={task.status} />
+            <span className="shrink-0"><StatusBadge status={task.status} /></span>
             {task.reworked && (
               <div className="bg-amber-100 dark:bg-amber-950 rounded-full px-2 py-0.5">
                 <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">R{task.reworkCount || 1}</span>
@@ -111,7 +111,7 @@ export function TaskCard({ task, onPress, quickActions, stalledDays, assigneeAwa
           )}
 
           {/* Meta row */}
-          <div className="flex items-center gap-3 mt-2 ml-4 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-0.5 mt-2 ml-4">
             <div className="flex items-center gap-1">
               <span className="text-gray-400 dark:text-gray-500 text-[11px]">&#9679;</span>
               <span className="text-xs text-gray-400 dark:text-gray-500">{task.assignee}</span>

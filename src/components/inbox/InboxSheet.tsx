@@ -3,8 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useInbox } from './InboxProvider';
 import { useApp } from '../../store/AppContext';
-import { useTheme } from '../../providers/ThemeProvider';
 import type { AppNotification, Role } from '../../types';
+import { ClipboardList, Calendar, ArrowLeftRight, AlertCircle, CheckCircle, BellOff, X } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // ── Time formatting ──────────────────────────────────────────────────
 
@@ -24,15 +25,17 @@ function relativeTime(iso: string): string {
 
 // ── Icon for notification type ───────────────────────────────────────
 
-function iconForType(type: AppNotification['type']): string {
-  switch (type) {
-    case 'task': return '\u{1F4CB}';
-    case 'availability': return '\u{1F4C5}';
-    case 'handoff': return '\u{1F501}';
-    case 'coverage': return '\u{26A0}';
-    case 'review': return '\u{2705}';
-    default: return '\u{1F514}';
-  }
+const NOTIFICATION_ICONS: Record<string, LucideIcon> = {
+  task: ClipboardList,
+  availability: Calendar,
+  handoff: ArrowLeftRight,
+  coverage: AlertCircle,
+  review: CheckCircle,
+};
+
+function IconForType({ type }: { type: AppNotification['type'] }) {
+  const Icon = NOTIFICATION_ICONS[type] || ClipboardList;
+  return <Icon className="h-4 w-4 text-gray-500 dark:text-gray-400" />;
 }
 
 // ── Single row ───────────────────────────────────────────────────────
@@ -48,8 +51,6 @@ function NotificationRow({
   onPress: () => void;
   onDismiss: () => void;
 }) {
-  const { isDark } = useTheme();
-
   return (
     <button
       onClick={onPress}
@@ -62,7 +63,7 @@ function NotificationRow({
 
       {/* Icon */}
       <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-3 flex-shrink-0">
-        <span style={{ color: isDark ? '#9ca3af' : '#6b7280', fontSize: 16 }}>{iconForType(notification.type)}</span>
+        <IconForType type={notification.type} />
       </div>
 
       {/* Content */}
@@ -86,7 +87,7 @@ function NotificationRow({
         }}
         className="p-1.5 flex-shrink-0"
       >
-        <span style={{ color: isDark ? '#6b7280' : '#9ca3af', fontSize: 16 }}>&times;</span>
+        <X className="h-4 w-4 text-gray-400 dark:text-gray-500" />
       </button>
     </button>
   );
@@ -97,7 +98,6 @@ function NotificationRow({
 export function InboxSheet() {
   const { notifications, showInbox, closeInbox, markRead, dismiss, isRead } = useInbox();
   const { state } = useApp();
-  const { isDark } = useTheme();
   const router = useRouter();
 
   const resolveNotificationPath = (notification: AppNotification, role: Role) => {
@@ -189,14 +189,14 @@ export function InboxSheet() {
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-800">
           <span className="text-base font-bold text-gray-900 dark:text-gray-100">Inbox</span>
           <button onClick={closeInbox} className="p-1">
-            <span style={{ color: isDark ? '#9ca3af' : '#6b7280', fontSize: 22 }}>&times;</span>
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         {/* List */}
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center py-16">
-            <span style={{ color: isDark ? '#4b5563' : '#d1d5db', fontSize: 40 }}>&#x1F515;</span>
+            <BellOff className="h-10 w-10 text-gray-300 dark:text-gray-600" />
             <span className="text-sm text-gray-400 dark:text-gray-500 mt-3">No notifications yet</span>
           </div>
         ) : (

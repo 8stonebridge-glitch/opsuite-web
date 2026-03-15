@@ -5,12 +5,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useIndustryColor } from '../../../src/store/selectors';
 import { useApp } from '../../../src/store/AppContext';
 import { useTheme } from '../../../src/providers/ThemeProvider';
+import { Sun, ClipboardList, Hand, Settings } from 'lucide-react';
+import { type LucideIcon } from 'lucide-react';
 
-const NAV_ITEMS = [
-  { href: '/employee/my-day', label: 'My Day', icon: '\u2600' },
-  { href: '/employee/tasks', label: 'Tasks', icon: '\u{1F4CB}' },
-  { href: '/employee/check-in', label: 'Handoff', icon: '\u{1F91A}' },
-  { href: '/employee/more', label: 'More', icon: '\u2699' },
+const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/employee/my-day', label: 'My Day', icon: Sun },
+  { href: '/employee/tasks', label: 'Tasks', icon: ClipboardList },
+  { href: '/employee/check-in', label: 'Handoff', icon: Hand },
+  { href: '/employee/more', label: 'More', icon: Settings },
 ];
 
 export default function EmployeeLayout({ children }: { children: React.ReactNode }) {
@@ -47,7 +49,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                 }`}
                 style={isActive ? { color } : undefined}
               >
-                <span className="text-base">{item.icon}</span>
+                <item.icon className="size-4" />
                 {item.label}
               </Link>
             );
@@ -56,22 +58,22 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-56 pb-20 md:pb-0">
-        {children}
+      <main className="flex-1 md:ml-56 pb-24 md:pb-0">
+        <div className="max-w-5xl mx-auto">{children}</div>
       </main>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around py-2 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)] z-50">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 px-2 py-1"
+              className="flex flex-col items-center gap-0.5 px-3 py-2 min-w-[44px] min-h-[44px]"
             >
-              <span className="text-lg" style={{ color: isActive ? color : isDark ? '#6b7280' : '#9ca3af' }}>
-                {item.icon}
+              <span style={{ color: isActive ? color : isDark ? '#6b7280' : '#9ca3af' }}>
+                <item.icon className="size-5" />
               </span>
               <span
                 className="text-[10px] font-medium"

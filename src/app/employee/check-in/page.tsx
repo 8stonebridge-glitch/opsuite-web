@@ -12,7 +12,8 @@ import {
 } from '../../../../src/store/selectors';
 import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { Card } from '../../../../src/components/ui/Card';
-import { Button } from '../../../../src/components/ui/Button';
+import { Calendar, Smile } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { getToday, getNowISO } from '../../../../src/utils/date';
 import {
   getCurrentWeekDays,
@@ -143,11 +144,10 @@ export default function EmployeeCheckInScreen() {
                     : 'No active tasks today'}
                 </p>
                 <Button
-                  title="Check In Now"
-                  onPress={() => void handleCheckIn()}
-                  color={color}
+                  onClick={() => void handleCheckIn()}
+                  style={{ backgroundColor: color }}
                   className="w-full"
-                />
+                >Check In Now</Button>
               </div>
             </Card>
           ) : (
@@ -309,7 +309,7 @@ function CheckInList({ days, checkIns, userId, emptyMessage, color, isMissed }: 
   if (days.length === 0) {
     return (
       <div className="py-8 flex flex-col items-center">
-        <span className="text-3xl text-gray-300 dark:text-gray-600">{isMissed ? '😊' : '📅'}</span>
+        <span className="text-gray-300 dark:text-gray-600">{isMissed ? <Smile className="size-8" /> : <Calendar className="size-8" />}</span>
         <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">{emptyMessage}</p>
       </div>
     );

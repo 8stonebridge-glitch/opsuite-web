@@ -12,6 +12,7 @@ import {
 import type { Role } from '../../types';
 import { useRouter } from 'next/navigation';
 import { InboxButton } from '../inbox/InboxButton';
+import { Bell, ChevronDown } from 'lucide-react';
 
 export function RoleSwitcher() {
   const { state, dispatch } = useApp();
@@ -67,14 +68,14 @@ export function RoleSwitcher() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-950 px-5 pt-5 pb-4 flex items-center justify-between">
-      <div className="flex items-center gap-3 flex-1 mr-3">
+    <div className="bg-white dark:bg-gray-950 px-5 pt-5 pb-4 flex items-center justify-between gap-2 overflow-hidden">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
         <Avatar name={name} color={color} />
-        <div className="flex-1">
-          <span className="block text-base font-semibold text-gray-900 dark:text-gray-100">
+        <div className="flex-1 min-w-0">
+          <span className="block text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
             {state.role === 'admin' ? state.onboarding.orgName : name}
           </span>
-          <span className="block text-xs text-gray-400 dark:text-gray-500">
+          <span className="block text-xs text-gray-400 dark:text-gray-500 truncate">
             {roleLabel}
             {state.onboarding.industry ? ` · ${state.onboarding.industry.name}` : ''}
           </span>
@@ -82,12 +83,14 @@ export function RoleSwitcher() {
       </div>
       <div className="flex items-center gap-2">
         <InboxButton />
-        <Select
-          placeholder="Switch role"
-          options={options}
-          value={currentValue}
-          onChange={handleSwitch}
-        />
+        <div className="max-w-[140px] sm:max-w-[200px]">
+          <Select
+            placeholder="Switch role"
+            options={options}
+            value={currentValue}
+            onChange={handleSwitch}
+          />
+        </div>
       </div>
     </div>
   );

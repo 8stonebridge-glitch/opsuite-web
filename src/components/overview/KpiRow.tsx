@@ -1,5 +1,7 @@
 'use client';
 
+import { Card, CardContent } from '@/components/ui/Card';
+
 export interface KpiItem {
   label: string;
   value: number;
@@ -13,21 +15,23 @@ interface KpiRowProps {
 
 export function KpiRow({ items }: KpiRowProps) {
   return (
-    <div className="flex gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
       {items.map((kpi, i) => (
-        <button
+        <Card
           key={i}
+          size="sm"
+          className="cursor-pointer hover:bg-accent transition-colors"
           onClick={kpi.onClick}
-          className="flex-1 bg-white dark:bg-gray-900 rounded-2xl p-4 flex flex-col items-center border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
-          type="button"
         >
-          <span className="text-2xl font-bold" style={{ color: kpi.color }}>
-            {kpi.value}
-          </span>
-          <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider">
-            {kpi.label}
-          </span>
-        </button>
+          <CardContent className="flex flex-col items-center py-0">
+            <span className="text-2xl font-bold" style={{ color: kpi.color }}>
+              {kpi.value}
+            </span>
+            <span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">
+              {kpi.label}
+            </span>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );

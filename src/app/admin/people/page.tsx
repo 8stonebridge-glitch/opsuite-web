@@ -12,7 +12,7 @@ import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { EmployeeSummaryCard } from '../../../../src/components/people/EmployeeSummaryCard';
 import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
 import { Select } from '../../../../src/components/ui/Select';
-import { Button } from '../../../../src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { useApp } from '../../../../src/store/AppContext';
 import { useIndustryColor } from '../../../../src/store/selectors';
 import { useTheme } from '../../../../src/providers/ThemeProvider';
@@ -284,27 +284,27 @@ export default function OwnerPeopleScreen() {
 
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
               {isDirect ? 'People' : 'Teams'}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-row gap-2">
               <button
                 onClick={() => setShowCreateMember(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
               >
                 <span style={{ color }} className="text-sm">+</span>
-                <span className="text-xs font-semibold" style={{ color }}>
+                <span className="text-xs font-semibold whitespace-nowrap" style={{ color }}>
                   Add Person
                 </span>
               </button>
               {!isDirect && (
                 <button
                   onClick={() => setShowCreateTeam(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
                 >
                   <span style={{ color }} className="text-sm">+</span>
-                  <span className="text-xs font-semibold" style={{ color }}>
+                  <span className="text-xs font-semibold whitespace-nowrap" style={{ color }}>
                     Add Team
                   </span>
                 </button>
@@ -406,26 +406,28 @@ export default function OwnerPeopleScreen() {
                   onClick={() => setExpandedTeam(isExpanded ? null : team.id)}
                   className="w-full text-left"
                 >
-                  <Card className="flex items-center gap-3">
-                    <Avatar name={team.name} color={team.color} />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {team.name}
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">
-                        {allMembers.length} {allMembers.length === 1 ? 'person' : 'people'} · {teamActiveCount} active
-                        {teamOverdueCount > 0 ? ` · ${teamOverdueCount} overdue` : ''}
-                      </p>
+                  <Card>
+                    <div className="flex items-center gap-3 px-4 -my-1">
+                      <Avatar name={team.name} color={team.color} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                          {team.name}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                          {allMembers.length} {allMembers.length === 1 ? 'person' : 'people'} · {teamActiveCount} active
+                          {teamOverdueCount > 0 ? ` · ${teamOverdueCount} overdue` : ''}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <ScoreBadge score={teamAvgScore} band={teamBand} size="sm" />
+                        {atRiskCount > 0 && (
+                          <span className="text-[9px] text-amber-500 font-medium">
+                            {atRiskCount} at risk
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-gray-400 text-xs flex items-center justify-center w-10 h-10 shrink-0">{isExpanded ? '▲' : '▼'}</span>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <ScoreBadge score={teamAvgScore} band={teamBand} size="sm" />
-                      {atRiskCount > 0 && (
-                        <span className="text-[9px] text-amber-500 font-medium">
-                          {atRiskCount} at risk
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-gray-400 text-xs">{isExpanded ? '\u25B2' : '\u25BC'}</span>
                   </Card>
                 </button>
 
@@ -642,11 +644,10 @@ export default function OwnerPeopleScreen() {
 
             <div className="mt-5">
               <Button
-                title={isSavingMember ? 'Creating person...' : 'Create Person'}
-                onPress={() => void handleCreateMember()}
+                onClick={() => void handleCreateMember()}
                 disabled={isSavingMember || (!isDirect && memberRole === 'employee' && teamOptions.length === 0)}
-                color={color}
-              />
+                style={{ backgroundColor: color }}
+              >{isSavingMember ? 'Creating person...' : 'Create Person'}</Button>
             </div>
           </div>
         </div>
@@ -760,11 +761,10 @@ export default function OwnerPeopleScreen() {
 
             <div className="mt-5">
               <Button
-                title={isSavingTeam ? 'Creating team...' : 'Create Team'}
-                onPress={() => void handleCreateTeam()}
+                onClick={() => void handleCreateTeam()}
                 disabled={isSavingTeam || (!true && !canCreateRealTeam)}
-                color={color}
-              />
+                style={{ backgroundColor: color }}
+              >{isSavingTeam ? 'Creating team...' : 'Create Team'}</Button>
             </div>
           </div>
         </div>
@@ -846,11 +846,10 @@ export default function OwnerPeopleScreen() {
 
             <div className="mt-5 space-y-3">
               <Button
-                title={isSavingEdit ? 'Saving...' : 'Save Changes'}
-                onPress={() => void handleEditMember()}
+                onClick={() => void handleEditMember()}
                 disabled={isSavingEdit}
-                color={color}
-              />
+                style={{ backgroundColor: color }}
+              >{isSavingEdit ? 'Saving...' : 'Save Changes'}</Button>
               <button
                 onClick={() => {
                   if (!editMember) return;

@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronRight } from 'lucide-react';
 import { TaskCard } from '../tasks/TaskCard';
 import type { Task } from '../../types';
 
@@ -44,12 +45,10 @@ export function TaskPreviewSection({
 
       {remaining > 0 && onViewAll && (
         <button onClick={onViewAll} className="flex items-center justify-center py-2 mt-1 w-full" type="button">
-          <span className="text-xs font-medium text-gray-400">
+          <span className="text-xs font-medium text-muted-foreground">
             View all ({tasks.length})
           </span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
+          <ChevronRight className="h-3 w-3 ml-1 text-muted-foreground" />
         </button>
       )}
     </div>

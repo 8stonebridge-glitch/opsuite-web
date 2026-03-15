@@ -5,22 +5,16 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useIndustryColor, useDashboardCounters } from '../../../src/store/selectors';
 import { useApp } from '../../../src/store/AppContext';
 import { useTheme } from '../../../src/providers/ThemeProvider';
+import { Home, ClipboardList, MapPin, Users, Settings } from 'lucide-react';
+import { type LucideIcon } from 'lucide-react';
 
-const NAV_ITEMS = [
-  { href: '/admin/overview', label: 'Overview', icon: 'home' },
-  { href: '/admin/tasks', label: 'Tasks', icon: 'clipboard' },
-  { href: '/admin/sites', label: 'Sites', icon: 'location' },
-  { href: '/admin/people', label: 'People', icon: 'people' },
-  { href: '/admin/more', label: 'More', icon: 'settings' },
+const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/admin/overview', label: 'Overview', icon: Home },
+  { href: '/admin/tasks', label: 'Tasks', icon: ClipboardList },
+  { href: '/admin/sites', label: 'Sites', icon: MapPin },
+  { href: '/admin/people', label: 'People', icon: Users },
+  { href: '/admin/more', label: 'More', icon: Settings },
 ];
-
-const ICON_MAP: Record<string, string> = {
-  home: '\u2302',
-  clipboard: '\u{1F4CB}',
-  location: '\u{1F4CD}',
-  people: '\u{1F465}',
-  settings: '\u2699',
-};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const color = useIndustryColor();
@@ -57,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }`}
                 style={isActive ? { color } : undefined}
               >
-                <span className="text-base">{ICON_MAP[item.icon]}</span>
+                <item.icon className="size-4" />
                 {item.label}
                 {item.label === 'Tasks' && counters.needsReview > 0 && (
                   <span className="ml-auto inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
@@ -71,22 +65,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-56 pb-20 md:pb-0">
-        {children}
+      <main className="flex-1 md:ml-56 pb-24 md:pb-0">
+        <div className="max-w-5xl mx-auto">{children}</div>
       </main>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around py-2 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)] z-50">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 relative"
+              className="flex flex-col items-center gap-0.5 px-3 py-2 min-w-[44px] min-h-[44px] relative"
             >
-              <span className="text-lg" style={{ color: isActive ? color : isDark ? '#6b7280' : '#9ca3af' }}>
-                {ICON_MAP[item.icon]}
+              <span style={{ color: isActive ? color : isDark ? '#6b7280' : '#9ca3af' }}>
+                <item.icon className="size-5" />
               </span>
               <span
                 className="text-[10px] font-medium"

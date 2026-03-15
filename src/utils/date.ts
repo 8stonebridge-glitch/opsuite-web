@@ -21,6 +21,11 @@ export function formatDue(date: string | null): string | null {
   });
 }
 
+/** Returns "D Mon YYYY" (e.g. "9 Mar 2026") — alias for formatDue for non-due-date contexts. */
+export function formatHumanDate(date: string | null): string | null {
+  return formatDue(date);
+}
+
 export function diffDays(a: string, b: string): number {
   return Math.floor(
     (new Date(b).getTime() - new Date(a).getTime()) / 86400000

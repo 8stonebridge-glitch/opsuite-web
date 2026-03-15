@@ -31,7 +31,7 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
       style={{ borderLeftWidth: 3, borderLeftColor: SEVERITY_DOT[band] }}
     >
       {/* Header */}
-      <div className="flex items-center px-4 py-3 gap-3">
+      <div className="flex items-center flex-wrap px-4 py-3 gap-3">
         <ScoreBadge score={score} band={band} trendDelta={trendDelta} size={compact ? 'md' : 'md'} />
         <div className="flex-1">
           <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -92,7 +92,7 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
             </span>
           )}
           {displayActions.map((action) => (
-            <div key={action.id} className="flex items-center gap-2 py-1">
+            <div key={action.id} className="flex items-center flex-wrap gap-2 py-1">
               <div
                 style={{
                   width: 6,

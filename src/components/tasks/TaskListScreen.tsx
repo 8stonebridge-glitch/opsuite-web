@@ -351,7 +351,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
 
         {displayMode === 'cards' ? (
           /* ── Card View ──────────────────────────────────────────── */
-          <div className="pb-36">
+          <div className="pb-24 md:pb-36">
             {sections.length === 0 ? (
               <EmptyState icon="clipboard-outline" title="No tasks" />
             ) : (
@@ -386,7 +386,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
           </div>
         ) : (
           /* ── Table View ─────────────────────────────────────────── */
-          <div className="pb-36">
+          <div className="pb-24 md:pb-36">
             <TaskTableHeader
               sortKey={tableSortKey}
               sortDir={tableSortDir}
@@ -422,7 +422,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
       {isManager && (
         <button
           onClick={goToNew}
-          className="fixed bottom-24 right-5 h-14 w-14 rounded-full flex items-center justify-center shadow-lg text-white text-2xl"
+          className="fixed bottom-24 md:bottom-8 right-5 h-14 w-14 rounded-full flex items-center justify-center shadow-lg text-white text-2xl"
           style={{ backgroundColor: color }}
         >
           +

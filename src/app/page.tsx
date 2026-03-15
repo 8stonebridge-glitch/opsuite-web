@@ -2,6 +2,38 @@
 
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Crown, Users, UserCircle } from 'lucide-react';
+
+const roles = [
+  {
+    key: 'admin' as const,
+    label: 'Admin / Owner',
+    description: 'Full access to all teams, sites, and tasks',
+    icon: Crown,
+    accent: 'text-emerald-600 dark:text-emerald-400',
+    bg: 'bg-emerald-100 dark:bg-emerald-900/40',
+    ring: 'hover:ring-emerald-500/30',
+  },
+  {
+    key: 'subadmin' as const,
+    label: 'Subadmin / Team Lead',
+    description: "Manage your team's tasks and check-ins",
+    icon: Users,
+    accent: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-100 dark:bg-indigo-900/40',
+    ring: 'hover:ring-indigo-500/30',
+  },
+  {
+    key: 'employee' as const,
+    label: 'Employee',
+    description: 'View your tasks, check in daily',
+    icon: UserCircle,
+    accent: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-100 dark:bg-blue-900/40',
+    ring: 'hover:ring-blue-500/30',
+  },
+] as const;
 
 export default function HomePage() {
   const { state, dispatch } = useApp();
@@ -25,56 +57,46 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50/60 via-white to-white dark:from-emerald-950/20 dark:via-gray-950 dark:to-gray-950">
       <div className="w-full max-w-md px-6">
+        {/* Branded header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-600/20">
+            <Crown className="h-7 w-7 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-1">
             OpSuite
           </h1>
-          <p className="text-sm text-gray-400 dark:text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Choose a role to get started
           </p>
         </div>
 
+        {/* Role cards */}
         <div className="flex flex-col gap-3">
-          <button
-            onClick={() => handleRoleSelect('admin')}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
-          >
-            <div className="w-11 h-11 rounded-full bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center text-lg">
-              👑
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Admin / Owner</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">Full access to all teams, sites, and tasks</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => handleRoleSelect('subadmin')}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors"
-          >
-            <div className="w-11 h-11 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-lg">
-              👥
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Subadmin / Team Lead</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">Manage your team's tasks and check-ins</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => handleRoleSelect('employee')}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
-          >
-            <div className="w-11 h-11 rounded-full bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-lg">
-              🧑‍💼
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Employee</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">View your tasks, check in daily</p>
-            </div>
-          </button>
+          {roles.map(({ key, label, description, icon: Icon, accent, bg, ring }) => (
+            <Card
+              key={key}
+              className={`cursor-pointer transition-all hover:ring-2 hover:shadow-md ${ring}`}
+              onClick={() => handleRoleSelect(key)}
+            >
+              <CardContent className="flex items-center gap-4">
+                <div
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${bg}`}
+                >
+                  <Icon className={`h-5 w-5 ${accent}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    {label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>

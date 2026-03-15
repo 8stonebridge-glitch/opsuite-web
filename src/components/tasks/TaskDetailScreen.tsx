@@ -248,10 +248,9 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
           <div className="mx-5 mt-4 space-y-2">
             {!showDelegate ? (
               <Button
-                title="Delegate to Team Member"
-                onPress={() => setShowDelegate(true)}
-                color="#6366f1"
-              />
+                onClick={() => setShowDelegate(true)}
+                style={{ backgroundColor: '#6366f1' }}
+              >Delegate to Team Member</Button>
             ) : (
               <Card>
                 <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-2">Delegate to</span>
@@ -264,20 +263,18 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
                 />
                 <div className="flex gap-2 mt-3">
                   <Button
-                    title="Cancel"
-                    onPress={() => { setShowDelegate(false); setDelegateToId(''); }}
+                    onClick={() => { setShowDelegate(false); setDelegateToId(''); }}
                     variant="outline"
-                    size="md"
+                    size="default"
                     className="flex-1"
-                  />
+                  >Cancel</Button>
                   <Button
-                    title="Delegate"
-                    onPress={handleDelegate}
-                    color="#6366f1"
-                    size="md"
+                    onClick={handleDelegate}
+                    style={{ backgroundColor: '#6366f1' }}
+                    size="default"
                     className="flex-1"
                     disabled={!delegateToId || isSubmittingStatus}
-                  />
+                  >Delegate</Button>
                 </div>
               </Card>
             )}
@@ -294,15 +291,14 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
         {(canApprove || canVerify || canReject || canUpdate) && (
           <div className="mx-5 mt-4 space-y-2">
             {canApprove && (
-              <Button title={isSubmittingStatus ? 'Saving...' : 'Approve Task'} onPress={handleApprove} color={color} disabled={isSubmittingStatus} />
+              <Button onClick={handleApprove} style={{ backgroundColor: color }} disabled={isSubmittingStatus}>{isSubmittingStatus ? 'Saving...' : 'Approve Task'}</Button>
             )}
             {canVerify && !showVerifyConfirm && (
               <Button
-                title="Verify & Close"
-                onPress={() => setShowVerifyConfirm(true)}
-                color={color}
+                onClick={() => setShowVerifyConfirm(true)}
+                style={{ backgroundColor: color }}
                 disabled={isSubmittingStatus}
-              />
+              >Verify &amp; Close</Button>
             )}
             {showVerifyConfirm && (
               <Card>
@@ -311,26 +307,24 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
                 </span>
                 <div className="flex gap-2">
                   <Button
-                    title="Cancel"
-                    onPress={() => setShowVerifyConfirm(false)}
+                    onClick={() => setShowVerifyConfirm(false)}
                     variant="outline"
-                    size="md"
+                    size="default"
                     className="flex-1"
                     disabled={isSubmittingStatus}
-                  />
+                  >Cancel</Button>
                   <Button
-                    title={isSubmittingStatus ? 'Saving...' : 'Verify'}
-                    onPress={handleVerify}
-                    color={color}
-                    size="md"
+                    onClick={handleVerify}
+                    style={{ backgroundColor: color }}
+                    size="default"
                     className="flex-1"
                     disabled={isSubmittingStatus}
-                  />
+                  >{isSubmittingStatus ? 'Saving...' : 'Verify'}</Button>
                 </div>
               </Card>
             )}
             {canReject && !showReject && (
-              <Button title="Request Rework" onPress={() => setShowReject(true)} variant="danger" disabled={isSubmittingStatus} />
+              <Button onClick={() => setShowReject(true)} variant="destructive" disabled={isSubmittingStatus}>Request Rework</Button>
             )}
             {showReject && (
               <Card>
@@ -343,34 +337,31 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
                 />
                 <div className="flex gap-2">
                   <Button
-                    title="Cancel"
-                    onPress={() => setShowReject(false)}
+                    onClick={() => setShowReject(false)}
                     variant="outline"
-                    size="md"
+                    size="default"
                     className="flex-1"
-                  />
+                  >Cancel</Button>
                   <Button
-                    title="Send to Rework"
-                    onPress={() => {
+                    onClick={() => {
                       if (window.confirm('This will send the task back for rework. Continue?')) {
                         handleRework();
                       }
                     }}
-                    variant="danger"
-                    size="md"
+                    variant="destructive"
+                    size="default"
                     className="flex-1"
                     disabled={!rejectReason.trim() || isSubmittingStatus}
-                  />
+                  >Send to Rework</Button>
                 </div>
               </Card>
             )}
             {canUpdate && (
               <Button
-                title={isSubmittingStatus ? 'Saving...' : 'Update Status'}
-                onPress={() => router.push(updatePath.replace('[id]', task.id))}
-                color={color}
+                onClick={() => router.push(updatePath.replace('[id]', task.id))}
+                style={{ backgroundColor: color }}
                 disabled={isSubmittingStatus}
-              />
+              >{isSubmittingStatus ? 'Saving...' : 'Update Status'}</Button>
             )}
           </div>
         )}

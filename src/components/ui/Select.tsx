@@ -46,7 +46,7 @@ export function Select({ label, placeholder = 'Select', options, value, onChange
         onClick={() => setOpen(!open)}
         type="button"
       >
-        <span className={selected ? 'text-base text-gray-900 dark:text-gray-100' : 'text-base text-gray-300 dark:text-gray-600'}>
+        <span className={`truncate max-w-[140px] ${selected ? 'text-base text-gray-900 dark:text-gray-100' : 'text-base text-gray-300 dark:text-gray-600'}`}>
           {selected?.label || placeholder}
         </span>
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke={isDark ? '#6b7280' : '#9ca3af'} strokeWidth={2}>

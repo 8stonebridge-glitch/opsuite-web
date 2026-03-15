@@ -6,7 +6,7 @@ import { useApp } from '../../../../src/store/AppContext';
 import { useSiteHealth, useIndustryColor, useSitesLabel } from '../../../../src/store/selectors';
 import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { HealthCard } from '../../../../src/components/overview/HealthCard';
-import { Button } from '../../../../src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { useTheme } from '../../../../src/providers/ThemeProvider';
 import { uid } from '../../../../src/utils/id';
 
@@ -137,11 +137,10 @@ export default function SitesScreen() {
             ) : null}
 
             <Button
-              title={isSavingSite ? 'Creating site...' : 'Create Site'}
-              onPress={() => void handleCreateSite()}
+              onClick={() => void handleCreateSite()}
               disabled={isSavingSite}
-              color={color}
-            />
+              style={{ backgroundColor: color }}
+            >{isSavingSite ? 'Creating site...' : 'Create Site'}</Button>
           </div>
         </div>
       )}

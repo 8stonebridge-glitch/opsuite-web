@@ -189,11 +189,10 @@ export function TaskUpdateScreen() {
         ) : null}
 
         <Button
-          title={isSubmitting ? 'Saving...' : 'Submit Update'}
-          onPress={() => void handleSubmit()}
+          onClick={() => void handleSubmit()}
           disabled={!newStatus || isSubmitting}
-          color={color}
-        />
+          style={{ backgroundColor: color }}
+        >{isSubmitting ? 'Saving...' : 'Submit Update'}</Button>
       </div>
     </div>
   );

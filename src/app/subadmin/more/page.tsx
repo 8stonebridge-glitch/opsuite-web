@@ -6,7 +6,7 @@ import { useCurrentName, useMyTeam, useIndustryColor } from '../../../../src/sto
 import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
 import { Card } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
-import { Button } from '../../../../src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 
 export default function SubAdminMoreScreen() {
@@ -61,15 +61,14 @@ export default function SubAdminMoreScreen() {
           </Card>
 
           <Button
-            title="Sign Out"
             variant="outline"
-            onPress={() => {
+            onClick={() => {
               if (window.confirm('Are you sure you want to sign out?')) {
-                
+
                 router.replace('/');
               }
             }}
-          />
+          >Sign Out</Button>
         </div>
       </div>
     </div>

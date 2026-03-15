@@ -68,9 +68,8 @@ export default function AddSitesPage() {
       </div>
       <div className="mt-8">
         <Button
-          title={state.onboarding.sites.length > 0 ? `Launch ${state.onboarding.orgName}` : 'Skip for now'}
-          onPress={finish}
-        />
+          onClick={finish}
+        >{state.onboarding.sites.length > 0 ? `Launch ${state.onboarding.orgName}` : 'Skip for now'}</Button>
       </div>
     </div>
   );
