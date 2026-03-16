@@ -35,7 +35,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100`}
       >
-        <ClerkProvider>
+        <ClerkProvider
+          afterSignOutUrl="/sign-in"
+          signInFallbackRedirectUrl="/admin/overview"
+        >
           <Providers>{children}</Providers>
         </ClerkProvider>
       </body>
