@@ -16,7 +16,6 @@ import {
   useAwayToday,
   useCoverageNeeded,
 } from '../../../../src/store/selectors';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { KpiRow } from '../../../../src/components/overview/KpiRow';
 import { Card } from '../../../../src/components/ui/Card';
 import { ScoreBadge, BandLabel } from '../../../../src/components/performance/ScoreBadge';
@@ -54,8 +53,6 @@ export default function SubAdminOverviewScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
-
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4 space-y-5">
           <KpiRow
@@ -93,8 +90,8 @@ export default function SubAdminOverviewScreen() {
                     className={`flex items-center gap-3 py-2.5 ${i < awayToday.length - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''}`}
                   >
                     <Avatar name={emp.name} color={team?.color || '#6366f1'} size="sm" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{emp.name}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{emp.name}</p>
                     </div>
                   </div>
                 ))}

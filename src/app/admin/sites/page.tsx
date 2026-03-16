@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '../../../../src/store/AppContext';
 import { useSiteHealth, useIndustryColor, useSitesLabel } from '../../../../src/store/selectors';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { HealthCard } from '../../../../src/components/overview/HealthCard';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '../../../../src/providers/ThemeProvider';
@@ -55,8 +54,6 @@ export default function SitesScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
-
       <div className="overflow-y-auto">
         <div className="px-5 pt-4 pb-24">
           <div className="flex items-center justify-between mb-3 gap-3">

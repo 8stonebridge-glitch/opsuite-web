@@ -8,7 +8,6 @@ import type { Role, Team } from '../../../../src/types';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { Card } from '../../../../src/components/ui/Card';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { EmployeeSummaryCard } from '../../../../src/components/people/EmployeeSummaryCard';
 import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
 import { Select } from '../../../../src/components/ui/Select';
@@ -280,8 +279,6 @@ export default function OwnerPeopleScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
-
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">

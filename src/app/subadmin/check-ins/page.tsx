@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { useApp } from '../../../../src/store/AppContext';
 import { useMyTeam, useIndustryColor } from '../../../../src/store/selectors';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { Card } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
@@ -53,8 +52,6 @@ export default function SubAdminCheckInsScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
-
       <div className="px-5 pt-4">
         {/* Summary */}
         <Card className="mb-4">

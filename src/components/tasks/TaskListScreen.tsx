@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { RoleSwitcher } from '../layout/RoleSwitcher';
 import { SearchInput } from '../ui/SearchInput';
 import { TaskCard } from './TaskCard';
 import { TaskTableRow } from './TaskTableRow';
@@ -288,8 +287,6 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
-
       <div className="flex-1 px-5 pt-3">
         {isManager && (
           <div className="flex rounded-2xl bg-gray-200 dark:bg-gray-800 p-1 mb-4">

@@ -5,14 +5,30 @@ import { useRouter } from 'next/navigation';
 import { useClerk } from '@clerk/nextjs';
 import { useApp } from '../../../../src/store/AppContext';
 import { useIndustryColor, useTeams, useAllEmployees, useOrgMode, useSitesLabel } from '../../../../src/store/selectors';
+import { useSession } from '../../../../src/providers/SessionProvider';
 import { useTheme } from '../../../../src/providers/ThemeProvider';
 import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
-import { Card } from '../../../../src/components/ui/Card';
+import { Card, CardContent } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { OrgSwitcher } from '../../../../src/components/layout/OrgSwitcher';
 import { uid } from '../../../../src/utils/id';
+import {
+  Building2,
+  Briefcase,
+  MapPin,
+  Users,
+  User,
+  ClipboardList,
+  Shuffle,
+  Bell,
+  Info,
+  Pause,
+  RefreshCw,
+  LogOut,
+  Plus,
+  ChevronRight,
+} from 'lucide-react';
 
 export default function OwnerMoreScreen() {
   const { state, dispatch } = useApp();
@@ -24,6 +40,7 @@ export default function OwnerMoreScreen() {
   const sitesLabel = useSitesLabel();
   const router = useRouter();
   const { signOut } = useClerk();
+  const { user } = useSession();
 
   const [showCreateSite, setShowCreateSite] = useState(false);
   const [siteName, setSiteName] = useState('');
@@ -33,7 +50,6 @@ export default function OwnerMoreScreen() {
 
   const handleCreateSite = async () => {
     const trimmedName = siteName.trim();
-    const trimmedCode = siteCode.trim();
 
     if (trimmedName.length < 2) {
       setSiteError('Enter a site name with at least 2 characters.');
@@ -68,137 +84,174 @@ export default function OwnerMoreScreen() {
     dispatch({ type: 'SET_ORG_SETTINGS', settings: { [key]: newVal } });
   };
 
+  const displayName = user?.name || state.onboarding.adminName || 'Admin';
+  const displayEmail = user?.email || '';
+
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
+      <div className="overflow-y-auto pb-28 md:pb-8">
+        <div className="px-5 lg:px-6 pt-5 space-y-4 max-w-2xl mx-auto">
 
-      <div className="overflow-y-auto pb-24">
-        <div className="px-5 pt-4 space-y-3">
-          <Card className="flex flex-col items-center py-6">
-            <Avatar name={state.onboarding.adminName || 'A'} color={color} size="lg" />
-            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-3">
-              {state.onboarding.adminName || 'Admin'}
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500">Owner</p>
+          {/* Profile Card */}
+          <Card>
+            <CardContent className="py-2">
+              <div className="flex items-center gap-4">
+                <Avatar name={displayName} color={color} size="lg" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                    {displayName}
+                  </p>
+                  {displayEmail && (
+                    <p className="text-sm text-gray-400 dark:text-gray-500 truncate">
+                      {displayEmail}
+                    </p>
+                  )}
+                  <p className="text-xs font-medium mt-0.5" style={{ color }}>
+                    Owner
+                  </p>
+                </div>
+              </div>
+            </CardContent>
           </Card>
 
           <OrgSwitcher />
 
-          <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-              Operational Rules
-            </p>
-            <StepperRow
-              icon="⏸"
-              label="Stalled alert after"
-              value={state.orgSettings.noChangeAlertWorkdays}
-              unit="workdays"
-              onMinus={() => adjustSetting('noChangeAlertWorkdays', -1)}
-              onPlus={() => adjustSetting('noChangeAlertWorkdays', 1)}
-              color={color}
-            />
-            <StepperRow
-              icon="🔄"
-              label="Rework escalation after"
-              value={state.orgSettings.reworkAlertCycles}
-              unit="cycles"
-              onMinus={() => adjustSetting('reworkAlertCycles', -1)}
-              onPlus={() => adjustSetting('reworkAlertCycles', 1)}
-              color={color}
-              last
-            />
-          </Card>
+          {/* Operational Rules */}
+          <div>
+            <SectionLabel>Operational Rules</SectionLabel>
+            <Card>
+              <CardContent className="py-0">
+                <StepperRow
+                  icon={<Pause className="size-4" />}
+                  label="Stalled alert after"
+                  value={state.orgSettings.noChangeAlertWorkdays}
+                  unit="workdays"
+                  onMinus={() => adjustSetting('noChangeAlertWorkdays', -1)}
+                  onPlus={() => adjustSetting('noChangeAlertWorkdays', 1)}
+                  color={color}
+                />
+                <StepperRow
+                  icon={<RefreshCw className="size-4" />}
+                  label="Rework escalation after"
+                  value={state.orgSettings.reworkAlertCycles}
+                  unit="cycles"
+                  onMinus={() => adjustSetting('reworkAlertCycles', -1)}
+                  onPlus={() => adjustSetting('reworkAlertCycles', 1)}
+                  color={color}
+                  last
+                />
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-              Organization
-            </p>
-            <SettingRow icon="🏢" label="Org Name" value={state.onboarding.orgName} />
-            <SettingRow icon="💼" label="Industry" value={state.onboarding.industry?.name || '-'} />
-            <div className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-gray-800">
-              <span className="text-base">📍</span>
-              <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">
-                {sitesLabel}
-              </span>
-              <span className="text-sm text-gray-400 dark:text-gray-500 mr-2">
-                {state.onboarding.sites.length} configured
-              </span>
-              <button
-                onClick={() => setShowCreateSite(true)}
-                className="w-7 h-7 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: color + '18' }}
-              >
-                <span style={{ color }} className="text-sm">+</span>
-              </button>
-            </div>
-            <SettingRow icon="👥" label="Teams" value={String(teams.length)} />
-            <SettingRow icon="👤" label="Employees" value={String(allEmployees.length)} />
-            <SettingRow icon="📋" label="Total Tasks" value={String(state.tasks.length)} />
-
-            <div className="flex items-center gap-3 py-3">
-              <span className="text-base">🔀</span>
-              <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">Org Mode</span>
-              <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => {
-                    if (orgMode === 'managed') return;
-                    dispatch({ type: 'SET_ORG_MODE', mode: 'managed' });
-                  }}
-                  className={`px-3 py-1.5 ${orgMode === 'managed' ? 'bg-gray-900 dark:bg-gray-100' : 'bg-gray-50 dark:bg-gray-800'}`}
-                >
-                  <span className={`text-xs font-semibold ${orgMode === 'managed' ? 'text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400'}`}>
-                    Managed
+          {/* Organization Info */}
+          <div>
+            <SectionLabel>Organization</SectionLabel>
+            <Card>
+              <CardContent className="py-0">
+                <SettingRow icon={<Building2 className="size-4 text-gray-400" />} label="Org Name" value={state.onboarding.orgName} />
+                <SettingRow icon={<Briefcase className="size-4 text-gray-400" />} label="Industry" value={state.onboarding.industry?.name || '-'} />
+                <div className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                  <MapPin className="size-4 text-gray-400 shrink-0" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                    {sitesLabel}
                   </span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (orgMode === 'direct') return;
-                    dispatch({ type: 'SET_ORG_MODE', mode: 'direct' });
-                  }}
-                  className={`px-3 py-1.5 ${orgMode === 'direct' ? 'bg-gray-900 dark:bg-gray-100' : 'bg-gray-50 dark:bg-gray-800'}`}
-                >
-                  <span className={`text-xs font-semibold ${orgMode === 'direct' ? 'text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400'}`}>
-                    Direct
+                  <span className="text-sm text-gray-400 dark:text-gray-500 mr-2">
+                    {state.onboarding.sites.length}
                   </span>
-                </button>
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 dark:text-gray-500 -mt-1 ml-8 mb-1">
-              {orgMode === 'managed' ? 'Teams with subadmin leads' : 'Admin manages employees directly'}
-            </p>
-          </Card>
+                  <button
+                    onClick={() => setShowCreateSite(true)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                    style={{ backgroundColor: color + '12' }}
+                  >
+                    <Plus className="size-4" style={{ color }} />
+                  </button>
+                </div>
+                <SettingRow icon={<Users className="size-4 text-gray-400" />} label="Teams" value={String(teams.length)} />
+                <SettingRow icon={<User className="size-4 text-gray-400" />} label="Employees" value={String(allEmployees.length)} />
+                <SettingRow icon={<ClipboardList className="size-4 text-gray-400" />} label="Total Tasks" value={String(state.tasks.length)} />
 
+                {/* Org Mode Toggle */}
+                <div className="flex items-center gap-3 py-3.5">
+                  <Shuffle className="size-4 text-gray-400 shrink-0" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">Org Mode</span>
+                  <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={() => {
+                        if (orgMode === 'managed') return;
+                        dispatch({ type: 'SET_ORG_MODE', mode: 'managed' });
+                      }}
+                      className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        orgMode === 'managed'
+                          ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                          : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                      }`}
+                    >
+                      Managed
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (orgMode === 'direct') return;
+                        dispatch({ type: 'SET_ORG_MODE', mode: 'direct' });
+                      }}
+                      className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        orgMode === 'direct'
+                          ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                          : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                      }`}
+                    >
+                      Direct
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 -mt-1 ml-7 pb-2">
+                  {orgMode === 'managed' ? 'Teams with subadmin leads' : 'Admin manages employees directly'}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* App Settings */}
+          <div>
+            <SectionLabel>App Settings</SectionLabel>
+            <Card>
+              <CardContent className="py-0">
+                <SettingRow icon={<Bell className="size-4 text-gray-400" />} label="Notifications" value="Coming soon" />
+                <div className="py-1">
+                  <ThemeSwitcher />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* App Info */}
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-              App Settings
-            </p>
-            <SettingRow icon="🔔" label="Notifications" value="Coming soon" last />
+            <CardContent className="py-0">
+              <SettingRow icon={<Info className="size-4 text-gray-400" />} label="Version" value="1.0.0" last />
+            </CardContent>
           </Card>
 
-          <Card>
-            <ThemeSwitcher />
-          </Card>
-
-          <Card>
-            <SettingRow icon="ℹ️" label="Version" value="1.0.0" last />
-          </Card>
-
-          <Button
-            variant="outline"
-            onClick={() => {
+          {/* Sign Out */}
+          <button
+            onClick={async () => {
               if (window.confirm('Are you sure you want to sign out?')) {
-                signOut({ redirectUrl: '/sign-in' });
+                await signOut();
+                window.location.href = '/sign-in';
               }
             }}
-          >Sign Out</Button>
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm font-medium"
+          >
+            <LogOut className="size-4" />
+            Sign Out
+          </button>
         </div>
       </div>
 
       {/* Create Site Modal */}
       {showCreateSite && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-          <div className="fixed inset-0 bg-black/30" onClick={() => setShowCreateSite(false)} />
-          <div className="relative bg-white dark:bg-gray-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowCreateSite(false)} />
+          <div className="relative bg-white dark:bg-gray-950 rounded-t-3xl md:rounded-2xl px-5 pt-5 pb-10 w-full md:max-w-lg">
             <div className="flex items-center justify-between mb-5">
               <p className="text-base font-bold text-gray-900 dark:text-gray-100">Add Site</p>
               <button onClick={() => setShowCreateSite(false)} className="text-gray-500 text-xl">&times;</button>
@@ -208,7 +261,7 @@ export default function OwnerMoreScreen() {
               Site Name
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 mb-4 outline-none"
+              className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-gray-100 mb-4 outline-none border border-gray-200 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-600 transition-colors"
               placeholder="Victoria Hub"
               value={siteName}
               onChange={(e) => {
@@ -221,7 +274,7 @@ export default function OwnerMoreScreen() {
               Site Code (optional)
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 mb-4 outline-none uppercase"
+              className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-gray-100 mb-4 outline-none uppercase border border-gray-200 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-600 transition-colors"
               placeholder="VIC-HUB"
               value={siteCode}
               onChange={(e) => {
@@ -246,34 +299,43 @@ export default function OwnerMoreScreen() {
   );
 }
 
+/* ─── Section Label ─── */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
+      {children}
+    </p>
+  );
+}
+
+/* ─── Setting Row ─── */
 function SettingRow({
   icon,
   label,
   value,
   last,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string;
   last?: boolean;
 }) {
   return (
     <div
-      className={`flex gap-3 py-3 items-start ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}
+      className={`flex gap-3 py-3.5 items-center ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}
     >
-      <span className="text-base">{icon}</span>
+      <div className="shrink-0">{icon}</div>
       <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 pr-2 min-w-0">
         {label}
       </span>
-      <span
-        className="text-sm text-gray-400 dark:text-gray-500 text-right max-w-[46%] shrink"
-      >
+      <span className="text-sm text-gray-400 dark:text-gray-500 text-right max-w-[46%] shrink truncate">
         {value}
       </span>
     </div>
   );
 }
 
+/* ─── Stepper Row ─── */
 function StepperRow({
   icon,
   label,
@@ -284,7 +346,7 @@ function StepperRow({
   color,
   last,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: number;
   unit: string;
@@ -294,22 +356,22 @@ function StepperRow({
   last?: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-3 py-3 ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}>
-      <span className="text-base" style={{ color }}>{icon}</span>
-      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{label}</span>
-      <div className="flex items-center gap-2">
+    <div className={`flex items-center gap-3 py-3.5 ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}>
+      <div className="shrink-0" style={{ color }}>{icon}</div>
+      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 min-w-0 truncate">{label}</span>
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onMinus}
-          className="w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
+          className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-base"
         >
           -
         </button>
-        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-[3rem] text-center px-1">
-          {value} {unit === 'workdays' ? 'd' : unit === 'cycles' ? 'x' : unit}
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-[3rem] text-center">
+          {value}{unit === 'workdays' ? 'd' : unit === 'cycles' ? 'x' : unit}
         </span>
         <button
           onClick={onPlus}
-          className="w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-lg"
+          className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-base"
         >
           +
         </button>

@@ -8,7 +8,6 @@ import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
 import { Card } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 
 export default function SubAdminMoreScreen() {
   const { state, dispatch } = useApp();
@@ -20,8 +19,6 @@ export default function SubAdminMoreScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
-
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4 space-y-3">
           <Card className="flex flex-col items-center py-6">
@@ -64,9 +61,10 @@ export default function SubAdminMoreScreen() {
 
           <Button
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               if (window.confirm('Are you sure you want to sign out?')) {
-                signOut({ redirectUrl: '/sign-in' });
+                await signOut();
+                window.location.href = '/sign-in';
               }
             }}
           >Sign Out</Button>
@@ -81,7 +79,7 @@ function SettingRow({ icon, label, value, last }: { icon: string; label: string;
     <div className={`flex gap-3 py-3 items-start ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}>
       <span className="text-base">{icon}</span>
       <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 pr-2 min-w-0">{label}</span>
-      <span className="text-sm text-gray-400 dark:text-gray-500 text-right max-w-[46%] shrink">{value}</span>
+      <span className="text-sm text-gray-400 dark:text-gray-500 text-right max-w-[46%] shrink truncate">{value}</span>
     </div>
   );
 }

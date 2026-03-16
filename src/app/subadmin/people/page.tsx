@@ -8,7 +8,6 @@ import { getToday } from '../../../../src/utils/date';
 import { getActiveAvailability } from '../../../../src/utils/availability-helpers';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { Card } from '../../../../src/components/ui/Card';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
 import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
 
@@ -36,7 +35,6 @@ export default function SubAdminPeopleScreen() {
   if (!team) {
     return (
       <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-        <RoleSwitcher />
         <EmptyState icon="people-outline" title="No team found" />
       </div>
     );
@@ -46,7 +44,6 @@ export default function SubAdminPeopleScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
       <div className="px-5 pt-4">
         <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
           {team.name} Team · {team.members.length} {team.members.length === 1 ? 'member' : 'members'}

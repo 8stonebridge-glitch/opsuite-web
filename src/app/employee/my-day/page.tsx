@@ -14,7 +14,6 @@ import {
 } from '../../../../src/store/selectors';
 import { getToday, getNowISO } from '../../../../src/utils/date';
 import { buildHandoffSummary } from '../../../../src/utils/handoff-helpers';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { TaskPreviewSection } from '../../../../src/components/overview/TaskPreviewSection';
 import { PerformanceCard } from '../../../../src/components/performance/PerformanceCard';
 import { Card } from '../../../../src/components/ui/Card';
@@ -117,7 +116,6 @@ export default function EmployeeMyDayScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4 space-y-4">
               {isUnavailable && !handoffDone && (

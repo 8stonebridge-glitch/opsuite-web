@@ -14,35 +14,54 @@ import {
   usePendingRequests,
   useAwayToday,
   useCoverageNeeded,
+  useCurrentName,
 } from '../../../../src/store/selectors';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { KpiRow } from '../../../../src/components/overview/KpiRow';
 import { HealthCard } from '../../../../src/components/overview/HealthCard';
 import { AtRiskSection } from '../../../../src/components/performance/AtRiskSection';
 import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
 import { AvailabilityRequestCard } from '../../../../src/components/availability/AvailabilityRequestCard';
-import { Card } from '../../../../src/components/ui/Card';
+import { Card, CardContent } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
+import { Activity, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 
 export default function OwnerOverviewScreen() {
   const { state } = useApp();
   const color = useIndustryColor();
+  const name = useCurrentName();
   const orgMode = useOrgMode();
   const isDirect = orgMode === 'direct';
   const teams = useTeams();
-  const { active, review } = useBucketedTasks();
+  const { active, review, done } = useBucketedTasks();
   const { overdue, stalled } = useActiveGroups();
   const atRisk = useAtRiskEmployees(5);
   const pendingRequests = usePendingRequests();
   const awayToday = useAwayToday();
   const coverageNeeded = useCoverageNeeded();
 
+  // Greeting based on time of day
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
+      {/* Page Header */}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <div className="px-5 lg:px-6 py-5 lg:py-6">
+          <p className="text-sm text-gray-400 dark:text-gray-500">{greeting},</p>
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+            {name}
+          </h1>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            {state.onboarding.orgName}
+            {state.onboarding.industry ? ` \u00b7 ${state.onboarding.industry.name}` : ''}
+          </p>
+        </div>
+      </div>
 
       <div className="overflow-y-auto">
-        <div className="px-5 pt-4 space-y-5 pb-24">
+        <div className="px-5 lg:px-6 pt-5 space-y-6 pb-28 md:pb-8">
+          {/* KPI Summary */}
           <KpiRow
             items={[
               { label: 'Active', value: active.length, color },
@@ -53,98 +72,182 @@ export default function OwnerOverviewScreen() {
             ]}
           />
 
-          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-6">
-          {/* Main column */}
-          <div className="space-y-5">
-          <div>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-              {state.onboarding.industry?.sitesLabel || 'Sites'}
-            </p>
-            <div className="space-y-2">
-              {state.onboarding.sites.map((site) => (
-                <SiteHealthRow key={site.id} siteId={site.id} siteName={site.name} />
-              ))}
-            </div>
-          </div>
+          <div className="lg:grid lg:grid-cols-[1fr,360px] lg:gap-8">
+            {/* Main Column */}
+            <div className="space-y-6">
+              {/* Sites */}
+              <section>
+                <SectionHeader
+                  title={state.onboarding.industry?.sitesLabel || 'Sites'}
+                  count={state.onboarding.sites.length}
+                />
+                <div className="space-y-3">
+                  {state.onboarding.sites.map((site) => (
+                    <SiteHealthRow key={site.id} siteId={site.id} siteName={site.name} />
+                  ))}
+                  {state.onboarding.sites.length === 0 && (
+                    <Card>
+                      <CardContent className="py-6 text-center">
+                        <p className="text-sm text-gray-400 dark:text-gray-500">No sites configured yet</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </section>
 
-          {!isDirect && teams.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-                Teams
-              </p>
-              <div className="space-y-2">
-                {teams.map((team) => (
-                  <TeamHealthRow key={team.id} teamId={team.id} teamName={team.name} teamColor={team.color} leadName={team.lead.name} memberCount={team.members.length + 1} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          <AtRiskSection employees={atRisk} limit={5} />
-          </div>
-
-          {/* Right sidebar column */}
-          <div className="space-y-5 mt-5 lg:mt-0">
-          {pendingRequests.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-                Pending Requests ({pendingRequests.length})
-              </p>
-              <div className="space-y-2">
-                {pendingRequests.map((r) => (
-                  <AvailabilityRequestCard key={r.id} record={r} approverId="admin" />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {awayToday.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-                Away Today ({awayToday.length})
-              </p>
-              <Card>
-                {awayToday.map((emp, i) => (
-                  <div
-                    key={emp.id}
-                    className={`flex items-center gap-3 py-2.5 ${i < awayToday.length - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''}`}
-                  >
-                    <Avatar name={emp.name} color={emp.teamId ? '#6366f1' : '#9ca3af'} size="sm" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{emp.name}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{emp.teamName || 'Direct report'}</p>
-                    </div>
+              {/* Teams */}
+              {!isDirect && teams.length > 0 && (
+                <section>
+                  <SectionHeader title="Teams" count={teams.length} />
+                  <div className="space-y-3">
+                    {teams.map((team) => (
+                      <TeamHealthRow
+                        key={team.id}
+                        teamId={team.id}
+                        teamName={team.name}
+                        teamColor={team.color}
+                        leadName={team.lead.name}
+                        memberCount={team.members.length + 1}
+                      />
+                    ))}
                   </div>
-                ))}
-              </Card>
-            </div>
-          )}
+                </section>
+              )}
 
-          {coverageNeeded.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-                Coverage Needed ({coverageNeeded.length})
-              </p>
-              <Card>
-                {coverageNeeded.slice(0, 5).map((task, i) => (
-                  <div
-                    key={task.id}
-                    className={`flex items-center gap-3 py-2.5 ${i < Math.min(coverageNeeded.length, 5) - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''}`}
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{task.title}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{task.site} · {task.assignee}</p>
-                    </div>
-                    <div className="px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950">
-                      <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Coverage</span>
-                    </div>
-                  </div>
-                ))}
-              </Card>
+              {/* At-Risk Employees */}
+              {atRisk.length > 0 && (
+                <section>
+                  <AtRiskSection employees={atRisk} limit={5} />
+                </section>
+              )}
             </div>
-          )}
-          </div>
+
+            {/* Right Sidebar Column */}
+            <div className="space-y-6 mt-6 lg:mt-0">
+              {/* Pending Requests */}
+              {pendingRequests.length > 0 && (
+                <section>
+                  <SectionHeader
+                    title="Pending Requests"
+                    count={pendingRequests.length}
+                    accentColor="#d97706"
+                  />
+                  <div className="space-y-3">
+                    {pendingRequests.map((r) => (
+                      <AvailabilityRequestCard key={r.id} record={r} approverId="admin" />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Away Today */}
+              {awayToday.length > 0 && (
+                <section>
+                  <SectionHeader
+                    title="Away Today"
+                    count={awayToday.length}
+                    accentColor="#6366f1"
+                  />
+                  <Card>
+                    <CardContent className="py-0">
+                      {awayToday.map((emp, i) => (
+                        <div
+                          key={emp.id}
+                          className={`flex items-center gap-3 py-3 ${
+                            i < awayToday.length - 1
+                              ? 'border-b border-gray-100 dark:border-gray-800'
+                              : ''
+                          }`}
+                        >
+                          <Avatar name={emp.name} color={emp.teamId ? '#6366f1' : '#9ca3af'} size="sm" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {emp.name}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                              {emp.teamName || 'Direct report'}
+                            </p>
+                          </div>
+                          <div className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950">
+                            <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">Away</span>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </section>
+              )}
+
+              {/* Coverage Needed */}
+              {coverageNeeded.length > 0 && (
+                <section>
+                  <SectionHeader
+                    title="Coverage Needed"
+                    count={coverageNeeded.length}
+                    accentColor="#ea580c"
+                  />
+                  <Card>
+                    <CardContent className="py-0">
+                      {coverageNeeded.slice(0, 5).map((task, i) => (
+                        <div
+                          key={task.id}
+                          className={`flex items-center gap-3 py-3 ${
+                            i < Math.min(coverageNeeded.length, 5) - 1
+                              ? 'border-b border-gray-100 dark:border-gray-800'
+                              : ''
+                          }`}
+                        >
+                          <div className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{task.title}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              {task.site} · {task.assignee}
+                            </p>
+                          </div>
+                          <div className="px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950 shrink-0">
+                            <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">
+                              Coverage
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </section>
+              )}
+
+              {/* Quick Stats Summary */}
+              <section>
+                <SectionHeader title="Summary" />
+                <Card>
+                  <CardContent className="py-0">
+                    <QuickStat
+                      icon={<Activity className="size-4 text-blue-500" />}
+                      label="Active tasks"
+                      value={active.length}
+                      border
+                    />
+                    <QuickStat
+                      icon={<TrendingUp className="size-4 text-emerald-500" />}
+                      label="Completed"
+                      value={done.length}
+                      border
+                    />
+                    <QuickStat
+                      icon={<AlertTriangle className="size-4 text-red-500" />}
+                      label="Overdue"
+                      value={overdue.length}
+                      border
+                    />
+                    <QuickStat
+                      icon={<Clock className="size-4 text-orange-500" />}
+                      label="Stalled"
+                      value={stalled.length}
+                    />
+                  </CardContent>
+                </Card>
+              </section>
+            </div>
           </div>
         </div>
       </div>
@@ -152,6 +255,62 @@ export default function OwnerOverviewScreen() {
   );
 }
 
+/* ─── Section Header ─── */
+function SectionHeader({
+  title,
+  count,
+  accentColor,
+}: {
+  title: string;
+  count?: number;
+  accentColor?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      {accentColor && (
+        <div
+          className="w-1.5 h-4 rounded-full"
+          style={{ backgroundColor: accentColor }}
+        />
+      )}
+      <h2 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+        {title}
+      </h2>
+      {count !== undefined && (
+        <span className="text-xs font-medium text-gray-300 dark:text-gray-600">
+          {count}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ─── Quick Stat Row ─── */
+function QuickStat({
+  icon,
+  label,
+  value,
+  border,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  border?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3 py-3 ${
+        border ? 'border-b border-gray-100 dark:border-gray-800' : ''
+      }`}
+    >
+      {icon}
+      <span className="text-sm text-gray-600 dark:text-gray-400 flex-1">{label}</span>
+      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{value}</span>
+    </div>
+  );
+}
+
+/* ─── Site Health Row ─── */
 function SiteHealthRow({ siteId, siteName }: { siteId: string; siteName: string }) {
   const health = useSiteHealth(siteId);
   return (
@@ -169,6 +328,7 @@ function SiteHealthRow({ siteId, siteName }: { siteId: string; siteName: string 
   );
 }
 
+/* ─── Team Health Row ─── */
 function TeamHealthRow({
   teamId,
   teamName,

@@ -10,7 +10,6 @@ import {
   useCheckInStats,
   useScopedTasks,
 } from '../../../../src/store/selectors';
-import { RoleSwitcher } from '../../../../src/components/layout/RoleSwitcher';
 import { Card } from '../../../../src/components/ui/Card';
 import { Calendar, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -126,8 +125,6 @@ export default function EmployeeCheckInScreen() {
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <RoleSwitcher />
-
       <div className="overflow-y-auto pb-24">
         {/* Check-in CTA */}
         <div className="px-5 pt-4">
@@ -277,7 +274,7 @@ function StatTab({ label, value, active, activeColor, onPress }: { label: string
   return (
     <button
       onClick={onPress}
-      className={`px-4 py-2.5 rounded-2xl ${active ? '' : 'bg-gray-100 dark:bg-gray-800'}`}
+      className={`flex-1 min-w-[70px] px-3 sm:px-4 py-2.5 rounded-2xl ${active ? '' : 'bg-gray-100 dark:bg-gray-800'}`}
       style={active ? { backgroundColor: activeColor } : undefined}
     >
       <span className={`text-xs font-medium block ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}>{label}</span>

@@ -40,7 +40,7 @@ export function HealthCard({ title, subtitle, icon, iconColor, stats, onPress, r
 
   return (
     <Card
-      className={`w-full ${onPress ? 'cursor-pointer hover:bg-accent transition-colors' : ''}`}
+      className={`w-full ${onPress ? 'cursor-pointer hover:shadow-sm transition-shadow' : ''}`}
       onClick={onPress}
     >
       <CardContent className="py-0">
@@ -49,40 +49,40 @@ export function HealthCard({ title, subtitle, icon, iconColor, stats, onPress, r
             const IconComponent = getIcon(icon);
             return (
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: (iconColor || '#059669') + '15' }}
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: (iconColor || '#059669') + '12' }}
               >
                 {IconComponent ? (
-                  <IconComponent className="w-4 h-4" style={{ color: iconColor || '#059669' }} />
+                  <IconComponent className="w-[18px] h-[18px]" style={{ color: iconColor || '#059669' }} />
                 ) : (
-                  <span className="text-lg" style={{ color: iconColor || '#059669' }}>
+                  <span className="text-lg font-semibold" style={{ color: iconColor || '#059669' }}>
                     {icon.charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>
             );
           })()}
-          <div className="flex-1">
-            <span className="block text-sm font-semibold text-foreground">{title}</span>
-            {subtitle && <span className="block text-xs text-muted-foreground">{subtitle}</span>}
+          <div className="flex-1 min-w-0">
+            <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{title}</span>
+            {subtitle && <span className="block text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{subtitle}</span>}
           </div>
           {rightContent}
           {onPress && (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <ChevronRight className="h-4 w-4 text-gray-300 dark:text-gray-600 shrink-0" />
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {stats.map((stat, i) => (
             <div
               key={i}
-              className="flex-1 rounded-xl py-2 px-2 flex flex-col items-center"
-              style={{ backgroundColor: stat.color + (isDark ? '20' : '10') }}
+              className="rounded-lg py-2.5 px-2 flex flex-col items-center min-w-0"
+              style={{ backgroundColor: stat.color + (isDark ? '15' : '08') }}
             >
-              <span className="text-base font-bold" style={{ color: stat.color }}>
+              <span className="text-sm sm:text-base font-bold tabular-nums truncate" style={{ color: stat.color }}>
                 {stat.value}
               </span>
-              <span className="text-[9px] text-muted-foreground uppercase tracking-wider mt-0.5">
+              <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider mt-0.5 truncate max-w-full font-medium">
                 {stat.label}
               </span>
             </div>

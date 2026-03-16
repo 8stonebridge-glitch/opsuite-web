@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useIndustryColor, useDashboardCounters } from '../../../src/store/selectors';
 import { useApp } from '../../../src/store/AppContext';
+import { useSession } from '../../../src/providers/SessionProvider';
 import { useTheme } from '../../../src/providers/ThemeProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { InboxButton } from '../../../src/components/inbox/InboxButton';
 import { Home, ClipboardList, MapPin, Users, Settings } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
 
@@ -22,11 +24,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const color = useIndustryColor();
   const counters = useDashboardCounters();
   const { state, dispatch } = useApp();
+  const { user } = useSession();
   const { isDark } = useTheme();
   const pathname = usePathname();
 
   // Ensure local state role is 'admin' when this layout mounts.
-  // Signed-in users are always admin for now (Phase 2 will resolve from backend).
   useEffect(() => {
     if (state.role !== 'admin') {
       dispatch({ type: 'SWITCH_USER', role: 'admin', userId: null });
@@ -38,11 +40,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
-        <div className="px-5 py-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">OpSuite</h2>
-          <p className="text-xs text-gray-400 dark:text-gray-500">Admin</p>
+        {/* Logo + Org */}
+        <div className="px-5 py-5 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+              style={{ backgroundColor: color }}
+            >
+              {(state.onboarding.orgName || 'O').charAt(0)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+                {state.onboarding.orgName || 'OpSuite'}
+              </h2>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                {state.onboarding.industry?.name || 'Admin'}
+              </p>
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 px-3 space-y-1">
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-3 space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
@@ -56,7 +75,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }`}
                 style={isActive ? { color } : undefined}
               >
-                <item.icon className="size-4" />
+                <item.icon className="size-[18px]" />
                 {item.label}
                 {item.label === 'Tasks' && counters.needsReview > 0 && (
                   <span className="ml-auto inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
@@ -67,10 +86,48 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
         </nav>
+
+        {/* User info at bottom */}
+        {user && (
+          <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                style={{ backgroundColor: color }}
+              >
+                {(user.name || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {user.name}
+                </p>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </aside>
 
+      {/* Mobile Top Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+            style={{ backgroundColor: color }}
+          >
+            {(state.onboarding.orgName || 'O').charAt(0)}
+          </div>
+          <span className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+            {state.onboarding.orgName || 'OpSuite'}
+          </span>
+        </div>
+        <InboxButton />
+      </div>
+
       {/* Main Content */}
-      <main className="flex-1 md:ml-56 pb-24 md:pb-0">
+      <main className="flex-1 md:ml-56 pt-14 md:pt-0 pb-24 md:pb-0">
         <div className="max-w-6xl mx-auto px-0 lg:px-4">{children}</div>
       </main>
 
