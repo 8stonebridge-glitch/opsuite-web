@@ -159,3 +159,52 @@ const displayName = user?.name || state.onboarding.adminName || 'Admin';
 - Seed/demo data should never be treated as the source of truth for user identity once real auth is in place.
 - When migrating from demo mode to real auth, audit everywhere `useCurrentName()` and `state.onboarding.adminName` are used.
 - The session provider (`useSession()`) should be the single source of truth for the signed-in user's identity.
+
+---
+
+## BUG-003: Custom Sign-In Redirects to Clerk's Hosted Form
+
+**Date:** 2026-03-16
+**Severity:** Critical
+**Status:** Resolved
+
+### Symptom
+After replacing the default `<SignIn />` component with a fully custom sign-in form (using `useSignIn` hooks), unauthenticated users visiting any protected route were redirected to Clerk's hosted sign-in page (`accounts.dev`) instead of the custom `/sign-in` page.
+
+### Root Cause
+The `<ClerkProvider>` was missing the `signInUrl` and `signUpUrl` props. Without these, Clerk's middleware (`auth.protect()`) doesn't know about the custom sign-in page and falls back to redirecting users to Clerk's hosted authentication UI.
+
+When using Clerk's pre-built `<SignIn />` component, this worked by coincidence because the component itself handled the redirect. With a custom form using `useSignIn`/`useSignUp` hooks, the provider must be explicitly told where the custom pages live.
+
+### Fix
+
+**File: `src/app/layout.tsx`**
+```tsx
+// Before
+<ClerkProvider
+  afterSignOutUrl="/sign-in"
+  signInFallbackRedirectUrl="/admin/overview"
+>
+
+// After
+<ClerkProvider
+  signInUrl="/sign-in"
+  signUpUrl="/sign-up"
+  signInFallbackRedirectUrl="/admin/overview"
+  signUpFallbackRedirectUrl="/admin/overview"
+  afterSignOutUrl="/sign-in"
+>
+```
+
+### Correct Auth Flow After Fix
+1. Unauthenticated user visits any protected route → middleware calls `auth.protect()` → redirects to `/sign-in` (custom page)
+2. User signs in via custom form → `signIn.create()` + `signIn.password()` + `signIn.finalize()` → `router.push('/admin/overview')`
+3. Google OAuth flow → `signIn.sso()` → `/sign-in/sso-callback` → `/admin/overview`
+
+### Lessons Learned
+- When replacing Clerk's pre-built `<SignIn />`/`<SignUp />` components with custom forms, you **must** set `signInUrl` and `signUpUrl` on `<ClerkProvider>`.
+- The env vars `NEXT_PUBLIC_CLERK_SIGN_IN_URL` and `NEXT_PUBLIC_CLERK_SIGN_UP_URL` alone are not sufficient — the `<ClerkProvider>` props are what Clerk's client-side routing uses.
+- Always test the full flow from an unauthenticated state (incognito window) after switching to custom auth forms.
+
+### Related Commits
+- `132f1f8` — fix: add signInUrl/signUpUrl to ClerkProvider to prevent redirect to hosted form
