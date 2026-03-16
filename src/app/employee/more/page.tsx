@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useClerk } from '@clerk/nextjs';
 import { useApp } from '../../../../src/store/AppContext';
 import { useCurrentName, useMyTeam, useIndustryColor, useCheckInStats, useAvailability } from '../../../../src/store/selectors';
 import { getToday, getNowISO } from '../../../../src/utils/date';
@@ -23,6 +24,7 @@ export default function EmployeeMoreScreen() {
   const stats = useCheckInStats();
   const availability = useAvailability();
   const router = useRouter();
+  const { signOut } = useClerk();
   const [showLeaveSheet, setShowLeaveSheet] = useState(false);
   const [isSubmittingSick, setIsSubmittingSick] = useState(false);
   const { isDark } = useTheme();
@@ -142,8 +144,7 @@ export default function EmployeeMoreScreen() {
             variant="outline"
             onClick={() => {
               if (window.confirm('Are you sure you want to sign out?')) {
-
-                router.replace('/');
+                signOut({ redirectUrl: '/sign-in' });
               }
             }}
           >Sign Out</Button>

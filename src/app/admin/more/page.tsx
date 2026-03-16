@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useClerk } from '@clerk/nextjs';
 import { useApp } from '../../../../src/store/AppContext';
 import { useIndustryColor, useTeams, useAllEmployees, useOrgMode, useSitesLabel } from '../../../../src/store/selectors';
 import { useTheme } from '../../../../src/providers/ThemeProvider';
@@ -22,6 +23,7 @@ export default function OwnerMoreScreen() {
   const orgMode = useOrgMode();
   const sitesLabel = useSitesLabel();
   const router = useRouter();
+  const { signOut } = useClerk();
 
   const [showCreateSite, setShowCreateSite] = useState(false);
   const [siteName, setSiteName] = useState('');
@@ -185,8 +187,7 @@ export default function OwnerMoreScreen() {
             variant="outline"
             onClick={() => {
               if (window.confirm('Are you sure you want to sign out?')) {
-
-                router.replace('/');
+                signOut({ redirectUrl: '/sign-in' });
               }
             }}
           >Sign Out</Button>

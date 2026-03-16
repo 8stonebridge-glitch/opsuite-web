@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useClerk } from '@clerk/nextjs';
 import { useApp } from '../../../../src/store/AppContext';
 import { useCurrentName, useMyTeam, useIndustryColor } from '../../../../src/store/selectors';
 import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
@@ -15,6 +16,7 @@ export default function SubAdminMoreScreen() {
   const team = useMyTeam();
   const color = useIndustryColor();
   const router = useRouter();
+  const { signOut } = useClerk();
 
   return (
     <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
@@ -64,8 +66,7 @@ export default function SubAdminMoreScreen() {
             variant="outline"
             onClick={() => {
               if (window.confirm('Are you sure you want to sign out?')) {
-
-                router.replace('/');
+                signOut({ redirectUrl: '/sign-in' });
               }
             }}
           >Sign Out</Button>
