@@ -55,7 +55,7 @@ export async function GET() {
 
   return NextResponse.json({
     state: {
-      adminName: activeOrg.organization.name ? undefined : undefined,
+      adminName: (membershipsData as any[]).find((entry) => String(entry.user.authUserId) === userId)?.user?.name ?? undefined,
       membershipRole: activeOrg.membership.role,
       orgName: activeOrg.organization.name,
       orgMode: activeOrg.organization.mode,

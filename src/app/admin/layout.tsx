@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useIndustryColor, useDashboardCounters } from '../../../src/store/selectors';
-import { useApp } from '../../../src/store/AppContext';
-import { useSession } from '../../../src/providers/SessionProvider';
-import { useTheme } from '../../../src/providers/ThemeProvider';
+import { useIndustryColor, useDashboardCounters } from '@/store/selectors';
+import { useApp } from '@/store/AppContext';
+import { useSession } from '@/providers/SessionProvider';
+import { useTheme } from '@/providers/ThemeProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { InboxButton } from '../../../src/components/inbox/InboxButton';
+import { InboxButton } from '@/components/inbox/InboxButton';
 import { Home, ClipboardList, MapPin, Users, Settings } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
 
@@ -23,17 +22,10 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const color = useIndustryColor();
   const counters = useDashboardCounters();
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const { user } = useSession();
   const { isDark } = useTheme();
   const pathname = usePathname();
-
-  // Ensure local state role is 'admin' when this layout mounts.
-  useEffect(() => {
-    if (state.role !== 'admin') {
-      dispatch({ type: 'SWITCH_USER', role: 'admin', userId: null });
-    }
-  }, [state.role, dispatch]);
 
   return (
     <ProtectedRoute>

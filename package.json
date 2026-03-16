@@ -10,7 +10,9 @@
     "test:watch": "vitest",
     "tla:check:tasks": "tla-precheck check src/machines/opsuiteTaskLifecycle",
     "tla:build:tasks": "tla-precheck build src/machines/opsuiteTaskLifecycle",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

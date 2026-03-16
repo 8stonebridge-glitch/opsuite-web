@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useApp } from '../../../../src/store/AppContext';
-import { useSiteHealth, useIndustryColor, useSitesLabel } from '../../../../src/store/selectors';
-import { HealthCard } from '../../../../src/components/overview/HealthCard';
+import { useApp } from '@/store/AppContext';
+import { useSiteHealth, useIndustryColor, useSitesLabel } from '@/store/selectors';
+import { HealthCard } from '@/components/overview/HealthCard';
 import { Button } from '@/components/ui/Button';
-import { useTheme } from '../../../../src/providers/ThemeProvider';
-import { uid } from '../../../../src/utils/id';
+import { useTheme } from '@/providers/ThemeProvider';
+import { uid } from '@/utils/id';
 
 export default function SitesScreen() {
   const { state, dispatch } = useApp();

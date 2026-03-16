@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useApp } from '../../store/AppContext';
 import { useIndustryColor } from '../../store/selectors';
 import { useTheme } from '../../providers/ThemeProvider';
-import { getToday, getNowISO } from '../../utils/date';
-import { uid } from '../../utils/id';
+import { getToday } from '../../utils/date';
 
 interface LeaveRequestSheetProps {
   visible: boolean;
@@ -13,7 +11,6 @@ interface LeaveRequestSheetProps {
 }
 
 export function LeaveRequestSheet({ visible, onClose }: LeaveRequestSheetProps) {
-  const { state, dispatch } = useApp();
   const color = useIndustryColor();
   const { isDark } = useTheme();
   const today = getToday();
@@ -22,35 +19,35 @@ export function LeaveRequestSheet({ visible, onClose }: LeaveRequestSheetProps) 
   const [endDate, setEndDate] = useState(today);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async () => {
-    if (!state.userId || !state.activeWorkspaceId) return;
-
     setIsSubmitting(true);
+    setError('');
 
     try {
-      dispatch({
-        type: 'REQUEST_AVAILABILITY',
-        record: {
-          id: uid(),
-          organizationId: state.activeWorkspaceId,
-          memberId: state.userId,
+      const res = await fetch('/api/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           type: 'leave',
-          status: 'pending',
           startDate,
           endDate,
-          notes: notes.trim(),
-          requestedById: state.userId,
-          approvedById: null,
-          createdAt: getNowISO(),
-          approvedAt: null,
-        },
+          notes: notes.trim() || undefined,
+        }),
       });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to submit leave request');
+      }
 
       setStartDate(today);
       setEndDate(today);
       setNotes('');
       onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit leave request');
     } finally {
       setIsSubmitting(false);
     }

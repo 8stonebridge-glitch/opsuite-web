@@ -3,17 +3,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClerk } from '@clerk/nextjs';
-import { useApp } from '../../../../src/store/AppContext';
-import { useCurrentName, useMyTeam, useIndustryColor, useCheckInStats, useAvailability } from '../../../../src/store/selectors';
-import { getToday, getNowISO } from '../../../../src/utils/date';
-import { uid } from '../../../../src/utils/id';
-import { useTheme } from '../../../../src/providers/ThemeProvider';
-import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
-import { Card } from '../../../../src/components/ui/Card';
-import { Avatar } from '../../../../src/components/ui/Avatar';
+import { useApp } from '@/store/AppContext';
+import { useCurrentName, useMyTeam, useIndustryColor, useCheckInStats, useAvailability } from '@/store/selectors';
+import { getToday, getNowISO } from '@/utils/date';
+import { uid } from '@/utils/id';
+import { useTheme } from '@/providers/ThemeProvider';
+import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
+import { Card } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { LeaveRequestSheet } from '../../../../src/components/availability/LeaveRequestSheet';
-import { AvailabilityHistory } from '../../../../src/components/availability/AvailabilityHistory';
+import { LeaveRequestSheet } from '@/components/availability/LeaveRequestSheet';
+import { AvailabilityHistory } from '@/components/availability/AvailabilityHistory';
 
 export default function EmployeeMoreScreen() {
   const { state, dispatch } = useApp();

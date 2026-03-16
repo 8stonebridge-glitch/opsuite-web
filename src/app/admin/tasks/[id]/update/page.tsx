@@ -1,6 +1,6 @@
 'use client';
 
-import { TaskUpdateScreen } from '../../../../../../src/components/tasks/TaskUpdateScreen';
+import { TaskUpdateScreen } from '@/components/tasks/TaskUpdateScreen';
 
 export default function OwnerTaskUpdate() {
   return <TaskUpdateScreen />;

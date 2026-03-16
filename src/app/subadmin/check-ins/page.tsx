@@ -1,13 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useApp } from '../../../../src/store/AppContext';
-import { useMyTeam, useIndustryColor } from '../../../../src/store/selectors';
-import { Card } from '../../../../src/components/ui/Card';
-import { Avatar } from '../../../../src/components/ui/Avatar';
-import { EmptyState } from '../../../../src/components/ui/EmptyState';
-import { getToday, formatHumanDate } from '../../../../src/utils/date';
-import { getCurrentWeekDays, getDayLabel } from '../../../../src/utils/checkin-helpers';
+import { useApp } from '@/store/AppContext';
+import { useMyTeam, useIndustryColor } from '@/store/selectors';
+import { Card } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { getToday, formatHumanDate } from '@/utils/date';
+import { getCurrentWeekDays, getDayLabel } from '@/utils/checkin-helpers';
 
 export default function SubAdminCheckInsScreen() {
   const { state } = useApp();

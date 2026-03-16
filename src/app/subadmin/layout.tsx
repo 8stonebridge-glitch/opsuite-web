@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useIndustryColor, useDashboardCounters } from '../../../src/store/selectors';
-import { useApp } from '../../../src/store/AppContext';
-import { useTheme } from '../../../src/providers/ThemeProvider';
+import { useIndustryColor, useDashboardCounters } from '@/store/selectors';
+import { useApp } from '@/store/AppContext';
+import { useTheme } from '@/providers/ThemeProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Home, ClipboardList, Bell, Users, Settings } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
@@ -25,9 +25,21 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const router = useRouter();
 
-  if (state.role !== 'subadmin') {
+  // Wait for ConvexDataBridge to resolve role before guarding.
+  // state.onboardingComplete is set by ConvexDataBridge after org data loads.
+  const isHydrated = state.onboardingComplete;
+
+  if (isHydrated && state.role !== 'subadmin') {
     if (typeof window !== 'undefined') router.push('/');
     return null;
+  }
+
+  if (!isHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface-50 dark:bg-surface-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-surface-200 border-t-emerald-600 dark:border-surface-700 dark:border-t-emerald-400" />
+      </div>
+    );
   }
 
   return (

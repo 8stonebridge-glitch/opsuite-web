@@ -54,6 +54,9 @@ export function ConvexDataBridge() {
   // ── 8. Availability ──
   const availabilityData = useQuery(api.availability.listForCurrentScope, hasActiveOrg ? {} : 'skip');
 
+  // ── 9. Handoffs + Check-ins ──
+  const handoffsData = useQuery(api.handoffs.listForCurrentScope, hasActiveOrg ? {} : 'skip');
+
   // ── Sync org data into AppContext ──
   useEffect(() => {
     if (!activeOrg) return;
@@ -119,6 +122,13 @@ export function ConvexDataBridge() {
     if (!availabilityData) return;
     dispatch({ type: 'SET_AVAILABILITY', availability: availabilityData });
   }, [availabilityData, dispatch]);
+
+  // ── Sync handoffs + check-ins ──
+  useEffect(() => {
+    if (!handoffsData) return;
+    dispatch({ type: 'SET_HANDOFFS', handoffs: handoffsData.handoffs });
+    dispatch({ type: 'SET_CHECKINS', checkIns: handoffsData.checkIns });
+  }, [handoffsData, dispatch]);
 
   // ── Sync teams + memberships + sites into AppContext ──
   useEffect(() => {

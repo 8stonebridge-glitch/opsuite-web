@@ -3,14 +3,10 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useApp } from '../../store/AppContext';
-import {
-  useCurrentName,
-  useCurrentRoleLabel,
-  useIndustryColor,
-} from '../../store/selectors';
+import { useIndustryColor } from '../../store/selectors';
 import { useTheme } from '../../providers/ThemeProvider';
 import { getNextStatuses } from '../../utils/task-helpers';
-import { getToday, getNowISO } from '../../utils/date';
+// date utils no longer needed — status updates go through API
 import { StatusBadge } from '../ui/Badge';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -28,11 +24,9 @@ export function TaskUpdateScreen() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const router = useRouter();
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const { isDark } = useTheme();
   const color = useIndustryColor();
-  const curName = useCurrentName();
-  const curRoleLabel = useCurrentRoleLabel();
 
   const task = state.tasks.find((t) => t.id === id);
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | ''>('');
@@ -55,66 +49,29 @@ export function TaskUpdateScreen() {
   const handleSubmit = async () => {
     if (!newStatus) return;
     setError('');
+    setIsSubmitting(true);
 
-    const today = getToday();
-    const now = getNowISO();
-
-    const isStart = newStatus === 'In Progress' && task.status === 'Open';
-    const isSubmitted = newStatus === 'Submitted';
-
-    dispatch({
-      type: 'UPDATE_TASK',
-      taskId: task.id,
-      updates: {
-        status: newStatus,
-        startedAt: isStart ? today : task.startedAt,
-        completedAt: isSubmitted ? today : task.completedAt,
-      },
-    });
-
-    if (note.trim()) {
-      dispatch({
-        type: 'ADD_AUDIT',
-        entry: {
-          taskId: task.id, role: curRoleLabel, message: note.trim(),
-          createdAt: now, dateTag: today, updateType: 'Progress Update',
-        },
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus,
+          note: note.trim() || undefined,
+        }),
       });
-    }
 
-    if (isStart) {
-      dispatch({
-        type: 'ADD_AUDIT',
-        entry: {
-          taskId: task.id, role: 'System',
-          message: `Task started on ${today} by ${curName} (${curRoleLabel}). Status: Open -> Active.`,
-          createdAt: now, dateTag: today, updateType: 'Status',
-        },
-      });
-    }
-
-    if (isSubmitted) {
-      dispatch({
-        type: 'ADD_AUDIT',
-        entry: {
-          taskId: task.id, role: 'System',
-          message: `Task submitted on ${today} by ${curName} (${curRoleLabel}). Awaiting verification.`,
-          createdAt: now, dateTag: today, updateType: 'Status',
-        },
-      });
-      if (task.assignedBy) {
-        dispatch({
-          type: 'ADD_AUDIT',
-          entry: {
-            taskId: task.id, role: 'System',
-            message: `Notification sent to ${task.assignedBy}: "${task.title}" has been submitted by ${curName}.`,
-            createdAt: now, dateTag: today, updateType: 'Notification',
-          },
-        });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to update task status');
       }
-    }
 
-    router.back();
+      router.back();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update task status');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -2,11 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { useClerk } from '@clerk/nextjs';
-import { useApp } from '../../../../src/store/AppContext';
-import { useCurrentName, useMyTeam, useIndustryColor } from '../../../../src/store/selectors';
-import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
-import { Card } from '../../../../src/components/ui/Card';
-import { Avatar } from '../../../../src/components/ui/Avatar';
+import { useApp } from '@/store/AppContext';
+import { useCurrentName, useMyTeam, useIndustryColor } from '@/store/selectors';
+import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
+import { Card } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 
 export default function SubAdminMoreScreen() {

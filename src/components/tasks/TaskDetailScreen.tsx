@@ -5,8 +5,6 @@ import { useRouter, useParams } from 'next/navigation';
 import { useApp } from '../../store/AppContext';
 import {
   useTaskAudit,
-  useCurrentName,
-  useCurrentRoleLabel,
   useIndustryColor,
   useMyTeam,
   useAllEmployees,
@@ -17,7 +15,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Select, type SelectOption } from '../ui/Select';
 import { AuditTrail } from './AuditTrail';
-import { getToday, getNowISO, formatDue, formatDateTime, isOverdue } from '../../utils/date';
+import { formatDue, formatDateTime, isOverdue } from '../../utils/date';
 import { getNextStatuses, canDelegateTask } from '../../utils/task-helpers';
 
 interface TaskDetailScreenProps {
@@ -28,11 +26,9 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const router = useRouter();
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const { isDark } = useTheme();
   const color = useIndustryColor();
-  const curName = useCurrentName();
-  const curRoleLabel = useCurrentRoleLabel();
   const task = state.tasks.find((t) => t.id === id);
   const audit = useTaskAudit(id || '');
 
@@ -88,98 +84,79 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
     : [];
   const visibleDelegateOptions = delegateOptions;
 
-  const handleDelegate = () => {
+  const callApi = async (url: string, opts: RequestInit = {}) => {
+    setIsSubmittingStatus(true);
+    setError('');
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        ...opts,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Request failed');
+      }
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Request failed');
+      return false;
+    } finally {
+      setIsSubmittingStatus(false);
+    }
+  };
+
+  const handleDelegate = async () => {
     if (!delegateToId || !task) return;
-    setError('');
-
-    const emp = allEmployees.find((e) => e.id === delegateToId);
-    if (!emp) return;
-    const now = getNowISO();
-    const today = getToday();
-
-    dispatch({
-      type: 'UPDATE_TASK',
-      taskId: task.id,
-      updates: {
-        assignee: emp.name,
-        assigneeId: emp.id,
-        delegatedAt: now,
-      },
+    const ok = await callApi(`/api/tasks/${task.id}/delegate`, {
+      body: JSON.stringify({ assigneeUserId: delegateToId }),
     });
-    dispatch({
-      type: 'ADD_AUDIT',
-      entry: {
-        taskId: task.id,
-        role: 'SubAdmin',
-        message: `Delegated to ${emp.name} by ${curName}.`,
-        createdAt: now,
-        dateTag: today,
-        updateType: 'Delegated',
-      },
-    });
-    setShowDelegate(false);
-    setDelegateToId('');
+    if (ok) {
+      setShowDelegate(false);
+      setDelegateToId('');
+    }
   };
 
-  const handleApprove = () => {
-    setError('');
-    dispatch({ type: 'UPDATE_TASK', taskId: task.id, updates: { status: 'Open', approved: true } });
-    dispatch({
-      type: 'ADD_AUDIT',
-      entry: {
-        taskId: task.id, role: curRoleLabel,
-        message: `Approved by ${curName}. Work may proceed.`,
-        createdAt: getNowISO(), dateTag: getToday(), updateType: 'Approval',
-      },
-    });
-    router.back();
+  const handleApprove = async () => {
+    const ok = await callApi(`/api/tasks/${task.id}/approve`);
+    if (ok) router.back();
   };
 
-  const handleVerify = () => {
-    setError('');
-    const wasLate = task.due && task.completedAt && task.completedAt > task.due;
-    dispatch({
-      type: 'UPDATE_TASK',
-      taskId: task.id,
-      updates: { status: 'Verified', verifiedBy: curName },
-    });
-    dispatch({
-      type: 'ADD_AUDIT',
-      entry: {
-        taskId: task.id, role: 'System',
-        message: `Verified & closed by ${curName}.${wasLate ? ' Submitted past due date.' : ''}`,
-        createdAt: getNowISO(), dateTag: getToday(), updateType: 'Verified',
-      },
-    });
-    router.back();
+  const handleVerify = async () => {
+    const ok = await callApi(`/api/tasks/${task.id}/verify`);
+    if (ok) router.back();
   };
 
-  const handleRework = () => {
-    setError('');
-    dispatch({
-      type: 'REWORK_TASK',
-      taskId: task.id,
-      reason: rejectReason || 'Rework required',
-      reworkedBy: curName,
-      currentRole: state.role,
+  const handleRework = async () => {
+    const ok = await callApi(`/api/tasks/${task.id}/rework`, {
+      body: JSON.stringify({ reason: rejectReason || 'Rework required' }),
     });
-    setShowReject(false);
-    router.back();
+    if (ok) {
+      setShowReject(false);
+      router.back();
+    }
   };
 
-  const addNote = () => {
+  const addNote = async () => {
     if (!noteText.trim()) return;
+    setIsSubmittingNote(true);
     setError('');
-
-    dispatch({
-      type: 'ADD_AUDIT',
-      entry: {
-        taskId: task.id, role: curRoleLabel,
-        message: noteText.trim(),
-        createdAt: getNowISO(), dateTag: getToday(), updateType: 'Note',
-      },
-    });
-    setNoteText('');
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/note`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: noteText.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to add note');
+      }
+      setNoteText('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add note');
+    } finally {
+      setIsSubmittingNote(false);
+    }
   };
 
   return (

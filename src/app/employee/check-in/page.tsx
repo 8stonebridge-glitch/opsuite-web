@@ -2,18 +2,17 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useApp } from '../../../../src/store/AppContext';
+import { useApp } from '@/store/AppContext';
 import {
   useIndustryColor,
-  useCurrentName,
   useMyCheckIns,
   useCheckInStats,
   useScopedTasks,
-} from '../../../../src/store/selectors';
-import { Card } from '../../../../src/components/ui/Card';
+} from '@/store/selectors';
+import { Card } from '@/components/ui/Card';
 import { Calendar, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { getToday, getNowISO } from '../../../../src/utils/date';
+import { getToday } from '@/utils/date';
 import {
   getCurrentWeekDays,
   getDayLabel,
@@ -21,16 +20,15 @@ import {
   formatCheckInDate,
   formatMonthLabel,
   getMonthDays,
-} from '../../../../src/utils/checkin-helpers';
-import type { CheckIn } from '../../../../src/types';
+} from '@/utils/checkin-helpers';
+import type { CheckIn } from '@/types';
 
 type StatsTab = 'checked' | 'missed' | 'rate' | 'streaks';
 
 export default function EmployeeCheckInScreen() {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const router = useRouter();
   const color = useIndustryColor();
-  const curName = useCurrentName();
   const myCheckIns = useMyCheckIns();
   const myTasks = useScopedTasks();
   const today = getToday();
@@ -53,36 +51,19 @@ export default function EmployeeCheckInScreen() {
   const openTasks = myTasks.filter((t) => t.status === 'Open' || t.status === 'In Progress');
 
   const handleCheckIn = async () => {
-    const nowTime = new Date();
-    const time = `${String(nowTime.getHours()).padStart(2, '0')}:${String(nowTime.getMinutes()).padStart(2, '0')}`;
-    const type = openTasks.length > 0 ? 'Tasks Logged' : 'No Tasks';
-    const summary = openTasks.length > 0
-      ? `${openTasks.length} open tasks reviewed`
-      : 'No active tasks';
-
-    dispatch({
-      type: 'ADD_CHECKIN',
-      checkIn: {
-        userId: state.userId!,
-        date: today,
-        status: 'Checked-In',
-        type,
-        checkedInAt: time,
-        summary,
-      },
-    });
-
-    dispatch({
-      type: 'ADD_AUDIT',
-      entry: {
-        taskId: null,
-        role: 'System',
-        message: `Daily check-in by ${curName}. ${summary}.`,
-        createdAt: getNowISO(),
-        dateTag: today,
-        updateType: 'Check-in',
-      },
-    });
+    try {
+      const res = await fetch('/api/handoffs/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[handleCheckIn]', data.error || 'Failed');
+      }
+    } catch (err) {
+      console.error('[handleCheckIn]', err);
+    }
   };
 
   const prevMonth = () => {

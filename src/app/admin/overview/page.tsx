@@ -1,6 +1,6 @@
 'use client';
 
-import { useApp } from '../../../../src/store/AppContext';
+import { useApp } from '@/store/AppContext';
 import {
   useBucketedTasks,
   useActiveGroups,
@@ -15,15 +15,15 @@ import {
   useAwayToday,
   useCoverageNeeded,
   useCurrentName,
-} from '../../../../src/store/selectors';
-import { KpiRow } from '../../../../src/components/overview/KpiRow';
-import { HealthCard } from '../../../../src/components/overview/HealthCard';
-import { AtRiskSection } from '../../../../src/components/performance/AtRiskSection';
-import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
-import { AvailabilityRequestCard } from '../../../../src/components/availability/AvailabilityRequestCard';
-import { Card, CardContent } from '../../../../src/components/ui/Card';
-import { Avatar } from '../../../../src/components/ui/Avatar';
-import { useSession } from '../../../../src/providers/SessionProvider';
+} from '@/store/selectors';
+import { KpiRow } from '@/components/overview/KpiRow';
+import { HealthCard } from '@/components/overview/HealthCard';
+import { AtRiskSection } from '@/components/performance/AtRiskSection';
+import { ScoreBadge } from '@/components/performance/ScoreBadge';
+import { AvailabilityRequestCard } from '@/components/availability/AvailabilityRequestCard';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
+import { useSession } from '@/providers/SessionProvider';
 import { Activity, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 
 export default function OwnerOverviewScreen() {

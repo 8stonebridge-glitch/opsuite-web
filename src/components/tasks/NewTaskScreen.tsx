@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '../../store/AppContext';
 import {
-  useCurrentName,
   useIndustryColor,
   useSitesLabel,
   useMyTeam,
@@ -14,9 +13,8 @@ import { useTheme } from '../../providers/ThemeProvider';
 import { Select, type SelectOption } from '../ui/Select';
 import { FormInput as Input } from '../ui/FormInput';
 import { Button } from '../ui/Button';
-import { uid } from '../../utils/id';
-import { getToday, getNowISO, formatDue } from '../../utils/date';
-import type { Task, Priority } from '../../types';
+import { formatDue } from '../../utils/date';
+import type { Priority } from '../../types';
 
 /** Convert a plural sitesLabel to singular properly (e.g. "Properties" -> "Property") */
 function singularize(label: string): string {
@@ -27,11 +25,10 @@ function singularize(label: string): string {
 
 export function NewTaskScreen() {
   const router = useRouter();
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const { isDark } = useTheme();
   const color = useIndustryColor();
   const sitesLabel = useSitesLabel();
-  const curName = useCurrentName();
   const myTeam = useMyTeam();
   const allEmployees = useAllEmployees();
 
@@ -91,76 +88,38 @@ export function NewTaskScreen() {
 
   const handleSubmit = async () => {
     if (!isValid) return;
-    const site = state.onboarding.sites.find((s) => s.id === siteId);
     const emp = allEmployees.find((e) => e.id === assigneeId);
-    const cat = state.categories.find((c) => c.id === categoryId);
     if (!emp) return;
 
     setError('');
+    setIsSubmitting(true);
 
-    const taskId = uid();
-    const today = getToday();
-    const now = getNowISO();
-
-    // Determine accountableLeadId based on who is being assigned
-    let accountableLeadId: string | undefined;
-    if (state.role === 'admin') {
-      if (emp.role === 'subadmin') {
-        // Admin assigns to subadmin: subadmin is the accountable lead
-        accountableLeadId = emp.id;
-      } else {
-        // Admin assigns directly to employee
-        accountableLeadId = 'admin';
-      }
-    } else if (state.role === 'subadmin') {
-      // Subadmin assigns to team member: subadmin is accountable lead
-      accountableLeadId = state.userId || undefined;
-    }
-
-    {
-      const task: Task = {
-        id: taskId,
-        title: title.trim(),
-        description: description.trim() || undefined,
-        site: site?.name || '',
-        siteId,
-        category: cat?.name,
-        priority: priority as Priority,
-        due: dueDate || null,
-        assignee: emp.name,
-        assigneeId,
-        teamId: emp.teamId || '',
-        status: 'Open',
-        assignedBy: curName,
-        assignedByRole: state.role,
-        note: note.trim() || undefined,
-        approved: true,
-        createdAt: today,
-        accountableLeadId,
-        delegatedAt: state.role === 'subadmin' ? now : undefined,
-      };
-
-      dispatch({ type: 'ADD_TASK', task });
-      dispatch({
-        type: 'ADD_AUDIT',
-        entry: {
-          taskId, role: 'System',
-          message: `Task assigned to ${emp.name} by ${curName}.${dueDate ? ` Due date: ${dueDate}.` : ''}`,
-          createdAt: now, dateTag: today, updateType: 'Assignment',
-        },
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          priority,
+          siteId: siteId || undefined,
+          teamId: emp.teamId || undefined,
+          assigneeUserId: assigneeId,
+          dueDate: dueDate || undefined,
+          note: note.trim() || undefined,
+        }),
       });
-      if (note.trim()) {
-        dispatch({
-          type: 'ADD_AUDIT',
-          entry: {
-            taskId, role: state.role === 'admin' ? 'Admin' : 'SubAdmin',
-            message: note.trim(),
-            createdAt: now, dateTag: today, updateType: 'Instruction',
-          },
-        });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to create task');
       }
 
       router.back();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create task');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

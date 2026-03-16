@@ -69,11 +69,16 @@ export function AvailabilityRequestCard({ record, approverId }: AvailabilityRequ
   const handleApprove = async () => {
     setIsSubmitting('approve');
     try {
-      dispatch({
-        type: 'APPROVE_AVAILABILITY',
-        recordId: record.id,
-        approvedById: approverId,
+      const res = await fetch(`/api/availability/${record.id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[AvailabilityApprove]', data.error || 'Failed');
+      }
+    } catch (err) {
+      console.error('[AvailabilityApprove]', err);
     } finally {
       setIsSubmitting(null);
     }
@@ -82,11 +87,16 @@ export function AvailabilityRequestCard({ record, approverId }: AvailabilityRequ
   const handleReject = async () => {
     setIsSubmitting('reject');
     try {
-      dispatch({
-        type: 'REJECT_AVAILABILITY',
-        recordId: record.id,
-        approvedById: approverId,
+      const res = await fetch(`/api/availability/${record.id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[AvailabilityReject]', data.error || 'Failed');
+      }
+    } catch (err) {
+      console.error('[AvailabilityReject]', err);
     } finally {
       setIsSubmitting(null);
     }

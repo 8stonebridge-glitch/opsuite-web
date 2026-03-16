@@ -3,16 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClerk } from '@clerk/nextjs';
-import { useApp } from '../../../../src/store/AppContext';
-import { useIndustryColor, useTeams, useAllEmployees, useOrgMode, useSitesLabel } from '../../../../src/store/selectors';
-import { useSession } from '../../../../src/providers/SessionProvider';
-import { useTheme } from '../../../../src/providers/ThemeProvider';
-import { ThemeSwitcher } from '../../../../src/components/ui/ThemeSwitcher';
-import { Card, CardContent } from '../../../../src/components/ui/Card';
-import { Avatar } from '../../../../src/components/ui/Avatar';
+import { useApp } from '@/store/AppContext';
+import { useIndustryColor, useTeams, useAllEmployees, useOrgMode, useSitesLabel } from '@/store/selectors';
+import { useSession } from '@/providers/SessionProvider';
+import { useTheme } from '@/providers/ThemeProvider';
+import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { OrgSwitcher } from '../../../../src/components/layout/OrgSwitcher';
-import { uid } from '../../../../src/utils/id';
+import { OrgSwitcher } from '@/components/layout/OrgSwitcher';
+import { uid } from '@/utils/id';
 import {
   Building2,
   Briefcase,

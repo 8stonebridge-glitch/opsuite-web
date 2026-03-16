@@ -14,15 +14,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
       <ThemeProvider>
-        <SessionProvider>
-          <AppProvider>
+        <AppProvider>
+          <SessionProvider>
             <ConvexDataBridge />
             <E2EDataBridge />
             <InboxProvider>
               {children}
             </InboxProvider>
-          </AppProvider>
-        </SessionProvider>
+          </SessionProvider>
+        </AppProvider>
       </ThemeProvider>
     </ConvexProviderWithClerk>
   );

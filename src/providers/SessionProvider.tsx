@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useApp } from '@/store/AppContext';
 
 export interface SessionUser {
   id: string;
@@ -35,6 +36,7 @@ const SessionCtx = createContext<SessionContext>({
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const { state } = useApp();
   const isPlaywrightTest = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
   const [fallbackUser, setFallbackUser] = useState<SessionUser | null>(null);
   const [isFallbackLoading, setIsFallbackLoading] = useState(false);
@@ -107,10 +109,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       user: resolvedUser,
       isLoading: resolvedLoading,
       isSignedIn: resolvedSignedIn,
-      role: resolvedSignedIn ? 'admin' : null,
+      role: resolvedSignedIn ? (state.role as SessionRole) : null,
       refresh: async () => {},
     }),
-    [resolvedUser, resolvedLoading, resolvedSignedIn],
+    [resolvedUser, resolvedLoading, resolvedSignedIn, state.role],
   );
 
   return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;

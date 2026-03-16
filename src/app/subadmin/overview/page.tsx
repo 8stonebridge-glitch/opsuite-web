@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useApp } from '../../../../src/store/AppContext';
+import { useApp } from '@/store/AppContext';
 import {
   useBucketedTasks,
   useActiveGroups,
@@ -15,14 +15,14 @@ import {
   usePendingRequests,
   useAwayToday,
   useCoverageNeeded,
-} from '../../../../src/store/selectors';
-import { KpiRow } from '../../../../src/components/overview/KpiRow';
-import { Card } from '../../../../src/components/ui/Card';
-import { ScoreBadge, BandLabel } from '../../../../src/components/performance/ScoreBadge';
-import { AtRiskSection } from '../../../../src/components/performance/AtRiskSection';
-import { AvailabilityRequestCard } from '../../../../src/components/availability/AvailabilityRequestCard';
-import { Avatar } from '../../../../src/components/ui/Avatar';
-import { computeEmployeePerformance } from '../../../../src/utils/performance';
+} from '@/store/selectors';
+import { KpiRow } from '@/components/overview/KpiRow';
+import { Card } from '@/components/ui/Card';
+import { ScoreBadge, BandLabel } from '@/components/performance/ScoreBadge';
+import { AtRiskSection } from '@/components/performance/AtRiskSection';
+import { AvailabilityRequestCard } from '@/components/availability/AvailabilityRequestCard';
+import { Avatar } from '@/components/ui/Avatar';
+import { computeEmployeePerformance } from '@/utils/performance';
 
 export default function SubAdminOverviewScreen() {
   const { state } = useApp();

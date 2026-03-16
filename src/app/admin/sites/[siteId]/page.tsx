@@ -1,13 +1,13 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useApp } from '../../../../../src/store/AppContext';
-import { useSiteTasks, useSiteHealth, useCheckInHealth, useIndustryColor, useTeams } from '../../../../../src/store/selectors';
-import { isOverdue } from '../../../../../src/utils/date';
-import { TaskPreviewSection } from '../../../../../src/components/overview/TaskPreviewSection';
-import { Card } from '../../../../../src/components/ui/Card';
-import { Avatar } from '../../../../../src/components/ui/Avatar';
-import { useTheme } from '../../../../../src/providers/ThemeProvider';
+import { useApp } from '@/store/AppContext';
+import { useSiteTasks, useSiteHealth, useCheckInHealth, useIndustryColor, useTeams } from '@/store/selectors';
+import { isOverdue } from '@/utils/date';
+import { TaskPreviewSection } from '@/components/overview/TaskPreviewSection';
+import { Card } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
+import { useTheme } from '@/providers/ThemeProvider';
 
 export default function SiteDetailScreen() {
   const { siteId } = useParams<{ siteId: string }>();

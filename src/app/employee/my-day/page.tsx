@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useApp } from '../../../../src/store/AppContext';
+import { useApp } from '@/store/AppContext';
 import {
   useMyDayData,
   useMyPerformance,
@@ -11,16 +11,15 @@ import {
   useHandoffProgress,
   useHasCompletedHandoffToday,
   useIsProtectedUnavailableToday,
-} from '../../../../src/store/selectors';
-import { getToday, getNowISO } from '../../../../src/utils/date';
-import { buildHandoffSummary } from '../../../../src/utils/handoff-helpers';
-import { TaskPreviewSection } from '../../../../src/components/overview/TaskPreviewSection';
-import { PerformanceCard } from '../../../../src/components/performance/PerformanceCard';
-import { Card } from '../../../../src/components/ui/Card';
-import { useTheme } from '../../../../src/providers/ThemeProvider';
+} from '@/store/selectors';
+import { getToday } from '@/utils/date';
+import { TaskPreviewSection } from '@/components/overview/TaskPreviewSection';
+import { PerformanceCard } from '@/components/performance/PerformanceCard';
+import { Card } from '@/components/ui/Card';
+import { useTheme } from '@/providers/ThemeProvider';
 
 export default function EmployeeMyDayScreen() {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const router = useRouter();
   const { isDark } = useTheme();
   const color = useIndustryColor();
@@ -37,59 +36,40 @@ export default function EmployeeMyDayScreen() {
   const handoffDone = useHasCompletedHandoffToday();
 
   const handleNoChange = async (taskId: string) => {
-    dispatch({
-      type: 'ADD_AUDIT',
-      entry: {
-        taskId,
-        role: 'Employee',
-        message: `No change reported by ${name}.`,
-        createdAt: getNowISO(),
-        dateTag: today,
-        updateType: 'No Change',
-      },
-    });
-    dispatch({
-      type: 'UPDATE_TASK',
-      taskId,
-      updates: { lastNoChangeAt: today },
-    });
+    setIsSubmittingNoChangeId(taskId);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/no-change`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[handleNoChange]', data.error || 'Failed');
+      }
+    } catch (err) {
+      console.error('[handleNoChange]', err);
+    } finally {
+      setIsSubmittingNoChangeId(null);
+    }
   };
 
   const handleCompleteHandoff = async () => {
-    const summary = buildHandoffSummary(state.tasks, state.userId || '', state.audit);
-    dispatch({ type: 'ADD_HANDOFF', handoff: summary });
-
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    dispatch({
-      type: 'ADD_CHECKIN',
-      checkIn: {
-        userId: state.userId || '',
-        date: today,
-        status: 'Checked-In',
-        type: summary.type === 'tasks_reviewed' ? 'Tasks Reviewed' : 'No Tasks',
-        checkedInAt: time,
-        summary:
-          summary.type === 'tasks_reviewed'
-            ? `${summary.tasksSummary.length} tasks reviewed`
-            : 'No active tasks',
-      },
-    });
-
-    dispatch({
-      type: 'ADD_AUDIT',
-      entry: {
-        taskId: null,
-        role: 'System',
-        message:
-          summary.type === 'tasks_reviewed'
-            ? `Daily handoff by ${name}. ${summary.tasksSummary.length} tasks reviewed.`
-            : `Daily handoff by ${name}. No active tasks.`,
-        createdAt: getNowISO(),
-        dateTag: today,
-        updateType: summary.type === 'tasks_reviewed' ? 'Daily Handoff' : 'No Tasks Today',
-      },
-    });
+    setIsSubmittingHandoff(true);
+    try {
+      const res = await fetch('/api/handoffs/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[handleCompleteHandoff]', data.error || 'Failed');
+      }
+    } catch (err) {
+      console.error('[handleCompleteHandoff]', err);
+    } finally {
+      setIsSubmittingHandoff(false);
+    }
   };
 
   const handleNoTasksHandoff = async () => {

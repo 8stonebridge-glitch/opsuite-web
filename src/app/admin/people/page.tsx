@@ -1,20 +1,20 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useEmployeeSummaries, useAllEmployeePerformances, useTeams, useAvailability, useOrgMode, useAllEmployees } from '../../../../src/store/selectors';
-import { getActiveAvailability } from '../../../../src/utils/availability-helpers';
-import { getToday } from '../../../../src/utils/date';
-import type { Role } from '../../../../src/types';
-import { Avatar } from '../../../../src/components/ui/Avatar';
-import { Card } from '../../../../src/components/ui/Card';
-import { EmptyState } from '../../../../src/components/ui/EmptyState';
-import { EmployeeSummaryCard } from '../../../../src/components/people/EmployeeSummaryCard';
-import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
-import { Select } from '../../../../src/components/ui/Select';
+import { useEmployeeSummaries, useAllEmployeePerformances, useTeams, useAvailability, useOrgMode, useAllEmployees } from '@/store/selectors';
+import { getActiveAvailability } from '@/utils/availability-helpers';
+import { getToday } from '@/utils/date';
+import type { Role } from '@/types';
+import { Avatar } from '@/components/ui/Avatar';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { EmployeeSummaryCard } from '@/components/people/EmployeeSummaryCard';
+import { ScoreBadge } from '@/components/performance/ScoreBadge';
+import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { useApp } from '../../../../src/store/AppContext';
-import { useIndustryColor } from '../../../../src/store/selectors';
-import { uid } from '../../../../src/utils/id';
+import { useApp } from '@/store/AppContext';
+import { useIndustryColor } from '@/store/selectors';
+import { uid } from '@/utils/id';
 
 const PREVIEW_LIMIT = 8;
 

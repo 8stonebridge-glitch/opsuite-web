@@ -1,15 +1,15 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useApp } from '../../../../src/store/AppContext';
-import { useMyTeam, useIndustryColor, useAllEmployeePerformances, useAvailability } from '../../../../src/store/selectors';
-import { isStalledTask } from '../../../../src/utils/task-helpers';
-import { getToday } from '../../../../src/utils/date';
-import { getActiveAvailability } from '../../../../src/utils/availability-helpers';
-import { Avatar } from '../../../../src/components/ui/Avatar';
-import { Card } from '../../../../src/components/ui/Card';
-import { EmptyState } from '../../../../src/components/ui/EmptyState';
-import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
+import { useApp } from '@/store/AppContext';
+import { useMyTeam, useIndustryColor, useAllEmployeePerformances, useAvailability } from '@/store/selectors';
+import { isStalledTask } from '@/utils/task-helpers';
+import { getToday } from '@/utils/date';
+import { getActiveAvailability } from '@/utils/availability-helpers';
+import { Avatar } from '@/components/ui/Avatar';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ScoreBadge } from '@/components/performance/ScoreBadge';
 
 export default function SubAdminPeopleScreen() {
   const { state } = useApp();
