@@ -1,7 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useIndustryColor, useDashboardCounters } from '../../../src/store/selectors';
 import { useApp } from '../../../src/store/AppContext';
 import { useTheme } from '../../../src/providers/ThemeProvider';
@@ -20,15 +21,17 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const color = useIndustryColor();
   const counters = useDashboardCounters();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const { isDark } = useTheme();
   const pathname = usePathname();
-  const router = useRouter();
 
-  if (state.role !== 'admin') {
-    if (typeof window !== 'undefined') router.push('/');
-    return null;
-  }
+  // Ensure local state role is 'admin' when this layout mounts.
+  // Signed-in users are always admin for now (Phase 2 will resolve from backend).
+  useEffect(() => {
+    if (state.role !== 'admin') {
+      dispatch({ type: 'SWITCH_USER', role: 'admin', userId: null });
+    }
+  }, [state.role, dispatch]);
 
   return (
     <ProtectedRoute>

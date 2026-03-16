@@ -1,155 +1,38 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useApp } from '@/store/AppContext';
 import { useSession } from '@/providers/SessionProvider';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Crown, Users, UserCircle, LogIn } from 'lucide-react';
-import Link from 'next/link';
+import { Crown } from 'lucide-react';
 
-const roles = [
-  {
-    key: 'admin' as const,
-    label: 'Admin / Owner',
-    description: 'Full access to all teams, sites, and tasks',
-    icon: Crown,
-    accent: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-100 dark:bg-emerald-900/40',
-    ring: 'hover:ring-emerald-500/30',
-  },
-  {
-    key: 'subadmin' as const,
-    label: 'Subadmin / Team Lead',
-    description: "Manage your team's tasks and check-ins",
-    icon: Users,
-    accent: 'text-indigo-600 dark:text-indigo-400',
-    bg: 'bg-indigo-100 dark:bg-indigo-900/40',
-    ring: 'hover:ring-indigo-500/30',
-  },
-  {
-    key: 'employee' as const,
-    label: 'Employee',
-    description: 'View your tasks, check in daily',
-    icon: UserCircle,
-    accent: 'text-blue-600 dark:text-blue-400',
-    bg: 'bg-blue-100 dark:bg-blue-900/40',
-    ring: 'hover:ring-blue-500/30',
-  },
-] as const;
-
+/**
+ * Root page — acts as auth-aware entry point.
+ *
+ * - Loading: spinner
+ * - Signed in: redirect to /admin/overview (all signed-in users are admin for now)
+ * - Not signed in: redirect to /sign-in
+ */
 export default function HomePage() {
-  const { state, dispatch } = useApp();
   const { isLoading, isSignedIn } = useSession();
   const router = useRouter();
 
-  const handleRoleSelect = (role: 'admin' | 'subadmin' | 'employee') => {
-    const userIdMap: Record<string, string | null> = {
-      admin: null,
-      subadmin: state.teams?.[0]?.lead?.id || null,
-      employee: state.teams?.[0]?.members?.[0]?.id || null,
-    };
+  useEffect(() => {
+    if (isLoading) return;
+    if (isSignedIn) {
+      router.replace('/admin/overview');
+    } else {
+      router.replace('/sign-in');
+    }
+  }, [isLoading, isSignedIn, router]);
 
-    dispatch({ type: 'SWITCH_USER', role, userId: userIdMap[role] });
-
-    const pathMap: Record<string, string> = {
-      admin: '/admin/overview',
-      subadmin: '/subadmin/overview',
-      employee: '/employee/my-day',
-    };
-    router.push(pathMap[role]);
-  };
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50/60 via-white to-white dark:from-emerald-950/20 dark:via-gray-950 dark:to-gray-950">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Not signed in — show sign-in prompt
-  if (!isSignedIn) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50/60 via-white to-white dark:from-emerald-950/20 dark:via-gray-950 dark:to-gray-950">
-        <div className="w-full max-w-md px-6">
-          <div className="text-center mb-10">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-600/20">
-              <Crown className="h-7 w-7 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-1">
-              OpSuite
-            </h1>
-            <p className="text-sm text-muted-foreground mb-8">
-              Operations management for teams
-            </p>
-          </div>
-
-          <Link
-            href="/sign-in"
-            className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-md shadow-emerald-600/20"
-          >
-            <LogIn className="h-4 w-4" />
-            Sign in to get started
-          </Link>
-
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            Don&apos;t have an account?{' '}
-            <Link href="/sign-up" className="text-emerald-600 hover:underline font-medium">
-              Sign up
-            </Link>
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Signed in — show demo role switcher
+  // Always show spinner — this page is a redirect-only entry point
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50/60 via-white to-white dark:from-emerald-950/20 dark:via-gray-950 dark:to-gray-950">
-      <div className="w-full max-w-md px-6">
-        {/* Branded header */}
-        <div className="text-center mb-10">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-600/20">
-            <Crown className="h-7 w-7 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-1">
-            OpSuite
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Choose a role to get started
-          </p>
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-600/20">
+          <Crown className="h-7 w-7 text-white" />
         </div>
-
-        {/* Role cards */}
-        <div className="flex flex-col gap-3">
-          {roles.map(({ key, label, description, icon: Icon, accent, bg, ring }) => (
-            <Card
-              key={key}
-              className={`cursor-pointer transition-all hover:ring-2 hover:shadow-md ${ring}`}
-              onClick={() => handleRoleSelect(key)}
-            >
-              <CardContent className="flex items-center gap-4">
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${bg}`}
-                >
-                  <Icon className={`h-5 w-5 ${accent}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">
-                    {label}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {description}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
       </div>
     </div>
   );
