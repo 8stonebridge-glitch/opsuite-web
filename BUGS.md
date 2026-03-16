@@ -95,3 +95,67 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/admin/overview
 - `ba14f0d` — fix: rename proxy.ts to middleware.ts and simplify root redirect
 - `dc6226f` — fix: sign out uses Clerk signOut instead of navigating to /
 - `8f68af0` — fix: configure Clerk redirect URLs for sign-in/sign-out flow
+
+---
+
+## BUG-002: All Users See "Sunday Okeke" as Admin Name
+
+**Date:** 2026-03-16
+**Severity:** High
+**Status:** Resolved
+
+### Symptom
+Every user who signs up or signs in sees "Sunday Okeke" as the admin name in the overview greeting, profile card, and sidebar — regardless of who they actually are.
+
+### Root Cause
+The demo/seed data in `AppContext.tsx` has a hardcoded constant:
+
+```typescript
+const DEMO_ADMIN = 'Sunday Okeke';
+```
+
+This value is stored in `state.onboarding.adminName` and used by `useCurrentName()` in `selectors.ts`:
+
+```typescript
+export function useCurrentName(): string {
+  const { state } = useApp();
+  if (state.role === 'admin') return state.onboarding.adminName || 'Admin';
+  // ...
+}
+```
+
+All pages and components that call `useCurrentName()` display the hardcoded seed name instead of the actual signed-in Clerk user's name.
+
+### Fix
+Updated pages to prefer the Clerk session user's name over the seed data name:
+
+**File: `src/app/admin/overview/page.tsx`**
+```tsx
+// Before
+const name = useCurrentName(); // Always returns "Sunday Okeke"
+
+// After
+const { user: sessionUser } = useSession();
+const demoName = useCurrentName();
+const name = sessionUser?.name || demoName; // Uses Clerk user name
+```
+
+**File: `src/app/admin/more/page.tsx`** (already fixed)
+```tsx
+const { user } = useSession();
+const displayName = user?.name || state.onboarding.adminName || 'Admin';
+```
+
+**File: `src/app/admin/layout.tsx`** (sidebar user info)
+```tsx
+// Uses session user directly
+{user && (
+  <p>{user.name}</p>
+  <p>{user.email}</p>
+)}
+```
+
+### Lessons Learned
+- Seed/demo data should never be treated as the source of truth for user identity once real auth is in place.
+- When migrating from demo mode to real auth, audit everywhere `useCurrentName()` and `state.onboarding.adminName` are used.
+- The session provider (`useSession()`) should be the single source of truth for the signed-in user's identity.

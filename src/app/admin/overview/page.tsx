@@ -23,12 +23,16 @@ import { ScoreBadge } from '../../../../src/components/performance/ScoreBadge';
 import { AvailabilityRequestCard } from '../../../../src/components/availability/AvailabilityRequestCard';
 import { Card, CardContent } from '../../../../src/components/ui/Card';
 import { Avatar } from '../../../../src/components/ui/Avatar';
+import { useSession } from '../../../../src/providers/SessionProvider';
 import { Activity, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 
 export default function OwnerOverviewScreen() {
   const { state } = useApp();
   const color = useIndustryColor();
-  const name = useCurrentName();
+  const { user: sessionUser } = useSession();
+  const demoName = useCurrentName();
+  // Prefer actual Clerk user name over seed data name
+  const name = sessionUser?.name || demoName;
   const orgMode = useOrgMode();
   const isDirect = orgMode === 'direct';
   const teams = useTeams();
