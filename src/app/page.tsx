@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/providers/SessionProvider';
 import { useApp } from '@/store/AppContext';
@@ -13,11 +13,21 @@ import { useApp } from '@/store/AppContext';
  * 3. admin                      -> /admin/overview
  * 4. subadmin                   -> /subadmin/overview
  * 5. employee                   -> /employee/my-day
+ *
+ * Falls back to /admin/overview after 6s if Convex data never resolves,
+ * to avoid an infinite spinner.
  */
 export default function HomePage() {
   const router = useRouter();
   const { isLoading, isSignedIn } = useSession();
   const { state } = useApp();
+  const [timedOut, setTimedOut] = useState(false);
+
+  // Fallback timer: if Convex data never resolves, stop waiting
+  useEffect(() => {
+    const timer = setTimeout(() => setTimedOut(true), 6000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
@@ -27,8 +37,14 @@ export default function HomePage() {
       return;
     }
 
-    // Wait for ConvexDataBridge to resolve org/role
-    if (!state.onboardingComplete) return;
+    // Wait for ConvexDataBridge to resolve org/role (or timeout)
+    if (!state.onboardingComplete && !timedOut) return;
+
+    // If timed out without org data, send to onboarding
+    if (!state.onboardingComplete && timedOut) {
+      router.replace('/onboarding/org-name');
+      return;
+    }
 
     switch (state.role) {
       case 'subadmin':
@@ -42,7 +58,7 @@ export default function HomePage() {
         router.replace('/admin/overview');
         break;
     }
-  }, [isLoading, isSignedIn, state.onboardingComplete, state.role, router]);
+  }, [isLoading, isSignedIn, state.onboardingComplete, state.role, timedOut, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface-50 dark:bg-surface-950">

@@ -17,9 +17,14 @@ import type { Team, Employee, Role, Site } from '@/types';
  */
 export function ConvexDataBridge() {
   const { dispatch } = useApp();
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated, isLoading: isConvexLoading } = useConvexAuth();
   const syncFromAuth = useMutation(api.users.syncFromAuth);
   const hasSynced = useRef(false);
+
+  // Debug: log auth state changes so we can diagnose stuck spinners
+  useEffect(() => {
+    console.log('[ConvexDataBridge] auth state:', { isConvexLoading, isAuthenticated });
+  }, [isConvexLoading, isAuthenticated]);
 
   // ── 1. User viewer (check if auth is active) ──
   // Only query when authenticated to avoid "Unauthenticated" errors
