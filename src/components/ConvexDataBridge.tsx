@@ -160,8 +160,12 @@ export function ConvexDataBridge() {
             id: String(leadEntry.user._id),
             name: leadEntry.user.name,
             role: 'subadmin' as Role,
+            email: leadEntry.user.email,
+            phone: leadEntry.user.phone,
             teamId,
             teamName: ct.name,
+            siteId: leadEntry.membership.siteIds?.[0] ? String(leadEntry.membership.siteIds[0]) : undefined,
+            siteName: leadEntry.membership.siteIds?.[0] ? siteMap.get(String(leadEntry.membership.siteIds[0])) : undefined,
           }
         : {
             id: 'unknown',
@@ -175,6 +179,8 @@ export function ConvexDataBridge() {
         id: String(m.user._id),
         name: m.user.name,
         role: 'employee' as Role,
+        email: m.user.email,
+        phone: m.user.phone,
         teamId,
         teamName: ct.name,
         siteId: m.membership.siteIds?.[0] ? String(m.membership.siteIds[0]) : undefined,
@@ -196,7 +202,25 @@ export function ConvexDataBridge() {
       name: s.name,
     }));
 
-    dispatch({ type: 'SYNC_CONVEX_DATA', teams, sites });
+    const teamLinkedIds = new Set(
+      teams.flatMap((team) => [team.lead.id, ...team.members.map((member) => member.id)]),
+    );
+
+    const standaloneEmployees: Employee[] = convexMembers
+      .filter((entry: any) => entry.membership.role !== 'owner_admin')
+      .filter((entry: any) => !teamLinkedIds.has(String(entry.user._id)))
+      .map((entry: any) => ({
+        id: String(entry.user._id),
+        name: entry.user.name,
+        role: entry.membership.role === 'subadmin' ? ('subadmin' as Role) : ('employee' as Role),
+        email: entry.user.email,
+        phone: entry.user.phone,
+        siteId: entry.membership.siteIds?.[0] ? String(entry.membership.siteIds[0]) : undefined,
+        siteName: entry.membership.siteIds?.[0] ? siteMap.get(String(entry.membership.siteIds[0])) : undefined,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    dispatch({ type: 'SYNC_CONVEX_DATA', teams, sites, standaloneEmployees });
   }, [teamsData, membershipsData, sitesData, dispatch]);
 
   return null;

@@ -9,7 +9,7 @@ import type { Task, TaskStatus } from '../../types';
 const STATUS_COLORS: Record<TaskStatus, string> = {
   'Open': '#6b7280',
   'In Progress': '#3b82f6',
-  'Completed': '#059669',
+  'Submitted': '#059669',
   'Verified': '#9ca3af',
   'Pending Approval': '#d97706',
 };

@@ -208,3 +208,105 @@ When using Clerk's pre-built `<SignIn />` component, this worked by coincidence 
 
 ### Related Commits
 - `132f1f8` — fix: add signInUrl/signUpUrl to ClerkProvider to prevent redirect to hosted form
+
+---
+
+## BUG-004: Custom Sign-In and Sign-Up Bounce Back to Sign-In After Success
+
+**Date:** 2026-03-16
+**Severity:** Critical
+**Status:** Resolved
+
+### Symptom
+After entering valid credentials in the custom sign-in form, the app would appear to succeed and then land back on the Clerk sign-in form instead of staying in the app. The same risk existed on the custom sign-up flow after email verification completed.
+
+### Root Cause
+The custom auth pages were finalizing the Clerk session and then immediately pushing to a middleware-protected route:
+
+```tsx
+await signIn.finalize();
+router.push('/admin/overview');
+```
+
+and:
+
+```tsx
+await signUp.finalize();
+router.push('/admin/overview');
+```
+
+This created a race condition:
+
+1. The client finished `finalize()`
+2. The browser immediately navigated to `/admin/overview`
+3. Clerk middleware on the server checked auth for that request
+4. In some cases the session cookie was not yet fully visible to the server
+5. Middleware treated the request as unauthenticated and redirected back to `/sign-in`
+
+So the issue was not bad credentials or bad Clerk keys. It was a timing bug between custom auth completion and the first request to a protected route.
+
+### Fix
+We changed both custom auth pages to let Clerk control the final session activation and navigation step through `finalize({ navigate })` instead of manually calling `router.push()` right after finalization.
+
+**File: `src/app/sign-in/[[...sign-in]]/page.tsx`**
+```tsx
+// Before
+await signIn.finalize();
+router.push('/admin/overview');
+
+// After
+await signIn.finalize({
+  navigate: async ({ decorateUrl }) => {
+    const targetUrl = decorateUrl(POST_SIGN_IN_URL);
+    if (/^https?:\/\//.test(targetUrl)) {
+      window.location.assign(targetUrl);
+      return;
+    }
+    router.replace(targetUrl);
+  },
+});
+```
+
+**File: `src/app/sign-up/[[...sign-up]]/page.tsx`**
+```tsx
+// Before
+await signUp.finalize();
+router.push('/admin/overview');
+
+// After
+await signUp.finalize({
+  navigate: async ({ decorateUrl }) => {
+    const targetUrl = decorateUrl(POST_SIGN_UP_URL);
+    if (/^https?:\/\//.test(targetUrl)) {
+      window.location.assign(targetUrl);
+      return;
+    }
+    router.replace(targetUrl);
+  },
+});
+```
+
+We also aligned Google SSO in both files to use the same post-auth redirect target instead of hardcoding `/admin/overview` separately.
+
+### Why This Fix Works
+- Clerk now owns the final active-session handoff and redirect timing
+- `decorateUrl()` applies Clerk's session-safe redirect behavior
+- we no longer force a client-side navigation into middleware before the authenticated session is ready on the server
+
+### Correct Auth Flow After Fix
+1. User completes sign-in or sign-up in the custom form
+2. Clerk finalizes the session
+3. Clerk performs the redirect through the `navigate` callback
+4. The next request to `/admin/overview` arrives with a valid authenticated session
+5. Middleware allows the request through instead of redirecting back to sign-in
+
+### Lessons Learned
+- With custom Clerk flows, `finalize()` plus an immediate `router.push()` can still be too early for the first protected navigation
+- The auth problem was not in the UI itself but in the transition from client auth completion to server middleware protection
+- When a custom auth flow must enter a protected route immediately, let Clerk drive the final redirect step
+- Sign-in and sign-up should be fixed together if they share the same session activation pattern
+
+### Related Files
+- `src/app/sign-in/[[...sign-in]]/page.tsx`
+- `src/app/sign-up/[[...sign-up]]/page.tsx`
+- `src/middleware.ts`

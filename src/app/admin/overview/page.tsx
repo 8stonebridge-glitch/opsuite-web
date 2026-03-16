@@ -233,7 +233,7 @@ export default function OwnerOverviewScreen() {
                     />
                     <QuickStat
                       icon={<TrendingUp className="size-4 text-emerald-500" />}
-                      label="Completed"
+                      label="Submitted"
                       value={done.length}
                       border
                     />

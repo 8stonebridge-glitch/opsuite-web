@@ -97,7 +97,7 @@ export function tasksBlockedByAbsence(
 
   return tasks.filter((t) => {
     if (t.assigneeId !== memberId) return false;
-    if (t.status === 'Verified' || t.status === 'Completed') return false;
+    if (t.status === 'Verified' || t.status === 'Submitted') return false;
 
     // Critical priority
     if (t.priority === 'critical') return true;

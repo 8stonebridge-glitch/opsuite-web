@@ -59,8 +59,8 @@ export default function EmployeeMoreScreen() {
     });
   };
 
-  const completedCount = state.tasks.filter(
-    (t) => t.assigneeId === state.userId && (t.status === 'Completed' || t.status === 'Verified')
+  const submittedCount = state.tasks.filter(
+    (t) => t.assigneeId === state.userId && (t.status === 'Submitted' || t.status === 'Verified')
   ).length;
 
   const myRecords = availability.filter((r) => r.memberId === state.userId);
@@ -118,7 +118,7 @@ export default function EmployeeMoreScreen() {
               Personal
             </p>
             <SettingRow icon="🔥" label="Current Streak" value={`${stats.currentStreak} days`} />
-            <SettingRow icon="✅" label="Tasks Completed" value={String(completedCount)} />
+            <SettingRow icon="✅" label="Tasks Submitted" value={String(submittedCount)} />
             <SettingRow icon="🏢" label="Organization" value={state.onboarding.orgName} last />
           </Card>
 

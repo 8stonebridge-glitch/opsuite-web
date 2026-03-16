@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,16 +13,90 @@ const FEATURES = [
   { icon: Shield, label: 'Real-Time Visibility', desc: 'Live dashboards, audit trails, and performance insights' },
 ];
 
+const POST_SIGN_IN_URL =
+  process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL ||
+  process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL ||
+  process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL ||
+  '/admin/overview';
+
 export default function SignInPage() {
   const { signIn } = useSignIn();
   const router = useRouter();
+  const transferAttempted = useRef(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
+  const clientTrustFactor = signIn?.supportedSecondFactors?.find((factor) => factor.strategy === 'email_code');
+  const verificationTarget =
+    clientTrustFactor && 'safeIdentifier' in clientTrustFactor
+      ? clientTrustFactor.safeIdentifier
+      : email;
+
+  const finalizeSignIn = useCallback(async () => {
+    if (!signIn) return;
+
+    const { error: finalizeError } = await signIn.finalize({
+      navigate: async ({ decorateUrl }) => {
+        const targetUrl = decorateUrl(POST_SIGN_IN_URL);
+
+        if (/^https?:\/\//.test(targetUrl)) {
+          window.location.assign(targetUrl);
+          return;
+        }
+
+        router.replace(targetUrl);
+      },
+    });
+
+    if (finalizeError) {
+      setError(finalizeError.message || 'Unable to finish signing in');
+    }
+  }, [router, signIn]);
+
+  useEffect(() => {
+    if (!signIn || transferAttempted.current) {
+      return;
+    }
+
+    const handleTransfer = async () => {
+      if (!signIn.isTransferable) {
+        return;
+      }
+
+      transferAttempted.current = true;
+      setError('');
+      setLoading(true);
+
+      try {
+        const { error: transferError } = await signIn.create({ transfer: true });
+
+        if (transferError) {
+          setError(transferError.message || 'We could not finish signing you in.');
+          transferAttempted.current = false;
+          return;
+        }
+
+        if (signIn.status === 'complete') {
+          await finalizeSignIn();
+          return;
+        }
+
+        transferAttempted.current = false;
+      } catch (err: any) {
+        setError(err.errors?.[0]?.longMessage || err.message || 'We could not finish signing you in.');
+        transferAttempted.current = false;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void handleTransfer();
+  }, [finalizeSignIn, signIn]);
 
   const handleGoogle = async () => {
     if (!signIn) return;
@@ -30,7 +104,7 @@ export default function SignInPage() {
       const { error } = await signIn.sso({
         strategy: 'oauth_google',
         redirectUrl: '/sign-in/sso-callback',
-        redirectCallbackUrl: '/admin/overview',
+        redirectCallbackUrl: POST_SIGN_IN_URL,
       });
       if (error) setError(error.message || 'Google sign-in failed');
     } catch (err: any) {
@@ -45,18 +119,18 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      const { error } = await signIn.create({ identifier: email.trim() });
+      const { error } = await signIn.create({
+        identifier: email.trim(),
+      });
 
       if (error) {
-        setError(error.message || 'Something went wrong');
-      } else if (signIn.status === 'needs_first_factor') {
-        setStep('password');
-      } else if (signIn.status === 'complete') {
-        await signIn.finalize();
-        router.push('/admin/overview');
+        setError(error.message || 'We could not continue with that email address.');
+        return;
       }
+
+      setStep('password');
     } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage || err.message || 'Something went wrong');
+      setError(err.errors?.[0]?.longMessage || err.message || 'We could not continue with that email address.');
     } finally {
       setLoading(false);
     }
@@ -64,21 +138,57 @@ export default function SignInPage() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signIn || !password) return;
+    if (!signIn || !email.trim() || !password) return;
     setError('');
     setLoading(true);
 
     try {
-      const { error } = await signIn.password({ password });
+      const { error } = await signIn.password({
+        password,
+      });
 
       if (error) {
         setError(error.message || 'Invalid password');
       } else if (signIn.status === 'complete') {
-        await signIn.finalize();
-        router.push('/admin/overview');
+        await finalizeSignIn();
+      } else if (signIn.status === 'needs_client_trust') {
+        const { error: sendError } = await signIn.mfa.sendEmailCode();
+
+        if (sendError) {
+          setError(sendError.message || 'We could not send your verification code.');
+        } else {
+          setVerificationCode('');
+        }
+      } else {
+        setError('Additional verification is required to finish signing in.');
       }
     } catch (err: any) {
       setError(err.errors?.[0]?.longMessage || err.message || 'Invalid password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClientTrustVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signIn || !verificationCode.trim()) return;
+    setError('');
+    setLoading(true);
+
+    try {
+      const { error } = await signIn.mfa.verifyEmailCode({
+        code: verificationCode.trim(),
+      });
+
+      if (error) {
+        setError(error.message || 'Invalid verification code');
+      } else if (signIn.status === 'complete') {
+        await finalizeSignIn();
+      } else {
+        setError('We still need a little more verification to finish signing you in.');
+      }
+    } catch (err: any) {
+      setError(err.errors?.[0]?.longMessage || err.message || 'Invalid verification code');
     } finally {
       setLoading(false);
     }
@@ -138,7 +248,9 @@ export default function SignInPage() {
 
         <div className="w-full max-w-[380px]">
           <h2 className="text-title text-surface-900 dark:text-surface-100 mb-1.5">Welcome back</h2>
-          <p className="text-caption text-surface-500 dark:text-surface-400 mb-8">Sign in to your account to continue</p>
+          <p className="text-caption text-surface-500 dark:text-surface-400 mb-8">
+            Sign in with the credentials your admin gave you, or use your admin account to manage your organization.
+          </p>
 
           {/* Google */}
           <button
@@ -194,6 +306,61 @@ export default function SignInPage() {
                 Continue
               </button>
             </form>
+          ) : signIn?.status === 'needs_client_trust' ? (
+            <form onSubmit={handleClientTrustVerify} className="space-y-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('password');
+                  setVerificationCode('');
+                  setError('');
+                }}
+                className="text-caption text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 mb-1 flex items-center gap-1"
+              >
+                &larr; Back
+              </button>
+
+              <div>
+                <h3 className="text-caption font-semibold text-surface-900 dark:text-surface-100 mb-1.5">
+                  Verify this sign-in
+                </h3>
+                <p className="text-caption text-surface-500 dark:text-surface-400">
+                  Enter the code sent to{' '}
+                  <span className="font-medium text-surface-700 dark:text-surface-300">{verificationTarget}</span>
+                  {' '}to finish signing in.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="verificationCode" className="block text-caption font-medium text-surface-700 dark:text-surface-300 mb-1.5">
+                  Verification code
+                </label>
+                <input
+                  id="verificationCode"
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="Enter code"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-caption text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors text-center tracking-[0.3em] text-lg font-mono"
+                />
+              </div>
+
+              {error && (
+                <p className="text-caption text-red-500 dark:text-red-400">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !verificationCode.trim()}
+                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-caption font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                Verify & continue
+              </button>
+            </form>
           ) : (
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <button
@@ -246,9 +413,9 @@ export default function SignInPage() {
           )}
 
           <p className="text-center text-caption text-surface-500 dark:text-surface-400 mt-8">
-            Don&apos;t have an account?{' '}
+            Setting up OpSuite for your organization?{' '}
             <Link href="/sign-up" className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-semibold">
-              Sign up
+              Create admin account
             </Link>
           </p>
         </div>

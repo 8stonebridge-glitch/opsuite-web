@@ -22,7 +22,7 @@ export default function SiteDetailScreen() {
   const health = useSiteHealth(siteId!);
 
   const active = siteTasks.filter((t) => t.status === 'Open' || t.status === 'In Progress');
-  const review = siteTasks.filter((t) => t.status === 'Pending Approval' || t.status === 'Completed');
+  const review = siteTasks.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted');
   const done = siteTasks.filter((t) => t.status === 'Verified');
 
   const teamIdsAtSite = [...new Set(siteTasks.map((t) => t.teamId))];

@@ -7,6 +7,7 @@ import { SessionProvider } from '@/providers/SessionProvider';
 import { AppProvider } from '@/store/AppContext';
 import { InboxProvider } from '@/components/inbox/InboxProvider';
 import { ConvexDataBridge } from '@/components/ConvexDataBridge';
+import { E2EDataBridge } from '@/components/E2EDataBridge';
 import { convex } from '@/lib/convex';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -16,6 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <SessionProvider>
           <AppProvider>
             <ConvexDataBridge />
+            <E2EDataBridge />
             <InboxProvider>
               {children}
             </InboxProvider>

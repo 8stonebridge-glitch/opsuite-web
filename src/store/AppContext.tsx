@@ -94,7 +94,7 @@ export type AppAction =
   | { type: 'CANCEL_AVAILABILITY'; recordId: string }
   | { type: 'SET_AVAILABILITY'; availability: AvailabilityRecord[] }
   | { type: 'SWITCH_ORGANIZATION'; workspaceId: string }
-  | { type: 'SYNC_CONVEX_DATA'; teams: Team[]; sites: Site[] };
+  | { type: 'SYNC_CONVEX_DATA'; teams: Team[]; sites: Site[]; standaloneEmployees: Employee[] };
 
 // ── Reducer ──────────────────────────────────────────────────────────
 
@@ -257,12 +257,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SYNC_CONVEX_DATA': {
       // Bulk sync from Convex — updates teams, sites, and derived allEmployees
       const teamEmployees = action.teams.flatMap((t) => [t.lead, ...t.members]);
-      const teamEmployeeIds = new Set(teamEmployees.map((e) => e.id));
-      // Keep any standalone employees not in teams
-      const standaloneEmployees = state.allEmployees.filter(
-        (e) => !teamEmployeeIds.has(e.id) && !action.teams.some((t) => t.lead.id === e.id)
-      );
-      const allEmployees = [...teamEmployees, ...standaloneEmployees];
+      const allEmployeesMap = new Map<string, Employee>();
+
+      for (const employee of [...teamEmployees, ...action.standaloneEmployees]) {
+        allEmployeesMap.set(employee.id, employee);
+      }
+
+      const allEmployees = Array.from(allEmployeesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 
       return {
         ...state,

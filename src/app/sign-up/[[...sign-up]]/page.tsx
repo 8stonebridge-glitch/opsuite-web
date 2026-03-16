@@ -7,10 +7,16 @@ import Link from 'next/link';
 import { Zap, BarChart3, Bell, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const BENEFITS = [
-  { icon: Zap, text: 'Get started in under 2 minutes' },
-  { icon: BarChart3, text: 'Real-time dashboards and analytics' },
-  { icon: Bell, text: 'Instant notifications and alerts' },
+  { icon: Zap, text: 'Set up your admin workspace in minutes' },
+  { icon: BarChart3, text: 'Configure sites, teams, and reporting from day one' },
+  { icon: Bell, text: 'Create staff accounts later from the People page' },
 ];
+
+const POST_SIGN_UP_URL =
+  process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL ||
+  process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL ||
+  process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL ||
+  '/admin/overview';
 
 export default function SignUpPage() {
   const { signUp } = useSignUp();
@@ -26,13 +32,34 @@ export default function SignUpPage() {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
 
+  const finalizeSignUp = async () => {
+    if (!signUp) return;
+
+    const { error: finalizeError } = await signUp.finalize({
+      navigate: async ({ decorateUrl }) => {
+        const targetUrl = decorateUrl(POST_SIGN_UP_URL);
+
+        if (/^https?:\/\//.test(targetUrl)) {
+          window.location.assign(targetUrl);
+          return;
+        }
+
+        router.replace(targetUrl);
+      },
+    });
+
+    if (finalizeError) {
+      setError(finalizeError.message || 'Unable to finish signing up');
+    }
+  };
+
   const handleGoogle = async () => {
     if (!signUp) return;
     try {
       const { error } = await signUp.sso({
         strategy: 'oauth_google',
         redirectUrl: '/sign-up/sso-callback',
-        redirectCallbackUrl: '/admin/overview',
+        redirectCallbackUrl: POST_SIGN_UP_URL,
       });
       if (error) setError(error.message || 'Google sign-up failed');
     } catch (err: any) {
@@ -86,8 +113,7 @@ export default function SignUpPage() {
       if (error) {
         setError(error.message || 'Invalid verification code');
       } else if (signUp.status === 'complete') {
-        await signUp.finalize();
-        router.push('/admin/overview');
+        await finalizeSignUp();
       }
     } catch (err: any) {
       setError(err.errors?.[0]?.longMessage || err.message || 'Invalid verification code');
@@ -113,11 +139,11 @@ export default function SignUpPage() {
           </div>
 
           <h1 className="text-display leading-tight mb-4">
-            Start managing your operations{' '}
-            <span className="text-emerald-200">today.</span>
+            Set up OpSuite for your{' '}
+            <span className="text-emerald-200">organization.</span>
           </h1>
           <p className="text-emerald-100 text-body leading-relaxed mb-12 max-w-sm">
-            Create your free account and set up your organization in minutes. No credit card required.
+            Create your admin account, launch your workspace, and invite staff once your sites and teams are ready.
           </p>
 
           <div className="space-y-4">
@@ -133,7 +159,7 @@ export default function SignUpPage() {
         </div>
 
         <p className="relative z-10 text-micro text-emerald-300 mt-8">
-          Join operations teams who trust OpSuite
+          Trusted by teams getting organized from day one
         </p>
       </div>
 
@@ -148,8 +174,10 @@ export default function SignUpPage() {
         <div className="w-full max-w-[380px]">
           {!pendingVerification ? (
             <>
-              <h2 className="text-title text-surface-900 dark:text-surface-100 mb-1.5">Create your account</h2>
-              <p className="text-caption text-surface-500 dark:text-surface-400 mb-8">Get started with OpSuite for free</p>
+              <h2 className="text-title text-surface-900 dark:text-surface-100 mb-1.5">Create admin account</h2>
+              <p className="text-caption text-surface-500 dark:text-surface-400 mb-8">
+                For organization owners setting up OpSuite. Staff accounts are created later by an admin.
+              </p>
 
               {/* Google */}
               <button
@@ -163,7 +191,7 @@ export default function SignUpPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                Continue with Google
+                Continue with Google as admin
               </button>
 
               <div className="flex items-center gap-3 my-6">
@@ -258,15 +286,20 @@ export default function SignUpPage() {
                   className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-caption font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Create account
+                  Create admin account
                 </button>
               </form>
+
+              <p className="text-micro text-surface-400 dark:text-surface-500 leading-relaxed">
+                Employees and subadmins should use the main sign-in page with the email and password provided by their admin.
+              </p>
             </>
           ) : (
             <>
               <h2 className="text-title text-surface-900 dark:text-surface-100 mb-1.5">Verify your email</h2>
               <p className="text-caption text-surface-500 dark:text-surface-400 mb-8">
-                We sent a code to <span className="font-medium text-surface-700 dark:text-surface-300">{email}</span>
+                We sent an admin verification code to{' '}
+                <span className="font-medium text-surface-700 dark:text-surface-300">{email}</span>
               </p>
 
               <form onSubmit={handleVerify} className="space-y-4">
@@ -303,7 +336,7 @@ export default function SignUpPage() {
           )}
 
           <p className="text-center text-caption text-surface-500 dark:text-surface-400 mt-8">
-            Already have an account?{' '}
+            Already have an admin or staff account?{' '}
             <Link href="/sign-in" className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-semibold">
               Sign in
             </Link>

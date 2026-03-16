@@ -7,11 +7,11 @@ export function getNextStatuses(
   role: Role,
   isAssignee = false
 ): TaskStatus[] {
-  // Rule 3: Only the assigned person can start or complete a task.
-  // Managers cannot complete on behalf of others.
+  // Rule 3: Only the assigned person can start or submit a task.
+  // Managers cannot submit on behalf of others.
   if (isAssignee) {
     if (current === 'Open') return ['In Progress'];
-    if (current === 'In Progress') return ['Completed'];
+    if (current === 'In Progress') return ['Submitted'];
   }
 
   // Admin/subadmin can approve and reopen
@@ -44,14 +44,14 @@ export function computeCounters(
   ).length;
 
   const needsReview = scoped.filter(
-    (t) => t.status === 'Pending Approval' || t.status === 'Completed'
+    (t) => t.status === 'Pending Approval' || t.status === 'Submitted'
   ).length;
 
   const overdueList = scoped.filter(
     (t) =>
       t.due &&
       t.due < today &&
-      !['Verified', 'Completed'].includes(t.status)
+      !['Verified', 'Submitted'].includes(t.status)
   );
 
   const reworkList = scoped.filter(
@@ -102,6 +102,13 @@ function isWeekday(dateStr: string): boolean {
   return day >= 1 && day <= 5;
 }
 
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * Count consecutive workdays (backwards from today) where the only
  * audit events for this task+assignee are "No Change".
@@ -113,44 +120,29 @@ export function consecutiveNoChangeWorkdays(
   today: string,
   availability?: AvailabilityRecord[]
 ): number {
-  // Get all audit for this task, keyed by dateTag
   const taskAudit = audit.filter((a) => a.taskId === taskId);
-
   let count = 0;
-  const d = new Date(today + 'T00:00:00');
+  const cursor = new Date(today + 'T00:00:00');
 
-  // Walk backwards from today
   for (let i = 0; i < 60; i++) {
-    d.setDate(d.getDate() - (i === 0 ? 0 : 1));
-    if (i === 0) {
-      // don't subtract on first iteration, just check today
-    }
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = formatLocalDate(cursor);
 
-    // Skip weekends
     if (!isWeekday(dateStr)) {
-      if (i > 0) continue;
-      // If today is weekend, skip
+      cursor.setDate(cursor.getDate() - 1);
       continue;
     }
 
-    // Skip protected-unavailable days (pause stalled streak)
     if (availability && isProtectedUnavailable(assigneeId, dateStr, availability)) {
-      if (i === 0) {
-        d.setDate(d.getDate() - 1);
-      }
+      cursor.setDate(cursor.getDate() - 1);
       continue;
     }
 
-    // Find entries for this day
     const dayEntries = taskAudit.filter((a) => a.dateTag === dateStr);
 
     if (dayEntries.length === 0) {
-      // No entries at all this day — break the streak
       break;
     }
 
-    // Check if ALL entries for this day are "No Change"
     const allNoChange = dayEntries.every((a) => a.updateType === 'No Change');
     if (allNoChange) {
       count++;
@@ -158,9 +150,7 @@ export function consecutiveNoChangeWorkdays(
       break;
     }
 
-    if (i === 0) {
-      d.setDate(d.getDate() - 1);
-    }
+    cursor.setDate(cursor.getDate() - 1);
   }
 
   return count;

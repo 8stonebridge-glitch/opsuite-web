@@ -1,5 +1,12 @@
+function formatLocalDateParts(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function getToday(): string {
-  return new Date().toISOString().split('T')[0];
+  return formatLocalDateParts(new Date());
 }
 
 export function getNowISO(): string {
@@ -8,7 +15,7 @@ export function getNowISO(): string {
 
 export function isOverdue(dueDate: string | null, status: string): boolean {
   if (!dueDate) return false;
-  if (status === 'Verified' || status === 'Completed') return false;
+  if (status === 'Verified' || status === 'Submitted') return false;
   return dueDate < getToday();
 }
 
@@ -50,7 +57,7 @@ export function formatDateTime(iso: string): string {
 
 export function dueLabel(dueDate: string | null, status: string): { text: string; urgent: boolean } | null {
   if (!dueDate) return null;
-  if (status === 'Verified' || status === 'Completed') return { text: formatDue(dueDate) || dueDate, urgent: false };
+  if (status === 'Verified' || status === 'Submitted') return { text: formatDue(dueDate) || dueDate, urgent: false };
   const days = diffDays(getToday(), dueDate);
   if (days < 0) return { text: `${Math.abs(days)}d overdue`, urgent: true };
   if (days === 0) return { text: 'Due today', urgent: true };

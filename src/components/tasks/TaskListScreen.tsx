@@ -36,7 +36,7 @@ interface Section {
 
 const PRIORITY_ORDER: Record<string, number> = { critical: 0, medium: 1, low: 2 };
 const STATUS_ORDER: Record<string, number> = {
-  'Open': 0, 'In Progress': 1, 'Pending Approval': 2, 'Completed': 3, 'Verified': 4,
+  'Open': 0, 'In Progress': 1, 'Pending Approval': 2, 'Submitted': 3, 'Verified': 4,
 };
 const PAGE_SIZE = 20;
 
@@ -152,7 +152,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
       (t) => t.status === 'Open' || t.status === 'In Progress'
     ).length;
     const review = searched.filter(
-      (t) => t.status === 'Pending Approval' || t.status === 'Completed'
+      (t) => t.status === 'Pending Approval' || t.status === 'Submitted'
     ).length;
     const done = searched.filter((t) => t.status === 'Verified').length;
     return { active, review, done };
@@ -164,7 +164,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
       return searched.filter((t) => t.status === 'Open' || t.status === 'In Progress');
     }
     if (filter === 'review') {
-      return searched.filter((t) => t.status === 'Pending Approval' || t.status === 'Completed');
+      return searched.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted');
     }
     if (filter === 'done') {
       return searched.filter((t) => t.status === 'Verified');
@@ -222,10 +222,10 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
 
     if (filter === 'review') {
       const pending = filteredTasks.filter((t) => t.status === 'Pending Approval');
-      const completed = filteredTasks.filter((t) => t.status === 'Completed');
+      const submitted = filteredTasks.filter((t) => t.status === 'Submitted');
       const groups: Section[] = [];
       if (pending.length) groups.push({ title: 'Pending Approval', data: pending });
-      if (completed.length) groups.push({ title: 'Awaiting Verification', data: completed });
+      if (submitted.length) groups.push({ title: 'Awaiting Verification', data: submitted });
       return groups;
     }
 

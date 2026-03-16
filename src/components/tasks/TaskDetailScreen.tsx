@@ -65,7 +65,7 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
     task.status === 'Pending Approval' &&
     !task.approved;
   const canVerify = (state.role === 'admin' || state.role === 'subadmin') &&
-    task.status === 'Completed';
+    task.status === 'Submitted';
   const canReject = canVerify;
   const isAssignee = task.assigneeId === state.userId;
   const hasStatusTransitions = getNextStatuses(task.status, state.role, isAssignee).length > 0;
@@ -147,7 +147,7 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
       type: 'ADD_AUDIT',
       entry: {
         taskId: task.id, role: 'System',
-        message: `Verified & closed by ${curName}.${wasLate ? ' Completed past due date.' : ''}`,
+        message: `Verified & closed by ${curName}.${wasLate ? ' Submitted past due date.' : ''}`,
         createdAt: getNowISO(), dateTag: getToday(), updateType: 'Verified',
       },
     });

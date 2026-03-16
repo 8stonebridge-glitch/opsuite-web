@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useEmployeeSummaries, useAllEmployeePerformances, useTeams, useAvailability, useOrgMode, useAllEmployees } from '../../../../src/store/selectors';
 import { getActiveAvailability } from '../../../../src/utils/availability-helpers';
 import { getToday } from '../../../../src/utils/date';
-import type { Role, Team } from '../../../../src/types';
+import type { Role } from '../../../../src/types';
 import { Avatar } from '../../../../src/components/ui/Avatar';
 import { Card } from '../../../../src/components/ui/Card';
 import { EmptyState } from '../../../../src/components/ui/EmptyState';
@@ -14,7 +14,6 @@ import { Select } from '../../../../src/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '../../../../src/store/AppContext';
 import { useIndustryColor } from '../../../../src/store/selectors';
-import { useTheme } from '../../../../src/providers/ThemeProvider';
 import { uid } from '../../../../src/utils/id';
 
 const PREVIEW_LIMIT = 8;
@@ -28,6 +27,20 @@ interface LeadOption {
 
 type MemberRoleOption = 'subadmin' | 'employee';
 
+async function readJsonOrThrow<T>(response: Response): Promise<T> {
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const message =
+      typeof data?.error === 'string'
+        ? data.error
+        : 'We could not save that person yet.';
+    throw new Error(message);
+  }
+
+  return data as T;
+}
+
 export default function OwnerPeopleScreen() {
   const { state, dispatch } = useApp();
   const teams = useTeams();
@@ -35,7 +48,6 @@ export default function OwnerPeopleScreen() {
   const orgMode = useOrgMode();
   const isDirect = orgMode === 'direct';
   const color = useIndustryColor();
-  const { isDark } = useTheme();
   const summaries = useEmployeeSummaries();
   const allPerfs = useAllEmployeePerformances();
   const availability = useAvailability();
@@ -54,14 +66,16 @@ export default function OwnerPeopleScreen() {
   const [memberRole, setMemberRole] = useState<MemberRoleOption>('employee');
   const [memberName, setMemberName] = useState('');
   const [memberEmail, setMemberEmail] = useState('');
+  const [memberPhone, setMemberPhone] = useState('');
   const [memberPassword, setMemberPassword] = useState('');
   const [memberTeamId, setMemberTeamId] = useState('');
   const [memberSiteId, setMemberSiteId] = useState(state.onboarding.sites[0]?.id || '');
   const [memberError, setMemberError] = useState('');
   const [isSavingMember, setIsSavingMember] = useState(false);
-  const [editMember, setEditMember] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [editMember, setEditMember] = useState<{ id: string; name: string; email: string; phone: string } | null>(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editTeamId, setEditTeamId] = useState('');
   const [editSiteId, setEditSiteId] = useState('');
@@ -75,14 +89,57 @@ export default function OwnerPeopleScreen() {
   })();
 
   const canCreateRealTeam = true || leadOptions.length > 0;
-  const teamOptions = teams.map((team) => ({
+  const availableCreateTeams = useMemo(
+    () =>
+      teams.filter((team) => {
+        if (!memberSiteId) return true;
+        return !team.siteId || team.siteId === memberSiteId;
+      }),
+    [teams, memberSiteId],
+  );
+  const availableEditTeams = useMemo(
+    () =>
+      teams.filter((team) => {
+        if (!editSiteId) return true;
+        return !team.siteId || team.siteId === editSiteId;
+      }),
+    [teams, editSiteId],
+  );
+  const createTeamOptions = availableCreateTeams.map((team) => ({
     label: team.name,
     value: team.id,
   }));
+  const editTeamOptions = availableEditTeams.map((team) => ({
+    label: team.name,
+    value: team.id,
+  }));
+  const unassignedPeople = useMemo(
+    () => (!isDirect ? allEmployees.filter((employee) => !employee.teamId) : []),
+    [allEmployees, isDirect],
+  );
+
+  const openEditModal = (member: (typeof allEmployees)[number], fallbackTeamId = '') => {
+    setIsSavingEdit(false);
+    setEditMember({
+      id: member.id,
+      name: member.name,
+      email: member.email || '',
+      phone: member.phone || '',
+    });
+    setEditName(member.name);
+    setEditEmail(member.email || '');
+    setEditPhone(member.phone || '');
+    setEditPassword('');
+    setEditTeamId(member.teamId || fallbackTeamId);
+    setEditSiteId(member.siteId || state.onboarding.sites[0]?.id || '');
+    setEditError('');
+  };
 
   const handleCreateMember = async () => {
     const trimmedName = memberName.trim();
     const normalizedEmail = memberEmail.trim().toLowerCase();
+    const trimmedPhone = memberPhone.trim();
+    const normalizedPassword = memberPassword.trim();
 
     if (trimmedName.length < 2) {
       setMemberError('Enter a name with at least 2 characters.');
@@ -94,19 +151,18 @@ export default function OwnerPeopleScreen() {
       return;
     }
 
-    if (!true) {
-      if (!memberPassword) {
-        setMemberError('A password is required so this person can sign in.');
-        return;
-      }
-      if (memberPassword.length < 6) {
-        setMemberError('Password must be at least 6 characters.');
-        return;
-      }
+    if (!trimmedPhone) {
+      setMemberError('Enter a phone number.');
+      return;
     }
 
-    if (memberRole === 'employee' && !memberTeamId && !isDirect) {
-      setMemberError('Choose the team this employee belongs to.');
+    if (normalizedPassword.length < 8) {
+      setMemberError('Password must be at least 8 characters.');
+      return;
+    }
+
+    if (!memberSiteId) {
+      setMemberError('Choose the site this person belongs to.');
       return;
     }
 
@@ -114,67 +170,25 @@ export default function OwnerPeopleScreen() {
     setIsSavingMember(true);
 
     try {
-      if (memberRole === 'subadmin' && !isDirect) {
-        setMemberError('Create a new lead with Add Team.');
-        return;
-      }
-
-      if (isDirect || !memberTeamId) {
-        const nextEmployeeId = uid();
-        if (memberTeamId) {
-          const selectedTeam = teams.find((team) => team.id === memberTeamId);
-          if (selectedTeam) {
-            const selectedSite = state.onboarding.sites.find((s) => s.id === memberSiteId);
-            dispatch({
-              type: 'ADD_MEMBER_TO_TEAM',
-              teamId: selectedTeam.id,
-              member: {
-                id: nextEmployeeId,
-                name: trimmedName,
-                role: 'employee',
-                teamId: selectedTeam.id,
-                teamName: selectedTeam.name,
-                siteId: memberSiteId || undefined,
-                siteName: selectedSite?.name,
-              },
-            });
-          }
-        } else {
-          const selectedSite = state.onboarding.sites.find((s) => s.id === memberSiteId);
-          dispatch({
-            type: 'ADD_STANDALONE_EMPLOYEE',
-            employee: {
-              id: nextEmployeeId,
-              name: trimmedName,
-              role: 'employee',
-              siteId: memberSiteId || undefined,
-              siteName: selectedSite?.name,
-            },
-          });
-        }
-      } else {
-        const selectedTeam = teams.find((team) => team.id === memberTeamId);
-        if (!selectedTeam) {
-          setMemberError('Select a valid team first.');
-          return;
-        }
-
-        const nextEmployeeId = uid();
-        dispatch({
-          type: 'ADD_MEMBER_TO_TEAM',
-          teamId: selectedTeam.id,
-          member: {
-            id: nextEmployeeId,
+      await readJsonOrThrow(
+        await fetch('/api/admin/people', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             name: trimmedName,
-            role: 'employee',
-            teamId: selectedTeam.id,
-            teamName: selectedTeam.name,
-          },
-        });
-      }
+            email: normalizedEmail,
+            phone: trimmedPhone,
+            password: normalizedPassword,
+            role: isDirect ? 'employee' : memberRole,
+            siteId: memberSiteId,
+            teamId: memberTeamId || undefined,
+          }),
+        }),
+      );
 
       setMemberName('');
       setMemberEmail('');
+      setMemberPhone('');
       setMemberPassword('');
       setMemberTeamId('');
       setMemberSiteId(state.onboarding.sites[0]?.id || '');
@@ -250,9 +264,32 @@ export default function OwnerPeopleScreen() {
     if (!editMember) return;
 
     const trimmedName = editName.trim();
+    const normalizedEmail = editEmail.trim().toLowerCase();
+    const trimmedPhone = editPhone.trim();
+    const normalizedPassword = editPassword.trim();
 
-    if (trimmedName.length > 0 && trimmedName.length < 2) {
+    if (trimmedName.length < 2) {
       setEditError('Name must be at least 2 characters.');
+      return;
+    }
+
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      setEditError('Enter a valid email address.');
+      return;
+    }
+
+    if (!trimmedPhone) {
+      setEditError('Enter a phone number.');
+      return;
+    }
+
+    if (normalizedPassword && normalizedPassword.length < 8) {
+      setEditError('Password must be at least 8 characters.');
+      return;
+    }
+
+    if (!editSiteId) {
+      setEditError('Choose the site this person belongs to.');
       return;
     }
 
@@ -260,18 +297,48 @@ export default function OwnerPeopleScreen() {
     setIsSavingEdit(true);
 
     try {
-      const selectedSite = state.onboarding.sites.find((s) => s.id === editSiteId);
-      dispatch({
-        type: 'REASSIGN_EMPLOYEE',
-        employeeId: editMember.id,
-        newTeamId: editTeamId || undefined,
-        siteId: editSiteId || undefined,
-        siteName: selectedSite?.name,
-      });
+      await readJsonOrThrow(
+        await fetch(`/api/admin/people/${editMember.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: trimmedName,
+            email: normalizedEmail,
+            phone: trimmedPhone,
+            password: normalizedPassword || undefined,
+            siteId: editSiteId,
+            teamId: editTeamId || undefined,
+          }),
+        }),
+      );
 
       setEditMember(null);
     } catch (error) {
       setEditError(error instanceof Error ? error.message : 'Failed to save changes.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const handleDeleteMember = async () => {
+    if (!editMember) return;
+
+    if (!window.confirm(`Remove ${editMember.name} from this organization?`)) {
+      return;
+    }
+
+    setIsSavingEdit(true);
+    setEditError('');
+
+    try {
+      await readJsonOrThrow(
+        await fetch(`/api/admin/people/${editMember.id}`, {
+          method: 'DELETE',
+        }),
+      );
+      setEditMember(null);
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : 'Failed to remove this person.');
     } finally {
       setIsSavingEdit(false);
     }
@@ -347,15 +414,7 @@ export default function OwnerPeopleScreen() {
                     topAction={perf?.actions[0]?.label}
                     siteName={emp.siteName}
                     availabilityBadge={availBadge}
-                    onPress={() => {
-                      setEditMember({ id: emp.id, name: emp.name, email: '' });
-                      setEditName(emp.name);
-                      setEditEmail('');
-                      setEditPassword('');
-                      setEditTeamId(emp.teamId || '');
-                      setEditSiteId(emp.siteId || '');
-                      setEditError('');
-                    }}
+                    onPress={() => openEditModal(emp)}
                   />
                 );
               })}
@@ -456,16 +515,9 @@ export default function OwnerPeopleScreen() {
                           score={perf?.score}
                           band={perf?.band}
                           topAction={perf?.actions[0]?.label}
+                          siteName={member.siteName}
                           availabilityBadge={availBadge}
-                          onPress={!true ? () => {
-                            setEditMember({ id: member.id, name: member.name, email: '' });
-                            setEditName(member.name);
-                            setEditEmail('');
-                            setEditPassword('');
-                            setEditTeamId(team.id);
-                            setEditSiteId(team.siteId || '');
-                            setEditError('');
-                          } : undefined}
+                          onPress={() => openEditModal(member, team.id)}
                         />
                       );
                     })}
@@ -486,6 +538,54 @@ export default function OwnerPeopleScreen() {
               </div>
             );
           })}
+
+          {!isDirect && unassignedPeople.length > 0 && (
+            <div className="mt-4">
+              <Card>
+                <div className="px-4 pb-3">
+                  <p className="text-body font-semibold text-surface-900 dark:text-surface-100">
+                    Unlinked People
+                  </p>
+                  <p className="text-caption text-surface-400 dark:text-surface-500 mt-1">
+                    These people belong to a site but are not currently linked to a team.
+                  </p>
+                </div>
+                {unassignedPeople.map((member, idx) => {
+                  const summary = summaries.get(member.id) || {
+                    activeCount: 0,
+                    overdueCount: 0,
+                    lastActivity: null,
+                    checkedInToday: false,
+                  };
+                  const perf = allPerfs.get(member.id);
+                  const activeAvail = getActiveAvailability(member.id, today, availability);
+                  const availBadge = activeAvail
+                    ? {
+                        label: activeAvail.type === 'sick' ? 'Sick' : activeAvail.type === 'leave' ? 'On leave' : 'Off duty',
+                        color: activeAvail.type === 'sick' ? '#ef4444' : activeAvail.type === 'leave' ? '#3b82f6' : '#6366f1',
+                      }
+                    : null;
+
+                  return (
+                    <EmployeeSummaryCard
+                      key={member.id}
+                      name={member.name}
+                      teamColor={color}
+                      summary={summary}
+                      isLead={member.role === 'subadmin'}
+                      last={idx === unassignedPeople.length - 1}
+                      score={perf?.score}
+                      band={perf?.band}
+                      topAction={perf?.actions[0]?.label}
+                      siteName={member.siteName}
+                      availabilityBadge={availBadge}
+                      onPress={() => openEditModal(member)}
+                    />
+                  );
+                })}
+              </Card>
+            </div>
+          )}
         </div>
       </div>
 
@@ -505,7 +605,7 @@ export default function OwnerPeopleScreen() {
                 placeholder="Choose a role"
                 options={[
                   { label: 'Employee', value: 'employee' },
-                  ...(!true ? [{ label: 'Subadmin', value: 'subadmin' }] : []),
+                  { label: 'Subadmin', value: 'subadmin' },
                 ]}
                 value={memberRole}
                 onChange={(value) => {
@@ -543,82 +643,66 @@ export default function OwnerPeopleScreen() {
                 type="email"
               />
 
-              {!true && (
-                <>
-                  <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
-                    Password <span className="text-red-400">*</span>
-                  </p>
-                  <input
-                    className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 outline-none"
-                    placeholder="Min. 6 characters (required)"
-                    value={memberPassword}
-                    onChange={(e) => {
-                      setMemberPassword(e.target.value);
-                      setMemberError('');
-                    }}
-                    type="password"
-                  />
-                </>
-              )}
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
+                Phone Number
+              </p>
+              <input
+                className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none"
+                placeholder="+2348012345678"
+                value={memberPhone}
+                onChange={(e) => {
+                  setMemberPhone(e.target.value);
+                  setMemberError('');
+                }}
+                type="tel"
+              />
+
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
+                Password <span className="text-red-400">*</span>
+              </p>
+              <input
+                className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 outline-none"
+                placeholder="At least 8 characters"
+                value={memberPassword}
+                onChange={(e) => {
+                  setMemberPassword(e.target.value);
+                  setMemberError('');
+                }}
+                type="password"
+              />
             </div>
 
-            {isDirect ? (
-              <>
-                {teamOptions.length > 0 && (
-                  <div className="mt-4">
-                    <Select
-                      label="Team (optional)"
-                      placeholder="No team"
-                      options={[{ label: 'No team', value: '' }, ...teamOptions]}
-                      value={memberTeamId}
-                      onChange={(value) => {
-                        setMemberTeamId(value);
-                        setMemberError('');
-                      }}
-                    />
-                  </div>
-                )}
-                {state.onboarding.sites.length > 0 && (
-                  <div className="mt-4">
-                    <Select
-                      label="Site (optional)"
-                      placeholder="No site"
-                      options={[{ label: 'No site', value: '' }, ...state.onboarding.sites.map((site) => ({ label: site.name, value: site.id }))]}
-                      value={memberSiteId}
-                      onChange={(value) => {
-                        setMemberSiteId(value);
-                        setMemberError('');
-                      }}
-                    />
-                  </div>
-                )}
-              </>
-            ) : (
+            {state.onboarding.sites.length > 0 && (
               <div className="mt-4">
                 <Select
-                  label={memberRole === 'employee' ? 'Team' : 'Primary Site'}
-                  placeholder={
-                    memberRole === 'employee'
-                      ? teamOptions.length > 0
-                        ? 'Choose a team'
-                        : 'Create a team first'
-                      : 'Choose a site'
-                  }
-                  options={
-                    memberRole === 'employee'
-                      ? teamOptions
-                      : state.onboarding.sites.map((site) => ({
-                          label: site.name,
-                          value: site.id,
-                        }))
-                  }
-                  value={memberRole === 'employee' ? memberTeamId : memberSiteId}
+                  label="Site"
+                  placeholder="Choose a site"
+                  options={state.onboarding.sites.map((site) => ({
+                    label: site.name,
+                    value: site.id,
+                  }))}
+                  value={memberSiteId}
                   onChange={(value) => {
-                    if (memberRole === 'employee') {
-                      setMemberTeamId(value);
-                    } else {
-                      setMemberSiteId(value);
-                    }
+                    setMemberSiteId(value);
+                    setMemberTeamId((currentTeamId) => {
+                      const stillValid = teams.some((team) => team.id === currentTeamId && (!team.siteId || team.siteId === value));
+                      return stillValid ? currentTeamId : '';
+                    });
+                    setMemberError('');
+                  }}
+                />
+              </div>
+            )}
+
+            {createTeamOptions.length > 0 && (
+              <div className="mt-4">
+                <Select
+                  label="Team (optional)"
+                  placeholder="No team"
+                  options={[{ label: 'No team', value: '' }, ...createTeamOptions]}
+                  value={memberTeamId}
+                  onChange={(value) => {
+                    setMemberTeamId(value);
                     setMemberError('');
                   }}
                 />
@@ -626,13 +710,7 @@ export default function OwnerPeopleScreen() {
             )}
 
             <p className="text-body text-surface-400 dark:text-surface-500 leading-6 mt-5">
-              {true
-                ? (isDirect
-                  ? 'This employee will report directly to you.'
-                  : memberRole === 'employee'
-                    ? 'Employees are attached to a team immediately.'
-                    : 'Subadmins become team leads right away.')
-                : 'Set a password so this person can sign in immediately — no email confirmation needed.'}
+              Admin-created people can sign in from the main page immediately. Their email is trusted at creation time, so they do not need a confirmation email before logging in.
             </p>
 
             {memberError ? (
@@ -642,7 +720,7 @@ export default function OwnerPeopleScreen() {
             <div className="mt-5">
               <Button
                 onClick={() => void handleCreateMember()}
-                disabled={isSavingMember || (!isDirect && memberRole === 'employee' && teamOptions.length === 0)}
+                disabled={isSavingMember}
                 style={{ backgroundColor: color }}
               >{isSavingMember ? 'Creating person...' : 'Create Person'}</Button>
             </div>
@@ -799,6 +877,17 @@ export default function OwnerPeopleScreen() {
             />
 
             <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
+              Phone Number
+            </p>
+            <input
+              className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none"
+              placeholder="+2348012345678"
+              value={editPhone}
+              onChange={(e) => { setEditPhone(e.target.value); setEditError(''); }}
+              type="tel"
+            />
+
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               New Password
             </p>
             <input
@@ -809,12 +898,12 @@ export default function OwnerPeopleScreen() {
               type="password"
             />
 
-            {teamOptions.length > 0 && (
+            {editTeamOptions.length > 0 && (
               <div className="mt-4">
                 <Select
                   label="Team"
                   placeholder="No team"
-                  options={[{ label: 'No team', value: '' }, ...teamOptions]}
+                  options={[{ label: 'No team', value: '' }, ...editTeamOptions]}
                   value={editTeamId}
                   onChange={(value) => { setEditTeamId(value); setEditError(''); }}
                 />
@@ -825,16 +914,23 @@ export default function OwnerPeopleScreen() {
               <div className="mt-4">
                 <Select
                   label="Site"
-                  placeholder="No site"
-                  options={[{ label: 'No site', value: '' }, ...state.onboarding.sites.map((s) => ({ label: s.name, value: s.id }))]}
+                  placeholder="Choose a site"
+                  options={state.onboarding.sites.map((s) => ({ label: s.name, value: s.id }))}
                   value={editSiteId}
-                  onChange={(value) => { setEditSiteId(value); setEditError(''); }}
+                  onChange={(value) => {
+                    setEditSiteId(value);
+                    setEditTeamId((currentTeamId) => {
+                      const stillValid = teams.some((team) => team.id === currentTeamId && (!team.siteId || team.siteId === value));
+                      return stillValid ? currentTeamId : '';
+                    });
+                    setEditError('');
+                  }}
                 />
               </div>
             )}
 
             <p className="text-body text-surface-400 dark:text-surface-500 leading-6 mt-4">
-              Only fill in the fields you want to change.
+              Update the person, move them to a new site, or link them to a team. Leave password empty if you do not want to reset it.
             </p>
 
             {editError ? (
@@ -848,12 +944,8 @@ export default function OwnerPeopleScreen() {
                 style={{ backgroundColor: color }}
               >{isSavingEdit ? 'Saving...' : 'Save Changes'}</Button>
               <button
-                onClick={() => {
-                  if (!editMember) return;
-                  if (window.confirm(`Remove ${editMember.name} from this organization?`)) {
-                    setEditMember(null);
-                  }
-                }}
+                onClick={() => void handleDeleteMember()}
+                disabled={isSavingEdit}
                 className="w-full py-3 text-center text-body font-semibold text-red-600"
               >
                 Remove Person

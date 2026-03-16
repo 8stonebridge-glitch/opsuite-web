@@ -20,7 +20,7 @@ const STATUS_DISPLAY: Record<string, string> = {
   'Open': 'Open',
   'In Progress': 'In Progress',
   'Pending Approval': 'Pending',
-  'Completed': 'Completed',
+  'Submitted': 'Submitted',
   'Verified': 'Verified',
 };
 
@@ -60,7 +60,7 @@ export function TaskUpdateScreen() {
     const now = getNowISO();
 
     const isStart = newStatus === 'In Progress' && task.status === 'Open';
-    const isDone = newStatus === 'Completed';
+    const isSubmitted = newStatus === 'Submitted';
 
     dispatch({
       type: 'UPDATE_TASK',
@@ -68,7 +68,7 @@ export function TaskUpdateScreen() {
       updates: {
         status: newStatus,
         startedAt: isStart ? today : task.startedAt,
-        completedAt: isDone ? today : task.completedAt,
+        completedAt: isSubmitted ? today : task.completedAt,
       },
     });
 
@@ -93,12 +93,12 @@ export function TaskUpdateScreen() {
       });
     }
 
-    if (isDone) {
+    if (isSubmitted) {
       dispatch({
         type: 'ADD_AUDIT',
         entry: {
           taskId: task.id, role: 'System',
-          message: `Task completed on ${today} by ${curName} (${curRoleLabel}). Awaiting verification.`,
+          message: `Task submitted on ${today} by ${curName} (${curRoleLabel}). Awaiting verification.`,
           createdAt: now, dateTag: today, updateType: 'Status',
         },
       });
@@ -107,7 +107,7 @@ export function TaskUpdateScreen() {
           type: 'ADD_AUDIT',
           entry: {
             taskId: task.id, role: 'System',
-            message: `Notification sent to ${task.assignedBy}: "${task.title}" has been completed by ${curName}.`,
+            message: `Notification sent to ${task.assignedBy}: "${task.title}" has been submitted by ${curName}.`,
             createdAt: now, dateTag: today, updateType: 'Notification',
           },
         });

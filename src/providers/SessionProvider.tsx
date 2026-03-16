@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useUser } from '@clerk/nextjs';
 
 export interface SessionUser {
@@ -35,6 +35,10 @@ const SessionCtx = createContext<SessionContext>({
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const isPlaywrightTest = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
+  const [fallbackUser, setFallbackUser] = useState<SessionUser | null>(null);
+  const [isFallbackLoading, setIsFallbackLoading] = useState(false);
+  const [hasCheckedFallback, setHasCheckedFallback] = useState(false);
 
   const sessionUser = useMemo<SessionUser | null>(() => {
     if (!isLoaded || !isSignedIn || !clerkUser) return null;
@@ -46,15 +50,67 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, [isLoaded, isSignedIn, clerkUser]);
 
+  useEffect(() => {
+    if (!isPlaywrightTest) {
+      return;
+    }
+
+    if (!isLoaded) {
+      return;
+    }
+
+    if (isSignedIn) {
+      setFallbackUser(null);
+      setHasCheckedFallback(true);
+      return;
+    }
+
+    let cancelled = false;
+    setIsFallbackLoading(true);
+    setHasCheckedFallback(false);
+
+    void fetch('/api/e2e/session')
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || cancelled) {
+          return;
+        }
+
+        setFallbackUser(data?.user ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFallbackUser(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsFallbackLoading(false);
+          setHasCheckedFallback(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isPlaywrightTest, isSignedIn]);
+
+  const resolvedUser = sessionUser ?? fallbackUser;
+  const resolvedSignedIn = (isSignedIn ?? false) || !!fallbackUser;
+  const resolvedLoading =
+    !isLoaded ||
+    isFallbackLoading ||
+    (isPlaywrightTest && !(isSignedIn ?? false) && !hasCheckedFallback);
+
   const value = useMemo<SessionContext>(
     () => ({
-      user: sessionUser,
-      isLoading: !isLoaded,
-      isSignedIn: isSignedIn ?? false,
-      role: isSignedIn ? 'admin' : null,
+      user: resolvedUser,
+      isLoading: resolvedLoading,
+      isSignedIn: resolvedSignedIn,
+      role: resolvedSignedIn ? 'admin' : null,
       refresh: async () => {},
     }),
-    [sessionUser, isLoaded, isSignedIn],
+    [resolvedUser, resolvedLoading, resolvedSignedIn],
   );
 
   return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;

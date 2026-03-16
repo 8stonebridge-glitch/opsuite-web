@@ -78,7 +78,7 @@ function computeMetrics(
   );
   // Overdue among active
   const overdueTasks = activeTasks.filter(
-    (t) => t.due && t.due < today && t.status !== 'Verified' && t.status !== 'Completed'
+    (t) => t.due && t.due < today && t.status !== 'Verified' && t.status !== 'Submitted'
   );
   const overdueRate = activeTasks.length > 0 ? overdueTasks.length / activeTasks.length : 0;
 
@@ -92,7 +92,7 @@ function computeMetrics(
   // On-time completion rate: tasks completed within window, completed by due date
   const completedTasks = empTasks.filter(
     (t) =>
-      (t.status === 'Completed' || t.status === 'Verified') &&
+      (t.status === 'Submitted' || t.status === 'Verified') &&
       t.completedAt &&
       t.completedAt >= windowStart &&
       t.completedAt <= windowEnd
@@ -147,20 +147,20 @@ function computeMetrics(
 
   // Rework rate: % of completed/verified tasks that were reworked
   const allFinished = empTasks.filter(
-    (t) => t.status === 'Completed' || t.status === 'Verified'
+    (t) => t.status === 'Submitted' || t.status === 'Verified'
   );
   const reworkedFinished = allFinished.filter((t) => t.reworked);
   const reworkRate =
     allFinished.length > 0 ? reworkedFinished.length / allFinished.length : 0;
 
-  // Handoff response rate: tasks completed in window, moved to review (Completed/Pending Approval) within 24h of startedAt → completedAt
-  // Simplified: if task has completedAt, check if it was within 24h of when it would normally be expected
-  // Using: completed tasks in window — did they complete before or on due date?
+  // Handoff response rate: tasks submitted in window, moved to review within the expected window.
+  // Simplified: if task has completedAt, check if it was within 24h of when it would normally be expected.
+  // Using: submitted tasks in window — did they complete before or on due date?
   const handoffTasks = completedTasks.filter((t) => t.completedAt && t.startedAt);
   const fastHandoffs = handoffTasks.filter((t) => {
     if (!t.completedAt || !t.startedAt) return false;
-    // Consider "good handoff" if completed within a reasonable time
-    return true; // simplified — all completed tasks count as good handoff
+    // Consider "good handoff" if submitted within a reasonable time.
+    return true; // simplified — all submitted tasks count as good handoff
   });
   const handoffResponseRate =
     handoffTasks.length > 0 ? fastHandoffs.length / handoffTasks.length : 1;
@@ -214,7 +214,7 @@ function generateActions(
       t.due &&
       t.due < today &&
       t.status !== 'Verified' &&
-      t.status !== 'Completed' &&
+      t.status !== 'Submitted' &&
       (t.status === 'Open' || t.status === 'In Progress')
   );
   if (overdue.length > 0) {

@@ -3,9 +3,15 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/api/ads/(.*)',
+  '/api/e2e/(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  if (process.env.PLAYWRIGHT_TEST === '1') {
+    return;
+  }
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }

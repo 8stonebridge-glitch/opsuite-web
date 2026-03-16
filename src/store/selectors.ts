@@ -126,7 +126,7 @@ export function useBucketedTasks() {
   const scoped = useScopedTasks();
   return useMemo(() => {
     const active = scoped.filter((t) => t.status === 'Open' || t.status === 'In Progress');
-    const review = scoped.filter((t) => t.status === 'Pending Approval' || t.status === 'Completed');
+    const review = scoped.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted');
     const done = scoped.filter((t) => t.status === 'Verified');
     return { active, review, done };
   }, [scoped]);
@@ -167,7 +167,7 @@ export function useSiteHealth(siteId: string): SiteHealth {
     const siteTasks = state.tasks.filter((t) => t.siteId === siteId);
     const totalActive = siteTasks.filter((t) => t.status === 'Open' || t.status === 'In Progress').length;
     const overdue = siteTasks.filter((t) => isOverdue(t.due, t.status)).length;
-    const review = siteTasks.filter((t) => t.status === 'Pending Approval' || t.status === 'Completed').length;
+    const review = siteTasks.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted').length;
     const today = getToday();
     const siteEmpIds = [...new Set(siteTasks.map((t) => t.assigneeId))];
     const checkedIn = siteEmpIds.filter((eid) =>
@@ -191,7 +191,7 @@ export function useTeamHealth(teamId: string): TeamHealth {
     const teamTasks = state.tasks.filter((t) => t.teamId === teamId);
     const totalActive = teamTasks.filter((t) => t.status === 'Open' || t.status === 'In Progress').length;
     const overdue = teamTasks.filter((t) => isOverdue(t.due, t.status)).length;
-    const review = teamTasks.filter((t) => t.status === 'Pending Approval' || t.status === 'Completed').length;
+    const review = teamTasks.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted').length;
     const today = new Date(getToday() + 'T00:00:00');
     const dayOfWeek = today.getDay();
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -199,7 +199,7 @@ export function useTeamHealth(teamId: string): TeamHealth {
     monday.setDate(today.getDate() + mondayOffset);
     const weekStart = monday.toISOString().split('T')[0];
     const completedThisWeek = teamTasks.filter(
-      (t) => (t.status === 'Completed' || t.status === 'Verified') && t.completedAt && t.completedAt >= weekStart
+      (t) => (t.status === 'Submitted' || t.status === 'Verified') && t.completedAt && t.completedAt >= weekStart
     ).length;
     return { totalActive, overdue, review, completedThisWeek };
   }, [state.tasks, teamId]);

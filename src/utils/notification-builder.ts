@@ -158,7 +158,7 @@ function buildEmployeeNotifications(
     (t) =>
       t.due === today &&
       t.status !== 'Verified' &&
-      t.status !== 'Completed'
+      t.status !== 'Submitted'
   );
   for (const task of dueToday) {
     notifs.push({
@@ -261,13 +261,13 @@ function buildSubadminNotifications(
   const reviewQueue = tasks.filter(
     (t) =>
       teamMemberIds.includes(t.assigneeId) &&
-      t.status === 'Completed'
+      t.status === 'Submitted'
   );
   if (reviewQueue.length > 0) {
     notifs.push({
       id: nid('sub-review', userId),
       title: 'Tasks Ready for Review',
-      body: `${reviewQueue.length} completed task${reviewQueue.length > 1 ? 's' : ''} need verification`,
+      body: `${reviewQueue.length} submitted task${reviewQueue.length > 1 ? 's' : ''} need verification`,
       timestamp: now,
       type: 'review',
     });
@@ -345,13 +345,13 @@ function buildAdminNotifications(
     });
   }
 
-  // Review queue — all completed tasks needing verification
-  const reviewQueue = tasks.filter((t) => t.status === 'Completed');
+  // Review queue — all submitted tasks needing verification
+  const reviewQueue = tasks.filter((t) => t.status === 'Submitted');
   if (reviewQueue.length > 0) {
     notifs.push({
       id: nid('admin-review', today),
       title: 'Tasks Ready for Review',
-      body: `${reviewQueue.length} completed task${reviewQueue.length > 1 ? 's' : ''} need verification`,
+      body: `${reviewQueue.length} submitted task${reviewQueue.length > 1 ? 's' : ''} need verification`,
       timestamp: now,
       type: 'review',
     });

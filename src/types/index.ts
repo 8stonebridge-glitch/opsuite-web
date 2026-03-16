@@ -6,7 +6,7 @@ export type OrgMode = 'managed' | 'direct';
 export type TaskStatus =
   | 'Open'
   | 'In Progress'
-  | 'Completed'
+  | 'Submitted'
   | 'Pending Approval'
   | 'Verified';
 
@@ -21,6 +21,8 @@ export interface Employee {
   id: string;
   name: string;
   role: Role;
+  email?: string;
+  phone?: string;
   teamId?: string;
   teamName?: string;
   siteId?: string;
