@@ -66,39 +66,39 @@ export default function EmployeeMoreScreen() {
   const myRecords = availability.filter((r) => r.memberId === state.userId);
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4 space-y-3">
           <Card className="flex flex-col items-center py-6">
             <Avatar name={name} color={team?.color || color} size="lg" />
-            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-3">{name}</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500">{team?.name || 'Team'}</p>
+            <p className="text-title text-surface-900 dark:text-surface-100 mt-3">{name}</p>
+            <p className="text-body text-surface-400 dark:text-surface-500">{team?.name || 'Team'}</p>
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-micro font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Availability
             </p>
             {!hasAvailabilityToday && (
               <button
                 onClick={() => void handleReportSick()}
                 disabled={isSubmittingSick}
-                className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-gray-800 w-full"
+                className="flex items-center gap-3 py-3 border-b border-surface-100 dark:border-surface-800 w-full"
               >
-                <span className="text-base">🏥</span>
-                <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 text-left">
+                <span className="text-body">🏥</span>
+                <span className="text-body text-surface-700 dark:text-surface-300 flex-1 text-left">
                   {isSubmittingSick ? 'Reporting Sick...' : 'Report Sick Today'}
                 </span>
-                <span className="text-gray-300 dark:text-gray-600">&rsaquo;</span>
+                <span className="text-surface-300 dark:text-surface-600">&rsaquo;</span>
               </button>
             )}
             <button
               onClick={() => setShowLeaveSheet(true)}
-              className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-gray-800 w-full"
+              className="flex items-center gap-3 py-3 border-b border-surface-100 dark:border-surface-800 w-full"
             >
-              <span className="text-base">✈️</span>
-              <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 text-left">Request Leave</span>
-              <span className="text-gray-300 dark:text-gray-600">&rsaquo;</span>
+              <span className="text-body">✈️</span>
+              <span className="text-body text-surface-700 dark:text-surface-300 flex-1 text-left">Request Leave</span>
+              <span className="text-surface-300 dark:text-surface-600">&rsaquo;</span>
             </button>
             <div className="mt-2">
               <AvailabilityHistory records={myRecords} />
@@ -106,7 +106,7 @@ export default function EmployeeMoreScreen() {
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-micro font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Org Policy
             </p>
             <SettingRow icon="⏸" label="Stalled alert after" value={`${state.orgSettings.noChangeAlertWorkdays} workdays`} />
@@ -114,7 +114,7 @@ export default function EmployeeMoreScreen() {
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-micro font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Personal
             </p>
             <SettingRow icon="🔥" label="Current Streak" value={`${stats.currentStreak} days`} />
@@ -123,7 +123,7 @@ export default function EmployeeMoreScreen() {
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-micro font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               App Settings
             </p>
             <SettingRow icon="🔔" label="Notifications" value="Coming soon" last />
@@ -156,10 +156,10 @@ export default function EmployeeMoreScreen() {
 
 function SettingRow({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
   return (
-    <div className={`flex gap-3 py-3 items-start ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}>
-      <span className="text-base">{icon}</span>
-      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 pr-2 min-w-0">{label}</span>
-      <span className="text-sm text-gray-400 dark:text-gray-500 text-right max-w-[46%] shrink truncate">{value}</span>
+    <div className={`flex gap-3 py-3 items-start ${last ? '' : 'border-b border-surface-100 dark:border-surface-800'}`}>
+      <span className="text-body">{icon}</span>
+      <span className="text-body text-surface-700 dark:text-surface-300 flex-1 pr-2 min-w-0">{label}</span>
+      <span className="text-caption text-surface-400 dark:text-surface-500 text-right max-w-[46%] shrink truncate">{value}</span>
     </div>
   );
 }

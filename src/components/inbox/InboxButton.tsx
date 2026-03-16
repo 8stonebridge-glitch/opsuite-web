@@ -8,7 +8,7 @@ export function InboxButton() {
 
   return (
     <button onClick={openInbox} className="relative p-1 w-10 h-10 flex items-center justify-center">
-      <Bell className="h-[22px] w-[22px] text-gray-700 dark:text-gray-300" />
+      <Bell className="h-[22px] w-[22px] text-surface-700 dark:text-surface-300" />
       {unreadCount > 0 && (
         <div className="absolute -top-0.5 -right-0.5 bg-red-500 rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
           <span className="text-[10px] font-bold text-white">

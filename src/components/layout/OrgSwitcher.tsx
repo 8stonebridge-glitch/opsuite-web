@@ -29,7 +29,7 @@ export function OrgSwitcher() {
 
   return (
     <div>
-      <span className="block text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+      <span className="block text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
         Organizations ({state.workspaces.length})
       </span>
       <div className="flex flex-col gap-2">
@@ -58,10 +58,10 @@ export function OrgSwitcher() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
+                    <span className="block text-caption text-surface-900 dark:text-surface-100 line-clamp-2 font-semibold">
                       {ws.orgName}
                     </span>
-                    <span className="block text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
+                    <span className="block text-caption text-surface-400 dark:text-surface-500 line-clamp-2">
                       {ws.industry?.name || 'General'}
                     </span>
                   </div>

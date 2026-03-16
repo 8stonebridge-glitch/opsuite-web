@@ -115,7 +115,7 @@ export default function EmployeeMyDayScreen() {
   );
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4 space-y-4">
               {isUnavailable && !handoffDone && (
@@ -127,8 +127,8 @@ export default function EmployeeMyDayScreen() {
                     <span className="text-2xl">🌙</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">You are unavailable today</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                    <p className="text-caption font-semibold text-surface-900 dark:text-surface-100">You are unavailable today</p>
+                    <p className="text-caption text-surface-400 dark:text-surface-500">
                       You can still review your tasks below if needed
                     </p>
                   </div>
@@ -144,8 +144,8 @@ export default function EmployeeMyDayScreen() {
                     <span className="text-2xl text-emerald-600">&#x2714;</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Handoff Complete</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                    <p className="text-caption font-semibold text-surface-900 dark:text-surface-100">Handoff Complete</p>
+                    <p className="text-caption text-surface-400 dark:text-surface-500">
                       All tasks reviewed for today
                     </p>
                   </div>
@@ -160,33 +160,33 @@ export default function EmployeeMyDayScreen() {
                       <span className="text-2xl">☀️</span>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-caption font-semibold text-surface-900 dark:text-surface-100">
                         Good morning, {name.split(' ')[0]}
                       </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">No active tasks · Tap to complete handoff</p>
+                      <p className="text-caption text-surface-400 dark:text-surface-500">No active tasks · Tap to complete handoff</p>
                     </div>
                     <div
                       className="px-4 py-2 rounded-full"
                       style={{ backgroundColor: color }}
                     >
-                      <span className="text-xs font-semibold text-white">Done</span>
+                      <span className="text-micro font-semibold text-white">Done</span>
                     </div>
                   </Card>
                 </button>
               ) : (
                 <Card className="px-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-base" style={{ color }}>🤚</span>
-                    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <span className="text-body" style={{ color }}>🤚</span>
+                    <p className="text-micro font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider">
                       Daily Handoff
                     </p>
                     <div className="flex-1" />
-                    <span className="text-xs font-semibold" style={{ color }}>
+                    <span className="text-micro font-semibold" style={{ color }}>
                       {handoff.engaged}/{handoff.total}
                     </span>
                   </div>
 
-                  <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-4">
+                  <div className="h-2 bg-surface-100 dark:bg-surface-800 rounded-full overflow-hidden mb-4">
                     <div
                       className="h-2 rounded-full"
                       style={{
@@ -199,27 +199,27 @@ export default function EmployeeMyDayScreen() {
                   {handoff.remaining.map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center gap-2 py-2.5 border-b border-gray-50 dark:border-gray-800"
+                      className="flex items-center gap-2 py-2.5 border-b border-surface-50 dark:border-surface-800"
                     >
-                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-surface-300 dark:bg-surface-600 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                        <p className="text-body text-surface-900 dark:text-surface-100 truncate">
                           {task.title}
                         </p>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500">{task.site}</p>
+                        <p className="text-micro text-surface-400 dark:text-surface-500">{task.site}</p>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-1 shrink-0">
                         <button
                           onClick={() => goToTask(task.id)}
                           className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950 rounded-lg text-center min-w-[44px] min-h-[44px] sm:min-h-0 flex items-center justify-center"
                         >
-                          <span className="text-[10px] font-semibold text-blue-600">Update</span>
+                          <span className="text-micro font-semibold text-blue-600">Update</span>
                         </button>
                         <button
                           onClick={() => void handleNoChange(task.id)}
-                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-center min-w-[44px] min-h-[44px] sm:min-h-0 flex items-center justify-center"
+                          className="px-3 py-1.5 bg-surface-100 dark:bg-surface-800 rounded-lg text-center min-w-[44px] min-h-[44px] sm:min-h-0 flex items-center justify-center"
                         >
-                          <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          <span className="text-micro font-semibold text-surface-500 dark:text-surface-400 whitespace-nowrap">
                             {isSubmittingNoChangeId === task.id ? '...' : 'Skip'}
                           </span>
                         </button>
@@ -231,15 +231,15 @@ export default function EmployeeMyDayScreen() {
                     engagedTasks.map((task) => (
                       <div
                         key={task.id}
-                        className="flex items-center gap-3 py-2.5 border-b border-gray-50 dark:border-gray-800"
+                        className="flex items-center gap-3 py-2.5 border-b border-surface-50 dark:border-surface-800"
                       >
-                        <span className="text-emerald-600 text-sm">&#x2714;</span>
+                        <span className="text-emerald-600 text-body">&#x2714;</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-400 dark:text-gray-500 truncate">
+                          <p className="text-body text-surface-400 dark:text-surface-500 truncate">
                             {task.title}
                           </p>
                         </div>
-                        <span className="text-[10px] text-green-600 font-medium">Done</span>
+                        <span className="text-micro text-green-600 font-medium">Done</span>
                       </div>
                     ))}
 
@@ -252,7 +252,7 @@ export default function EmployeeMyDayScreen() {
                     }}
                   >
                     <span
-                      className="text-sm font-semibold"
+                      className="text-caption font-semibold"
                       style={{ color: allEngaged && !isSubmittingHandoff ? '#fff' : '#9ca3af' }}
                     >
                       {isSubmittingHandoff ? 'Completing...' : 'Complete Handoff'}
@@ -306,8 +306,8 @@ export default function EmployeeMyDayScreen() {
 
           {isEmpty && handoffDone && (
             <div className="flex flex-col items-center py-12">
-              <span className="text-5xl text-gray-300 dark:text-gray-600">&#x2714;&#x2714;</span>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-3">All clear for today</p>
+              <span className="text-5xl text-surface-300 dark:text-surface-600">&#x2714;&#x2714;</span>
+              <p className="text-body text-surface-400 dark:text-surface-500 mt-3">All clear for today</p>
             </div>
           )}
         </div>

@@ -103,7 +103,7 @@ export function useIndustryColor(): string {
 
 export function useSitesLabel(): string {
   const { state } = useApp();
-  return state.onboarding.industry?.sitesLabel || 'Sites';
+  return state.onboarding.industry?.sitesLabel || 'Teams';
 }
 
 export function useMyCheckIns(): CheckIn[] {

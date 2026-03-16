@@ -34,7 +34,7 @@ export default function SubAdminPeopleScreen() {
 
   if (!team) {
     return (
-      <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+      <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
         <EmptyState icon="people-outline" title="No team found" />
       </div>
     );
@@ -43,9 +43,9 @@ export default function SubAdminPeopleScreen() {
   const allMembers = [team.lead, ...team.members];
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="px-5 pt-4">
-        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+        <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-3">
           {team.name} Team · {team.members.length} {team.members.length === 1 ? 'member' : 'members'}
         </p>
       </div>
@@ -60,9 +60,9 @@ export default function SubAdminPeopleScreen() {
               <Avatar name={member.name} color={index === 0 ? team.color : '#6b7280'} size="sm" />
               <div className="flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{member.name}</span>
+                  <span className="text-body font-medium text-surface-900 dark:text-surface-100">{member.name}</span>
                   {stats?.handoffToday && (
-                    <span className="text-emerald-600 text-xs">&#x2714;</span>
+                    <span className="text-emerald-600 text-caption">&#x2714;</span>
                   )}
                   {activeAvail && (
                     <span
@@ -78,7 +78,7 @@ export default function SubAdminPeopleScreen() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                  <span className="text-caption text-surface-400 dark:text-surface-500">
                     {index === 0 ? 'Team Lead' : 'Member'}
                     {topAction ? ` · ${topAction.label}` : ''}
                   </span>

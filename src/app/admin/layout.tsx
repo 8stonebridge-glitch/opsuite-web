@@ -15,7 +15,7 @@ import { type LucideIcon } from 'lucide-react';
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/admin/overview', label: 'Overview', icon: Home },
   { href: '/admin/tasks', label: 'Tasks', icon: ClipboardList },
-  { href: '/admin/sites', label: 'Sites', icon: MapPin },
+  { href: '/admin/sites', label: 'Teams', icon: MapPin },
   { href: '/admin/people', label: 'People', icon: Users },
   { href: '/admin/more', label: 'More', icon: Settings },
 ];
@@ -37,23 +37,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ProtectedRoute>
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-surface-50 dark:bg-surface-950">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+      <aside className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-800">
         {/* Logo + Org */}
-        <div className="px-5 py-5 border-b border-gray-100 dark:border-gray-800">
+        <div className="px-5 py-5 border-b border-surface-100 dark:border-surface-800">
           <div className="flex items-center gap-2.5">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-caption font-bold"
               style={{ backgroundColor: color }}
             >
               {(state.onboarding.orgName || 'O').charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+              <h2 className="text-caption font-bold text-surface-900 dark:text-surface-100 truncate">
                 {state.onboarding.orgName || 'OpSuite'}
               </h2>
-              <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+              <p className="text-[11px] text-surface-400 dark:text-surface-500 truncate">
                 {state.onboarding.industry?.name || 'Admin'}
               </p>
             </div>
@@ -68,10 +68,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-caption font-medium transition-colors ${
                   isActive
-                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    ? 'bg-surface-100 dark:bg-surface-800 text-surface-900 dark:text-surface-100'
+                    : 'text-surface-500 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800/50'
                 }`}
                 style={isActive ? { color } : undefined}
               >
@@ -89,19 +89,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User info at bottom */}
         {user && (
-          <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-800">
+          <div className="px-4 py-4 border-t border-surface-100 dark:border-surface-800">
             <div className="flex items-center gap-2.5">
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-micro font-bold shrink-0"
                 style={{ backgroundColor: color }}
               >
                 {(user.name || 'U').charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                <p className="text-caption font-medium text-surface-900 dark:text-surface-100 truncate">
                   {user.name}
                 </p>
-                <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                <p className="text-[11px] text-surface-400 dark:text-surface-500 truncate">
                   {user.email}
                 </p>
               </div>
@@ -111,15 +111,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-micro font-bold shrink-0"
             style={{ backgroundColor: color }}
           >
             {(state.onboarding.orgName || 'O').charAt(0)}
           </div>
-          <span className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+          <span className="text-caption font-bold text-surface-900 dark:text-surface-100 truncate">
             {state.onboarding.orgName || 'OpSuite'}
           </span>
         </div>
@@ -132,7 +132,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </main>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)] z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-surface-900 border-t border-surface-200 dark:border-surface-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)] z-50">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (

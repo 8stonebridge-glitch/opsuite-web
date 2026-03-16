@@ -27,20 +27,20 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
 
   return (
     <div
-      className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden"
+      className="bg-white dark:bg-surface-900 rounded-card border border-surface-100 dark:border-surface-800 overflow-hidden"
       style={{ borderLeftWidth: 3, borderLeftColor: SEVERITY_DOT[band] }}
     >
       {/* Header */}
       <div className="flex items-center flex-wrap px-4 py-3 gap-3">
         <ScoreBadge score={score} band={band} trendDelta={trendDelta} size={compact ? 'md' : 'md'} />
         <div className="flex-1">
-          <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <p className="text-heading text-surface-900 dark:text-surface-100">
             {compact ? 'My Performance' : 'Performance Score'}
           </p>
           <div className="flex items-center gap-2 mt-1">
             <BandLabel band={band} />
             {trendDelta !== 0 && (
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              <span className="text-micro text-surface-400 dark:text-surface-500">
                 {trendDelta > 0 ? '\u25B2' : '\u25BC'} {Math.abs(trendDelta)} from last week
               </span>
             )}
@@ -52,9 +52,9 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
       {!compact && (
         <button
           onClick={() => setExpanded((e) => !e)}
-          className="flex items-center justify-between px-4 py-2 border-t border-gray-50 dark:border-gray-800 w-full text-left"
+          className="flex items-center justify-between px-4 py-2 border-t border-surface-50 dark:border-surface-800 w-full text-left"
         >
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Score Breakdown</span>
+          <span className="text-caption font-medium text-surface-500 dark:text-surface-400">Score Breakdown</span>
           <span style={{ color: isDark ? '#6b7280' : '#9ca3af', fontSize: 14 }}>
             {expanded ? '\u25B2' : '\u25BC'}
           </span>
@@ -64,7 +64,7 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
       {expanded && !compact && (
         <div className="px-4 pb-3">
           {/* Execution */}
-          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1">
+          <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-1">
             Execution (50%)
           </span>
           <MetricRow label="Overdue rate" value={`${Math.round(metrics.overdueRate * 100)}%`} good={metrics.overdueRate === 0} />
@@ -73,7 +73,7 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
           <MetricRow label="Stale tasks" value={`${metrics.staleActiveCount}`} good={metrics.staleActiveCount === 0} />
 
           {/* Discipline */}
-          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1 mt-2">
+          <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-1 mt-2">
             Discipline (50%)
           </span>
           <MetricRow label="Check-in compliance" value={`${Math.round(metrics.checkInComplianceRate * 100)}%`} good={metrics.checkInComplianceRate >= 0.8} />
@@ -85,9 +85,9 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
 
       {/* Action items */}
       {displayActions.length > 0 && (
-        <div className="border-t border-gray-50 dark:border-gray-800 px-4 py-2">
+        <div className="border-t border-surface-50 dark:border-surface-800 px-4 py-2">
           {compact && (
-            <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-1.5">
+            <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-1.5">
               Improve your score
             </span>
           )}
@@ -101,10 +101,10 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
                   backgroundColor: SEVERITY_DOT[action.severity],
                 }}
               />
-              <span className="text-xs text-gray-700 dark:text-gray-300 flex-1 truncate">
+              <span className="text-caption text-surface-700 dark:text-surface-300 flex-1 truncate">
                 {action.label}
               </span>
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">{action.target}</span>
+              <span className="text-micro text-surface-400 dark:text-surface-500">{action.target}</span>
             </div>
           ))}
         </div>
@@ -118,7 +118,7 @@ export function PerformanceCard({ performance, compact, color = '#059669' }: Per
 function MetricRow({ label, value, good }: { label: string; value: string; good: boolean }) {
   return (
     <div className="flex items-center justify-between py-0.5">
-      <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
+      <span className="text-caption text-surface-500 dark:text-surface-400">{label}</span>
       <span className={`text-xs font-medium ${good ? 'text-emerald-600' : 'text-amber-600'}`}>
         {value}
       </span>

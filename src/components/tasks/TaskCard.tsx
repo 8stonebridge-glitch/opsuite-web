@@ -45,8 +45,8 @@ export function TaskCard({ task, onPress, quickActions, stalledDays, assigneeAwa
   return (
     <button
       onClick={onPress}
-      className={`bg-white dark:bg-gray-900 rounded-2xl mb-2 hover:bg-gray-50 dark:hover:bg-gray-800 overflow-hidden w-full text-left ${
-        overdue ? 'border border-red-100 dark:border-red-900' : 'border border-gray-100 dark:border-gray-800'
+      className={`bg-white dark:bg-surface-900 rounded-card mb-2 hover:bg-surface-50 dark:hover:bg-surface-800 overflow-hidden w-full text-left ${
+        overdue ? 'border border-red-100 dark:border-red-900' : 'border border-surface-100 dark:border-surface-800'
       }`}
       style={overdue ? { backgroundColor: isDark ? '#1a0505' : '#fef2f2' } : undefined}
     >
@@ -58,33 +58,39 @@ export function TaskCard({ task, onPress, quickActions, stalledDays, assigneeAwa
           {/* Title row */}
           <div className="flex items-center gap-2">
             <div
+              className="shrink-0"
               style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: PRIORITY_COLORS[task.priority] || '#9ca3af' }}
             />
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 truncate">
+            <span className="text-caption text-surface-900 dark:text-surface-100 flex-1 truncate min-w-0">
               {task.title}
             </span>
             <span className="shrink-0"><StatusBadge status={task.status} /></span>
-            {task.reworked && (
-              <div className="bg-amber-100 dark:bg-amber-950 rounded-full px-2 py-0.5">
-                <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">R{task.reworkCount || 1}</span>
-              </div>
-            )}
-            {stalledDays != null && stalledDays > 0 && (
-              <div className="bg-amber-50 dark:bg-amber-950 rounded-full px-2 py-0.5">
-                <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">Stalled {stalledDays}d</span>
-              </div>
-            )}
-            {coverageNeeded && (
-              <div className="bg-orange-50 dark:bg-orange-950 rounded-full px-2 py-0.5">
-                <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Coverage</span>
-              </div>
-            )}
-            {assigneeAway && !coverageNeeded && (
-              <div className="bg-blue-50 dark:bg-blue-950 rounded-full px-2 py-0.5">
-                <span className="text-[10px] font-semibold text-blue-500 dark:text-blue-400">Away</span>
-              </div>
-            )}
           </div>
+          {/* Badge row — wraps on mobile */}
+          {(task.reworked || (stalledDays != null && stalledDays > 0) || coverageNeeded || (assigneeAway && !coverageNeeded)) && (
+            <div className="flex flex-wrap gap-1.5 mt-1.5 ml-4">
+              {task.reworked && (
+                <div className="bg-amber-100 dark:bg-amber-950 rounded-full px-2 py-0.5">
+                  <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">R{task.reworkCount || 1}</span>
+                </div>
+              )}
+              {stalledDays != null && stalledDays > 0 && (
+                <div className="bg-amber-50 dark:bg-amber-950 rounded-full px-2 py-0.5">
+                  <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">Stalled {stalledDays}d</span>
+                </div>
+              )}
+              {coverageNeeded && (
+                <div className="bg-orange-50 dark:bg-orange-950 rounded-full px-2 py-0.5">
+                  <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Coverage</span>
+                </div>
+              )}
+              {assigneeAway && !coverageNeeded && (
+                <div className="bg-blue-50 dark:bg-blue-950 rounded-full px-2 py-0.5">
+                  <span className="text-[10px] font-semibold text-blue-500 dark:text-blue-400">Away</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Quick actions for handoff */}
           {quickActions && !quickActions.engaged && (
@@ -97,15 +103,15 @@ export function TaskCard({ task, onPress, quickActions, stalledDays, assigneeAwa
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); quickActions.onNoChange(); }}
-                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                className="px-3 py-1.5 bg-surface-100 dark:bg-surface-800 rounded-lg"
               >
-                <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">No change</span>
+                <span className="text-[10px] font-semibold text-surface-500 dark:text-surface-400">No change</span>
               </button>
             </div>
           )}
           {quickActions?.engaged && (
             <div className="flex items-center gap-1 mt-2 ml-4">
-              <span className="text-green-600 text-xs">&#10003;</span>
+              <span className="text-green-600 text-micro">&#10003;</span>
               <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">Reviewed</span>
             </div>
           )}
@@ -113,17 +119,17 @@ export function TaskCard({ task, onPress, quickActions, stalledDays, assigneeAwa
           {/* Meta row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-0.5 mt-2 ml-4">
             <div className="flex items-center gap-1">
-              <span className="text-gray-400 dark:text-gray-500 text-[11px]">&#9679;</span>
-              <span className="text-xs text-gray-400 dark:text-gray-500">{task.assignee}</span>
+              <span className="text-surface-400 dark:text-surface-500 text-[11px]">&#9679;</span>
+              <span className="text-caption text-surface-400 dark:text-surface-500">{task.assignee}</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-gray-400 dark:text-gray-500 text-[11px]">&#9679;</span>
-              <span className="text-xs text-gray-400 dark:text-gray-500">{task.site}</span>
+              <span className="text-surface-400 dark:text-surface-500 text-[11px]">&#9679;</span>
+              <span className="text-caption text-surface-400 dark:text-surface-500">{task.site}</span>
             </div>
             {due && (
               <div className="flex items-center gap-1">
                 <span style={{ color: due.urgent ? '#dc2626' : isDark ? '#6b7280' : '#9ca3af', fontSize: 11 }}>&#9679;</span>
-                <span className={`text-xs ${due.urgent ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span className={`text-caption ${due.urgent ? 'text-red-600 dark:text-red-400 font-medium' : 'text-surface-400 dark:text-surface-500'}`}>
                   {due.text}
                 </span>
               </div>

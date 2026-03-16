@@ -80,7 +80,7 @@ function compareTasks(a: Task, b: Task, key: string, dir: 'asc' | 'desc', teams:
 
 export function TaskListScreen(props: TaskListScreenProps) {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-gray-400">Loading...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-surface-400">Loading...</div>}>
       <TaskListScreenInner {...props} />
     </Suspense>
   );
@@ -286,30 +286,30 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
   };
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="flex-1 px-5 pt-3">
         {isManager && (
-          <div className="flex rounded-2xl bg-gray-200 dark:bg-gray-800 p-1 mb-4">
+          <div className="flex rounded-card bg-surface-200 dark:bg-surface-800 p-1 mb-4">
             <button
               onClick={() => { setScope('assigned'); setFilter('active'); setTableVisibleCount(PAGE_SIZE); }}
               className={`flex-1 py-2.5 rounded-xl text-center ${
-                scope === 'assigned' ? 'bg-white dark:bg-gray-900 shadow-sm' : ''
+                scope === 'assigned' ? 'bg-white dark:bg-surface-900 shadow-sm' : ''
               }`}
             >
-              <span className={`text-sm font-semibold ${scope === 'assigned' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
+              <span className={`text-caption ${scope === 'assigned' ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}>
                 My Assigned{' '}
-                <span className="text-gray-400 dark:text-gray-500 font-normal">{myAssigned.length}</span>
+                <span className="text-surface-400 dark:text-surface-500 font-normal">{myAssigned.length}</span>
               </span>
             </button>
             <button
               onClick={() => { setScope('all'); setFilter('active'); setTableVisibleCount(PAGE_SIZE); }}
               className={`flex-1 py-2.5 rounded-xl text-center ${
-                scope === 'all' ? 'bg-white dark:bg-gray-900 shadow-sm' : ''
+                scope === 'all' ? 'bg-white dark:bg-surface-900 shadow-sm' : ''
               }`}
             >
-              <span className={`text-sm font-semibold ${scope === 'all' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
+              <span className={`text-caption ${scope === 'all' ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}>
                 All Tasks{' '}
-                <span className="text-gray-400 dark:text-gray-500 font-normal">{allScoped.length}</span>
+                <span className="text-surface-400 dark:text-surface-500 font-normal">{allScoped.length}</span>
               </span>
             </button>
           </div>
@@ -327,7 +327,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
                   groupBy === 'status' ? 'site' : groupBy === 'site' ? 'team' : 'status';
                 setGroupBy(next);
               }}
-              className="h-10 w-10 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center"
+              className="h-10 w-10 rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 flex items-center justify-center"
             >
               <span style={{ color: groupBy !== 'status' ? color : (isDark ? '#6b7280' : '#9ca3af'), fontSize: 16 }}>
                 {groupBy === 'site' ? '\u{1F4CD}' : groupBy === 'team' ? '\u{1F465}' : '\u{1F4DA}'}
@@ -337,7 +337,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
           {/* Cards/Table toggle */}
           <button
             onClick={() => setDisplayMode((m) => (m === 'cards' ? 'table' : 'cards'))}
-            className="h-10 w-10 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center"
+            className="h-10 w-10 rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 flex items-center justify-center"
           >
             <span style={{ color: displayMode === 'table' ? color : (isDark ? '#6b7280' : '#9ca3af'), fontSize: 16 }}>
               {displayMode === 'table' ? '\u{1F4F1}' : '\u{1F4CB}'}
@@ -355,13 +355,13 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
               sections.map((section) => (
                 <div key={section.title}>
                   <div className="flex items-center gap-2 mb-2 mt-1">
-                    {section.title === 'Overdue' && <span className="text-red-600 text-sm">!</span>}
-                    {section.title === 'Stalled' && <span className="text-amber-600 text-sm">||</span>}
-                    {section.title === 'Rework' && <span className="text-amber-600 text-sm">R</span>}
-                    <span className={`text-xs font-semibold uppercase tracking-wider ${
+                    {section.title === 'Overdue' && <span className="text-red-600 text-body">!</span>}
+                    {section.title === 'Stalled' && <span className="text-amber-600 text-body">||</span>}
+                    {section.title === 'Rework' && <span className="text-amber-600 text-body">R</span>}
+                    <span className={`text-micro uppercase tracking-wider ${
                       section.title === 'Overdue' ? 'text-red-500' :
                       section.title === 'Stalled' ? 'text-amber-600' :
-                      section.title === 'Rework' ? 'text-amber-600' : 'text-gray-400 dark:text-gray-500'
+                      section.title === 'Rework' ? 'text-amber-600' : 'text-surface-400 dark:text-surface-500'
                     }`}>
                       {section.title} · {section.data.length}
                     </span>
@@ -407,7 +407,7 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
                 onClick={() => setTableVisibleCount((c) => c + PAGE_SIZE)}
                 className="flex items-center justify-center py-3 mt-1 gap-1 w-full"
               >
-                <span className="text-xs font-medium" style={{ color }}>
+                <span className="text-caption" style={{ color }}>
                   Load more ({sortedTasks.length - tableVisibleCount} remaining)
                 </span>
               </button>

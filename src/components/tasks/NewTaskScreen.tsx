@@ -167,12 +167,12 @@ export function NewTaskScreen() {
   const singleSiteLabel = singularize(sitesLabel);
 
   return (
-    <div className="flex-1 bg-white dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-white dark:bg-surface-950 min-h-screen">
       <div className="px-5 pt-6 pb-3 flex items-center justify-between">
         <button onClick={() => router.back()}>
-          <span className="text-base text-gray-400 dark:text-gray-500">Cancel</span>
+          <span className="text-body text-surface-400 dark:text-surface-500">Cancel</span>
         </button>
-        <span className="text-base font-bold text-gray-900 dark:text-gray-100">Assign task</span>
+        <span className="text-heading text-surface-900 dark:text-surface-100">Assign task</span>
         <button
           onClick={() => {
             if (!isValid) {
@@ -184,7 +184,7 @@ export function NewTaskScreen() {
           disabled={isSubmitting}
         >
           <span
-            className={`text-base font-bold ${!isValid || isSubmitting ? 'text-gray-300 dark:text-gray-600' : ''}`}
+            className={`text-heading ${!isValid || isSubmitting ? 'text-surface-300 dark:text-surface-600' : ''}`}
             style={isValid && !isSubmitting ? { color } : undefined}
           >
             {isSubmitting ? 'Saving...' : 'Done'}
@@ -204,12 +204,12 @@ export function NewTaskScreen() {
               className="text-xl"
             />
             {touched.title && !title.trim() ? (
-              <span className="text-xs text-red-600 mt-1 block">Title is required</span>
+              <span className="text-micro text-red-600 mt-1 block">Title is required</span>
             ) : null}
           </div>
 
           <div>
-            <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-2">
+            <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-2">
               Description
             </span>
             <textarea
@@ -217,7 +217,7 @@ export function NewTaskScreen() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe what needs to be done"
               rows={3}
-              className="bg-gray-50 dark:bg-gray-800 rounded-2xl px-4 py-3.5 text-sm text-gray-900 dark:text-gray-100 min-h-[80px] w-full resize-none border-none outline-none"
+              className="bg-surface-50 dark:bg-surface-800 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 min-h-[80px] w-full resize-none border-none outline-none"
             />
           </div>
 
@@ -231,7 +231,7 @@ export function NewTaskScreen() {
                 onChange={(val) => { setSiteId(val); setTouched((prev) => ({ ...prev, siteId: true })); }}
               />
               {touched.siteId && !siteId ? (
-                <span className="text-xs text-red-600 mt-1 block">{singleSiteLabel} is required</span>
+                <span className="text-micro text-red-600 mt-1 block">{singleSiteLabel} is required</span>
               ) : null}
             </div>
             <div className="flex-1">
@@ -243,13 +243,13 @@ export function NewTaskScreen() {
                 onChange={(val) => { setAssigneeId(val); setTouched((prev) => ({ ...prev, assigneeId: true })); }}
               />
               {touched.assigneeId && !assigneeId ? (
-                <span className="text-xs text-red-600 mt-1 block">Assignee is required</span>
+                <span className="text-micro text-red-600 mt-1 block">Assignee is required</span>
               ) : null}
             </div>
           </div>
 
           <div>
-            <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-2">
+            <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-2">
               Priority *
             </span>
             <div className="flex gap-2">
@@ -259,7 +259,7 @@ export function NewTaskScreen() {
                     key={val}
                     onClick={() => { setPriority(val); setTouched((prev) => ({ ...prev, priority: true })); }}
                     className={`flex-1 py-3.5 rounded-xl text-center ${
-                      priority !== val ? 'border border-gray-200 dark:border-gray-700' : ''
+                      priority !== val ? 'border border-surface-200 dark:border-surface-700' : ''
                     }`}
                     style={
                       priority === val
@@ -271,8 +271,8 @@ export function NewTaskScreen() {
                     }
                   >
                     <span
-                      className={`text-sm font-semibold ${
-                        priority === val ? 'text-white' : 'text-gray-500 dark:text-gray-400'
+                      className={`text-caption ${
+                        priority === val ? 'text-white' : 'text-surface-500 dark:text-surface-400'
                       }`}
                     >
                       {label}
@@ -282,16 +282,16 @@ export function NewTaskScreen() {
               )}
             </div>
             {touched.priority && !priority ? (
-              <span className="text-xs text-red-600 mt-1 block">Priority is required</span>
+              <span className="text-micro text-red-600 mt-1 block">Priority is required</span>
             ) : null}
           </div>
 
           <div>
-            <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-2">
+            <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-2">
               Due date *
             </span>
             <label
-              className="flex items-center justify-between rounded-2xl px-4 py-3.5 cursor-pointer"
+              className="flex items-center justify-between rounded-card px-4 py-3.5 cursor-pointer"
               style={{ backgroundColor: isDark ? '#1f2937' : '#f9fafb' }}
             >
               <span
@@ -321,9 +321,9 @@ export function NewTaskScreen() {
               />
             </label>
             {dueDateError ? (
-              <span className="text-xs text-red-600 mt-1 block">{dueDateError}</span>
+              <span className="text-micro text-red-600 mt-1 block">{dueDateError}</span>
             ) : touched.dueDate && !dueDate ? (
-              <span className="text-xs text-red-600 mt-1 block">Due date is required</span>
+              <span className="text-micro text-red-600 mt-1 block">Due date is required</span>
             ) : null}
           </div>
 
@@ -336,7 +336,7 @@ export function NewTaskScreen() {
           />
 
           <div>
-            <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-2">
+            <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-2">
               Instruction note
             </span>
             <textarea
@@ -344,12 +344,12 @@ export function NewTaskScreen() {
               onChange={(e) => setNote(e.target.value)}
               placeholder="Optional note for employee"
               rows={3}
-              className="bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-sm text-gray-900 dark:text-gray-100 min-h-[80px] w-full resize-none border-none outline-none"
+              className="bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 min-h-[80px] w-full resize-none border-none outline-none"
             />
           </div>
 
           {error ? (
-            <span className="text-sm text-red-600">{error}</span>
+            <span className="text-body text-red-600">{error}</span>
           ) : null}
         </div>
       </div>

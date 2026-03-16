@@ -37,22 +37,22 @@ export default function SiteDetailScreen() {
 
   if (!site) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
-        <p className="text-gray-400 dark:text-gray-500">Site not found</p>
+      <div className="flex-1 flex items-center justify-center min-h-screen bg-surface-50 dark:bg-surface-950">
+        <p className="text-surface-400 dark:text-surface-500">Site not found</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       {/* Header */}
       <div className="flex items-center px-5 py-3 gap-3">
-        <button onClick={() => router.back()} className="text-gray-700 dark:text-gray-300">
+        <button onClick={() => router.back()} className="text-surface-700 dark:text-surface-300">
           &larr;
         </button>
         <div className="flex-1">
-          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{site.name}</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500">{siteTasks.length} total tasks</p>
+          <p className="text-title text-surface-900 dark:text-surface-100">{site.name}</p>
+          <p className="text-caption text-surface-400 dark:text-surface-500">{siteTasks.length} total tasks</p>
         </div>
       </div>
 
@@ -101,7 +101,7 @@ export default function SiteDetailScreen() {
 
           {siteTasks.length === 0 && (
             <div className="flex items-center justify-center py-12">
-              <p className="text-sm text-gray-400 dark:text-gray-500">No tasks at this site</p>
+              <p className="text-body text-surface-400 dark:text-surface-500">No tasks at this site</p>
             </div>
           )}
         </div>
@@ -109,7 +109,7 @@ export default function SiteDetailScreen() {
         {/* Teams at this Site */}
         {teamsAtSite.length > 0 && (
           <div className="px-5 mt-2">
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-3">
               Teams at this site
             </p>
             <Card>
@@ -124,13 +124,13 @@ export default function SiteDetailScreen() {
                   <div
                     key={team.id}
                     className={`flex items-center py-3 gap-3 ${
-                      idx < teamsAtSite.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''
+                      idx < teamsAtSite.length - 1 ? 'border-b border-surface-100 dark:border-surface-800' : ''
                     }`}
                   >
                     <Avatar name={team.name} color={team.color} size="sm" />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{team.name}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                      <p className="text-body font-semibold text-surface-900 dark:text-surface-100">{team.name}</p>
+                      <p className="text-caption text-surface-400 dark:text-surface-500">
                         {teamTasksHere.length} tasks · {activeHere} active
                         {overdueHere > 0 ? ` · ${overdueHere} overdue` : ''}
                       </p>
@@ -144,7 +144,7 @@ export default function SiteDetailScreen() {
 
         {/* Check-in Overview */}
         <div className="px-5 mt-4">
-          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+          <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-3">
             Check-in Overview
           </p>
           <Card>
@@ -156,17 +156,17 @@ export default function SiteDetailScreen() {
                 <span className="text-lg">👥</span>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <p className="text-body font-semibold text-surface-900 dark:text-surface-100">
                   {checkInHealth.checkedInToday} of {checkInHealth.total} checked in
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">Today&apos;s check-in rate</p>
+                <p className="text-caption text-surface-400 dark:text-surface-500">Today&apos;s check-in rate</p>
               </div>
-              <p className="text-lg font-bold" style={{ color: '#059669' }}>
+              <p className="text-title" style={{ color: '#059669' }}>
                 {checkInHealth.rate}%
               </p>
             </div>
             {/* Progress bar */}
-            <div className="mt-3 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+            <div className="mt-3 h-2 bg-surface-100 dark:bg-surface-800 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full"
                 style={{
@@ -196,10 +196,10 @@ function StatPill({
       className="flex-1 flex flex-col items-center py-2 rounded-lg"
       style={{ backgroundColor: color + '10' }}
     >
-      <p className="text-base font-bold" style={{ color }}>
+      <p className="text-heading" style={{ color }}>
         {value}
       </p>
-      <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500">{label}</p>
+      <p className="text-micro font-medium text-surface-400 dark:text-surface-500">{label}</p>
     </div>
   );
 }

@@ -30,7 +30,7 @@ export function AtRiskSection({ employees, limit = 5 }: AtRiskSectionProps) {
         </span>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-surface-900 rounded-xl border border-surface-100 dark:border-surface-800 overflow-hidden">
         {preview.map((perf, idx) => {
           const emp = allEmployees.find((e) => e.id === perf.employeeId);
           const topAction = perf.actions[0];
@@ -39,16 +39,16 @@ export function AtRiskSection({ employees, limit = 5 }: AtRiskSectionProps) {
           return (
             <div
               key={perf.employeeId}
-              className={`flex items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100 dark:border-gray-800' : ''}`}
+              className={`flex items-center px-4 py-3 ${!isLast ? 'border-b border-surface-100 dark:border-surface-800' : ''}`}
             >
               <Avatar name={emp?.name || '?'} color="#9ca3af" size="sm" />
 
               <div className="flex-1 ml-3 mr-3 min-w-0">
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 block truncate">
+                <span className="text-caption font-medium text-surface-900 dark:text-surface-100 block truncate">
                   {emp?.name || 'Unknown'}
                 </span>
                 {topAction && (
-                  <span className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 block truncate">
+                  <span className="text-[11px] text-surface-400 dark:text-surface-500 mt-0.5 block truncate">
                     {topAction.label} — {topAction.target}
                   </span>
                 )}
@@ -61,7 +61,7 @@ export function AtRiskSection({ employees, limit = 5 }: AtRiskSectionProps) {
       </div>
 
       {employees.length > limit && (
-        <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mt-2">
+        <p className="text-[11px] text-surface-400 dark:text-surface-500 text-center mt-2">
           +{employees.length - limit} more
         </p>
       )}

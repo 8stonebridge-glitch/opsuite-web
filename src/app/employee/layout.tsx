@@ -30,12 +30,12 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
 
   return (
     <ProtectedRoute>
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-surface-50 dark:bg-surface-950">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+      <aside className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-800">
         <div className="px-5 py-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">OpSuite</h2>
-          <p className="text-xs text-gray-400 dark:text-gray-500">Employee</p>
+          <h2 className="text-title text-surface-900 dark:text-surface-100">OpSuite</h2>
+          <p className="text-micro text-surface-400 dark:text-surface-500">Employee</p>
         </div>
         <nav className="flex-1 px-3 space-y-1">
           {NAV_ITEMS.map((item) => {
@@ -44,10 +44,10 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-body font-medium transition-colors ${
                   isActive
-                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    ? 'bg-surface-100 dark:bg-surface-800 text-surface-900 dark:text-surface-100'
+                    : 'text-surface-500 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800/50'
                 }`}
                 style={isActive ? { color } : undefined}
               >
@@ -65,7 +65,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
       </main>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)] z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-surface-900 border-t border-surface-200 dark:border-surface-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)] z-50">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (

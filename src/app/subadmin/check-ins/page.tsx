@@ -51,31 +51,31 @@ export default function SubAdminCheckInsScreen() {
   }, [weekDays, teamCheckIns, today]);
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="px-5 pt-4">
         {/* Summary */}
         <Card className="mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold" style={{ color: todayCount > 0 ? color : '#dc2626' }}>{todayCount}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">Checked in today</p>
+              <p className="text-title" style={{ color: todayCount > 0 ? color : '#dc2626' }}>{todayCount}</p>
+              <p className="text-caption text-surface-400 dark:text-surface-500">Checked in today</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{memberIds.length}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">Team members</p>
+              <p className="text-title text-surface-900 dark:text-surface-100">{memberIds.length}</p>
+              <p className="text-caption text-surface-400 dark:text-surface-500">Team members</p>
             </div>
           </div>
         </Card>
 
         {/* Team 7-Day Strip */}
-        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+        <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
           This Week
         </p>
         <Card className="mb-4">
           <div className="flex justify-between">
             {weeklyStats.map((ws) => (
               <div key={ws.date} className="flex flex-col items-center flex-1">
-                <span className={`text-xs mb-1 ${ws.date === today ? 'font-bold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span className={`text-caption mb-1 ${ws.date === today ? 'font-bold text-surface-900 dark:text-surface-100' : 'text-surface-400 dark:text-surface-500'}`}>
                   {getDayLabel(ws.date)}
                 </span>
                 <div
@@ -83,10 +83,10 @@ export default function SubAdminCheckInsScreen() {
                   style={ws.date === today ? { borderColor: color } : undefined}
                 >
                   {ws.isFuture || ws.isWeekend ? (
-                    <div className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-2 w-2 rounded-full bg-surface-200 dark:bg-surface-700" />
                   ) : (
                     <span
-                      className="text-sm font-bold"
+                      className="text-body font-bold"
                       style={{ color: ws.checkedCount === memberIds.length ? '#059669' : ws.checkedCount > 0 ? '#d97706' : '#dc2626' }}
                     >
                       {ws.checkedCount}
@@ -98,7 +98,7 @@ export default function SubAdminCheckInsScreen() {
           </div>
         </Card>
 
-        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+        <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-3">
           Recent Check-ins
         </p>
       </div>
@@ -111,8 +111,8 @@ export default function SubAdminCheckInsScreen() {
           <Card key={`${item.userId}-${item.date}-${i}`} className="flex items-center gap-3">
             <Avatar name={getName(item.userId)} color={item.status === 'Checked-In' ? color : '#9ca3af'} size="sm" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{getName(item.userId)}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
+              <p className="text-body font-medium text-surface-900 dark:text-surface-100">{getName(item.userId)}</p>
+              <p className="text-caption text-surface-400 dark:text-surface-500">
                 {formatHumanDate(item.date) || item.date} · {item.status === 'Checked-In' ? `${item.checkedInAt} · ${item.summary}` : 'Missed'}
               </p>
             </div>

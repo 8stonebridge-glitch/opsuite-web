@@ -42,8 +42,8 @@ export function TaskUpdateScreen() {
 
   if (!task) {
     return (
-      <div className="flex-1 bg-gray-50 dark:bg-gray-950 flex items-center justify-center min-h-screen">
-        <span className="text-gray-400 dark:text-gray-500">Task not found</span>
+      <div className="flex-1 bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen">
+        <span className="text-surface-400 dark:text-surface-500">Task not found</span>
       </div>
     );
   }
@@ -118,26 +118,26 @@ export function TaskUpdateScreen() {
   };
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <div className="bg-white dark:bg-gray-900 px-5 py-4 flex items-center gap-3 border-b border-gray-100 dark:border-gray-800">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
+      <div className="bg-white dark:bg-surface-900 px-5 py-4 flex items-center gap-3 border-b border-surface-100 dark:border-surface-800">
         <button onClick={() => router.back()}>
           <span style={{ color: isDark ? '#d1d5db' : '#374151', fontSize: 20 }}>&larr;</span>
         </button>
-        <span className="text-base font-bold text-gray-900 dark:text-gray-100 flex-1">Update Task</span>
+        <span className="text-heading text-surface-900 dark:text-surface-100 flex-1">Update Task</span>
       </div>
 
       <div className="flex-1 px-5 overflow-auto pb-24 pt-4">
         <Card className="mb-4">
-          <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">{task.title}</p>
+          <p className="text-heading text-surface-900 dark:text-surface-100 mb-2">{task.title}</p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 dark:text-gray-500">Current:</span>
+            <span className="text-caption text-surface-400 dark:text-surface-500">Current:</span>
             <StatusBadge status={task.status} />
           </div>
         </Card>
 
         {nextStatuses.length > 0 && (
           <div className="mb-4">
-            <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-3">
+            <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-3">
               New status
             </span>
             <div className="flex gap-2">
@@ -148,7 +148,7 @@ export function TaskUpdateScreen() {
                   className={`flex-1 py-3.5 rounded-xl text-center border ${
                     (selectedStatus === s || (nextStatuses.length === 1))
                       ? 'border-transparent'
-                      : 'border-gray-200 dark:border-gray-700'
+                      : 'border-surface-200 dark:border-surface-700'
                   }`}
                   style={
                     (selectedStatus === s || nextStatuses.length === 1)
@@ -157,10 +157,10 @@ export function TaskUpdateScreen() {
                   }
                 >
                   <span
-                    className={`text-sm font-semibold ${
+                    className={`text-caption ${
                       (selectedStatus === s || nextStatuses.length === 1)
                         ? 'text-white'
-                        : 'text-gray-500 dark:text-gray-400'
+                        : 'text-surface-500 dark:text-surface-400'
                     }`}
                   >
                     {STATUS_DISPLAY[s] || s}
@@ -172,7 +172,7 @@ export function TaskUpdateScreen() {
         )}
 
         <div className="mb-6">
-          <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-2">
+          <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-2">
             Add a note (optional)
           </span>
           <textarea
@@ -180,12 +180,12 @@ export function TaskUpdateScreen() {
             onChange={(e) => setNote(e.target.value)}
             placeholder="What progress have you made?"
             rows={4}
-            className="bg-white dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-sm text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 min-h-[100px] w-full resize-none outline-none"
+            className="bg-white dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 border border-surface-200 dark:border-surface-700 min-h-[100px] w-full resize-none outline-none"
           />
         </div>
 
         {error ? (
-          <p className="text-sm text-red-600 mb-4">{error}</p>
+          <p className="text-body text-red-600 mb-4">{error}</p>
         ) : null}
 
         <Button

@@ -34,8 +34,8 @@ export function TaskTableRow({ task, role, onPress, isLast }: TaskTableRowProps)
   return (
     <button
       onClick={onPress}
-      className={`flex items-center px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left ${
-        !isLast ? 'border-b border-gray-100 dark:border-gray-800' : ''
+      className={`flex items-center px-3 py-2.5 hover:bg-surface-50 dark:hover:bg-surface-800 w-full text-left ${
+        !isLast ? 'border-b border-surface-100 dark:border-surface-800' : ''
       }`}
       style={overdue ? { backgroundColor: '#fef2f2' } : undefined}
     >
@@ -53,11 +53,11 @@ export function TaskTableRow({ task, role, onPress, isLast }: TaskTableRowProps)
 
       {/* Title + meta */}
       <div className="flex-1 mr-2 min-w-0">
-        <span className="text-sm text-gray-900 dark:text-gray-100 block truncate">
+        <span className="text-body text-surface-900 dark:text-surface-100 block truncate">
           {task.title}
         </span>
         {meta ? (
-          <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 block truncate">
+          <span className="text-[10px] text-surface-400 dark:text-surface-500 mt-0.5 block truncate">
             {meta}
           </span>
         ) : null}
@@ -73,13 +73,13 @@ export function TaskTableRow({ task, role, onPress, isLast }: TaskTableRowProps)
         {due ? (
           <span
             className={`text-[10px] ${
-              due.urgent ? 'text-red-600 font-semibold' : 'text-gray-400 dark:text-gray-500'
+              due.urgent ? 'text-red-600 font-semibold' : 'text-surface-400 dark:text-surface-500'
             }`}
           >
             {due.text}
           </span>
         ) : (
-          <span className="text-[10px] text-gray-300 dark:text-gray-600">&mdash;</span>
+          <span className="text-[10px] text-surface-300 dark:text-surface-600">&mdash;</span>
         )}
       </div>
     </button>

@@ -52,7 +52,7 @@ export default function SubAdminOverviewScreen() {
   );
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4 space-y-5">
           <KpiRow
@@ -67,7 +67,7 @@ export default function SubAdminOverviewScreen() {
 
           {pendingRequests.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-3">
                 Pending Requests ({pendingRequests.length})
               </p>
               <div className="space-y-2">
@@ -80,18 +80,18 @@ export default function SubAdminOverviewScreen() {
 
           {awayToday.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-3">
                 Away Today ({awayToday.length})
               </p>
               <Card>
                 {awayToday.map((emp, i) => (
                   <div
                     key={emp.id}
-                    className={`flex items-center gap-3 py-2.5 ${i < awayToday.length - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''}`}
+                    className={`flex items-center gap-3 py-2.5 ${i < awayToday.length - 1 ? 'border-b border-surface-50 dark:border-surface-800' : ''}`}
                   >
                     <Avatar name={emp.name} color={team?.color || '#6366f1'} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{emp.name}</p>
+                      <p className="text-body font-medium text-surface-900 dark:text-surface-100 truncate">{emp.name}</p>
                     </div>
                   </div>
                 ))}
@@ -101,19 +101,19 @@ export default function SubAdminOverviewScreen() {
 
           {coverageNeeded.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-3">
                 Coverage Needed ({coverageNeeded.length})
               </p>
               <Card>
                 {coverageNeeded.slice(0, 5).map((task, i) => (
                   <div
                     key={task.id}
-                    className={`flex items-center gap-3 py-2.5 ${i < Math.min(coverageNeeded.length, 5) - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''}`}
+                    className={`flex items-center gap-3 py-2.5 ${i < Math.min(coverageNeeded.length, 5) - 1 ? 'border-b border-surface-50 dark:border-surface-800' : ''}`}
                   >
                     <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{task.title}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{task.site} · {task.assignee}</p>
+                      <p className="text-body text-surface-900 dark:text-surface-100 truncate">{task.title}</p>
+                      <p className="text-caption text-surface-400 dark:text-surface-500">{task.site} · {task.assignee}</p>
                     </div>
                     <div className="px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950">
                       <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Coverage</span>
@@ -127,15 +127,15 @@ export default function SubAdminOverviewScreen() {
           {needsDelegation.length > 0 && (
             <Card>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-base text-indigo-500">&#x21AA;</span>
-                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                <span className="text-body text-indigo-500">&#x21AA;</span>
+                <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider">
                   Needs Delegation
                 </p>
               </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p className="text-title text-surface-900 dark:text-surface-100">
                 {needsDelegation.length}
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              <p className="text-caption text-surface-400 dark:text-surface-500 mt-1">
                 {needsDelegation.length === 1 ? 'task' : 'tasks'} assigned to you — delegate to a team member
               </p>
             </Card>
@@ -143,27 +143,27 @@ export default function SubAdminOverviewScreen() {
 
           <Card>
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-base text-emerald-600">🤚</span>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              <span className="text-body text-emerald-600">🤚</span>
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider">
                 Handoffs Today
               </p>
             </div>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              <span className="text-display text-surface-900 dark:text-surface-100">
                 {checkInHealth.checkedInToday}
               </span>
-              <span className="text-base text-gray-400 dark:text-gray-500 mb-1">
+              <span className="text-body text-surface-400 dark:text-surface-500 mb-1">
                 / {checkInHealth.total}
               </span>
               <div className="flex-1" />
               <span
-                className="text-lg font-bold mb-0.5"
+                className="text-title mb-0.5"
                 style={{ color: checkInHealth.rate >= 80 ? '#059669' : checkInHealth.rate >= 50 ? '#d97706' : '#dc2626' }}
               >
                 {checkInHealth.rate}%
               </span>
             </div>
-            <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full mt-3 overflow-hidden">
+            <div className="h-2 bg-surface-100 dark:bg-surface-800 rounded-full mt-3 overflow-hidden">
               <div
                 className="h-2 rounded-full"
                 style={{
@@ -178,7 +178,7 @@ export default function SubAdminOverviewScreen() {
             <div className="flex items-center gap-3">
               <ScoreBadge score={teamPerf.score} band={teamPerf.band} trendDelta={teamPerf.trendDelta} size="md" />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Team Performance</p>
+                <p className="text-caption text-surface-900 dark:text-surface-100">Team Performance</p>
                 <div className="flex items-center gap-2 mt-1">
                   <BandLabel band={teamPerf.band} />
                   {teamPerf.atRiskCount > 0 && (

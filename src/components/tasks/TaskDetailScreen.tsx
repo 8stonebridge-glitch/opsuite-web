@@ -50,8 +50,8 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
 
   if (!task) {
     return (
-      <div className="flex-1 bg-gray-50 dark:bg-gray-950 flex items-center justify-center min-h-screen flex-col">
-        <span className="text-gray-400 dark:text-gray-500">Task not found</span>
+      <div className="flex-1 bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen flex-col">
+        <span className="text-surface-400 dark:text-surface-500">Task not found</span>
         <button onClick={() => router.back()} className="mt-4">
           <span style={{ color }}>Go back</span>
         </button>
@@ -183,13 +183,13 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
   };
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 px-5 py-4 flex items-center gap-3 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-900 px-5 py-4 flex items-center gap-3 border-b border-surface-100 dark:border-surface-800">
         <button onClick={() => router.back()}>
           <span style={{ color: isDark ? '#d1d5db' : '#374151', fontSize: 20 }}>&larr;</span>
         </button>
-        <span className="text-base font-bold text-gray-900 dark:text-gray-100 flex-1 truncate">
+        <span className="text-heading text-surface-900 dark:text-surface-100 flex-1 truncate">
           Task Detail
         </span>
       </div>
@@ -200,9 +200,9 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
         <div>
         {/* Task info */}
         <Card className="mx-5 lg:mx-0 mt-4 lg:mt-0">
-          <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">{task.title}</p>
+          <p className="text-title text-surface-900 dark:text-surface-100 mb-1">{task.title}</p>
           {task.description ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{task.description}</p>
+            <p className="text-body text-surface-500 dark:text-surface-400 mb-3">{task.description}</p>
           ) : (
             <div className="mb-3" />
           )}
@@ -211,7 +211,7 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
             <PriorityBadge priority={task.priority} />
             {task.reworked && (
               <div className="bg-amber-50 rounded-full px-2.5 py-0.5">
-                <span className="text-xs font-medium text-amber-700">
+                <span className="text-caption text-amber-700">
                   Rework x{task.reworkCount || 1}
                 </span>
               </div>
@@ -239,9 +239,9 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
           </div>
 
           {task.note && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <span className="text-xs font-medium text-gray-400 dark:text-gray-500 block mb-1">Instruction</span>
-              <span className="text-sm text-gray-700 dark:text-gray-300">{task.note}</span>
+            <div className="mt-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-xl">
+              <span className="text-micro text-surface-400 dark:text-surface-500 block mb-1">Instruction</span>
+              <span className="text-body text-surface-700 dark:text-surface-300">{task.note}</span>
             </div>
           )}
         </Card>
@@ -256,7 +256,7 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
               >Delegate to Team Member</Button>
             ) : (
               <Card>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-2">Delegate to</span>
+                <span className="text-caption text-surface-900 dark:text-surface-100 block mb-2">Delegate to</span>
                 <Select
                   label=""
                   placeholder="Select team member"
@@ -286,7 +286,7 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
 
         {error ? (
           <Card className="mx-5 lg:mx-0 mt-4">
-            <span className="text-sm text-red-600">{error}</span>
+            <span className="text-body text-red-600">{error}</span>
           </Card>
         ) : null}
 
@@ -305,7 +305,7 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
             )}
             {showVerifyConfirm && (
               <Card>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-2">
+                <span className="text-caption text-surface-900 dark:text-surface-100 block mb-2">
                   Are you sure you want to verify and close this task?
                 </span>
                 <div className="flex gap-2">
@@ -331,12 +331,12 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
             )}
             {showReject && (
               <Card>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-2">Rework reason</span>
+                <span className="text-caption text-surface-900 dark:text-surface-100 block mb-2">Rework reason</span>
                 <textarea
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder="Why is rework needed?"
-                  className="bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-gray-100 mb-3 min-h-[60px] w-full resize-none border-none outline-none"
+                  className="bg-surface-50 dark:bg-surface-800 rounded-xl px-4 py-3 text-body text-surface-900 dark:text-surface-100 mb-3 min-h-[60px] w-full resize-none border-none outline-none"
                 />
                 <div className="flex gap-2">
                   <Button
@@ -375,13 +375,13 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
         <div>
         {/* Add note */}
         <Card className="mx-5 lg:mx-0 mt-4 lg:mt-0">
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-2">Add a note</span>
+          <span className="text-caption text-surface-900 dark:text-surface-100 block mb-2">Add a note</span>
           <div className="flex gap-2">
             <input
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
               placeholder="Write a note..."
-              className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-gray-100 border-none outline-none"
+              className="flex-1 bg-surface-50 dark:bg-surface-800 rounded-xl px-4 py-3 text-body text-surface-900 dark:text-surface-100 border-none outline-none"
             />
             <button
               onClick={addNote}
@@ -389,14 +389,14 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
               className={`px-4 rounded-xl flex items-center justify-center ${!noteText.trim() || isSubmittingNote ? 'opacity-20' : ''}`}
               style={{ backgroundColor: color }}
             >
-              <span className="text-white text-sm">Send</span>
+              <span className="text-white text-body">Send</span>
             </button>
           </div>
         </Card>
 
         {/* Audit trail */}
         <div className="mx-5 lg:mx-0 mt-4">
-          <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-3">
+          <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-3">
             Activity
           </span>
           <AuditTrail entries={audit} />
@@ -421,9 +421,9 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-gray-400 dark:text-gray-500 w-4 text-center text-sm">*</span>
-      <span className="text-xs text-gray-400 dark:text-gray-500 w-20">{label}</span>
-      <span className="text-sm text-gray-900 dark:text-gray-100 flex-1" style={valueColor ? { color: valueColor } : undefined}>
+      <span className="text-surface-400 dark:text-surface-500 w-4 text-center text-body">*</span>
+      <span className="text-caption text-surface-400 dark:text-surface-500 w-20">{label}</span>
+      <span className="text-body text-surface-900 dark:text-surface-100 flex-1" style={valueColor ? { color: valueColor } : undefined}>
         {value}
       </span>
     </div>

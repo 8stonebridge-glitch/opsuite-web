@@ -48,15 +48,15 @@ export default function OwnerOverviewScreen() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       {/* Page Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-900 border-b border-surface-100 dark:border-surface-800">
         <div className="px-5 lg:px-6 py-5 lg:py-6">
-          <p className="text-sm text-gray-400 dark:text-gray-500">{greeting},</p>
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+          <p className="text-caption text-surface-400 dark:text-surface-500">{greeting},</p>
+          <h1 className="text-xl lg:text-title text-surface-900 dark:text-surface-100 mt-0.5">
             {name}
           </h1>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-caption text-surface-400 dark:text-surface-500 mt-1">
             {state.onboarding.orgName}
             {state.onboarding.industry ? ` \u00b7 ${state.onboarding.industry.name}` : ''}
           </p>
@@ -82,7 +82,7 @@ export default function OwnerOverviewScreen() {
               {/* Sites */}
               <section>
                 <SectionHeader
-                  title={state.onboarding.industry?.sitesLabel || 'Sites'}
+                  title={state.onboarding.industry?.sitesLabel || 'Teams'}
                   count={state.onboarding.sites.length}
                 />
                 <div className="space-y-3">
@@ -92,7 +92,7 @@ export default function OwnerOverviewScreen() {
                   {state.onboarding.sites.length === 0 && (
                     <Card>
                       <CardContent className="py-6 text-center">
-                        <p className="text-sm text-gray-400 dark:text-gray-500">No sites configured yet</p>
+                        <p className="text-caption text-surface-400 dark:text-surface-500">No sites configured yet</p>
                       </CardContent>
                     </Card>
                   )}
@@ -159,16 +159,16 @@ export default function OwnerOverviewScreen() {
                           key={emp.id}
                           className={`flex items-center gap-3 py-3 ${
                             i < awayToday.length - 1
-                              ? 'border-b border-gray-100 dark:border-gray-800'
+                              ? 'border-b border-surface-100 dark:border-surface-800'
                               : ''
                           }`}
                         >
                           <Avatar name={emp.name} color={emp.teamId ? '#6366f1' : '#9ca3af'} size="sm" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            <p className="text-caption font-medium text-surface-900 dark:text-surface-100 truncate">
                               {emp.name}
                             </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                            <p className="text-caption text-surface-400 dark:text-surface-500 truncate">
                               {emp.teamName || 'Direct report'}
                             </p>
                           </div>
@@ -197,14 +197,14 @@ export default function OwnerOverviewScreen() {
                           key={task.id}
                           className={`flex items-center gap-3 py-3 ${
                             i < Math.min(coverageNeeded.length, 5) - 1
-                              ? 'border-b border-gray-100 dark:border-gray-800'
+                              ? 'border-b border-surface-100 dark:border-surface-800'
                               : ''
                           }`}
                         >
                           <div className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{task.title}</p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                            <p className="text-caption text-surface-900 dark:text-surface-100 truncate">{task.title}</p>
+                            <p className="text-caption text-surface-400 dark:text-surface-500">
                               {task.site} · {task.assignee}
                             </p>
                           </div>
@@ -277,11 +277,11 @@ function SectionHeader({
           style={{ backgroundColor: accentColor }}
         />
       )}
-      <h2 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+      <h2 className="text-caption font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider">
         {title}
       </h2>
       {count !== undefined && (
-        <span className="text-xs font-medium text-gray-300 dark:text-gray-600">
+        <span className="text-caption font-medium text-surface-300 dark:text-surface-600">
           {count}
         </span>
       )}
@@ -304,12 +304,12 @@ function QuickStat({
   return (
     <div
       className={`flex items-center gap-3 py-3 ${
-        border ? 'border-b border-gray-100 dark:border-gray-800' : ''
+        border ? 'border-b border-surface-100 dark:border-surface-800' : ''
       }`}
     >
       {icon}
-      <span className="text-sm text-gray-600 dark:text-gray-400 flex-1">{label}</span>
-      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{value}</span>
+      <span className="text-caption text-surface-600 dark:text-surface-400 flex-1">{label}</span>
+      <span className="text-caption font-semibold text-surface-900 dark:text-surface-100">{value}</span>
     </div>
   );
 }

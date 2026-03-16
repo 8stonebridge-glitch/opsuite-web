@@ -17,7 +17,7 @@ const FILTERS: { value: FilterValue; label: string }[] = [
 
 export function TaskFilters({ value, onChange, color = '#059669', counts }: TaskFiltersProps) {
   return (
-    <div className="flex rounded-2xl bg-gray-200 dark:bg-gray-800 p-1 mb-4">
+    <div className="flex rounded-card bg-surface-200 dark:bg-surface-800 p-1 mb-4">
       {FILTERS.map((f) => {
         const isActive = value === f.value;
         const count = counts?.[f.value];
@@ -25,12 +25,12 @@ export function TaskFilters({ value, onChange, color = '#059669', counts }: Task
           <button
             key={f.value}
             onClick={() => onChange(f.value)}
-            className={`flex-1 py-2.5 rounded-xl text-center ${isActive ? 'bg-white dark:bg-gray-900 shadow-sm' : ''}`}
+            className={`flex-1 py-2.5 rounded-xl text-center ${isActive ? 'bg-white dark:bg-surface-900 shadow-sm' : ''}`}
           >
-            <span className={`text-sm font-semibold ${isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
+            <span className={`text-caption ${isActive ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}>
               {f.label}
               {count !== undefined ? (
-                <span className={`font-normal ${isActive ? 'text-gray-400 dark:text-gray-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span className={`font-normal ${isActive ? 'text-surface-400 dark:text-surface-500' : 'text-surface-400 dark:text-surface-500'}`}>
                   {' '}{count}
                 </span>
               ) : null}

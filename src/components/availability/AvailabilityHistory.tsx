@@ -30,7 +30,7 @@ export function AvailabilityHistory({ records }: AvailabilityHistoryProps) {
     return (
       <div className="flex flex-col items-center py-8">
         <span style={{ color: isDark ? '#6b7280' : '#d1d5db', fontSize: 36 }}>&#x1F4C5;</span>
-        <span className="text-sm text-gray-400 dark:text-gray-500 mt-2">No availability records</span>
+        <span className="text-caption text-surface-400 dark:text-surface-500 mt-2">No availability records</span>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export function AvailabilityHistory({ records }: AvailabilityHistoryProps) {
         return (
           <div
             key={record.id}
-            className="flex items-center gap-3 py-3 border-b border-gray-50 dark:border-gray-800"
+            className="flex items-center gap-3 py-3 border-b border-surface-50 dark:border-surface-800"
           >
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -57,8 +57,8 @@ export function AvailabilityHistory({ records }: AvailabilityHistoryProps) {
               <span style={{ color: typeConfig.color, fontSize: 16 }}>*</span>
             </div>
             <div className="flex-1">
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100 block">{typeConfig.label}</span>
-              <span className="text-xs text-gray-400 dark:text-gray-500">{dateRange}</span>
+              <span className="text-caption text-surface-900 dark:text-surface-100 block">{typeConfig.label}</span>
+              <span className="text-micro text-surface-400 dark:text-surface-500">{dateRange}</span>
             </div>
             <div
               className="px-2.5 py-1 rounded-full"

@@ -42,15 +42,15 @@ export function EmployeeSummaryCard({ name, teamColor, summary, isLead, last, sc
   return (
     <Tag
       {...(onPress ? { onClick: onPress } : {})}
-      className={`flex items-center py-3 gap-3 w-full text-left ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}
+      className={`flex items-center py-3 gap-3 w-full text-left ${last ? '' : 'border-b border-surface-100 dark:border-surface-800'}`}
     >
       <Avatar name={name} color={teamColor} size="sm" />
-      <div className="flex-1 space-y-0.5">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</span>
+      <div className="flex-1 space-y-0.5 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-caption font-medium text-surface-900 dark:text-surface-100 truncate max-w-[140px] sm:max-w-none">{name}</span>
           {isLead && (
-            <div className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
-              <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-400">LEAD</span>
+            <div className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-800 rounded">
+              <span className="text-[9px] font-semibold text-surface-500 dark:text-surface-400">LEAD</span>
             </div>
           )}
           {availabilityBadge && (
@@ -61,13 +61,13 @@ export function EmployeeSummaryCard({ name, teamColor, summary, isLead, last, sc
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {siteName && (
-            <span className="text-xs text-gray-400 dark:text-gray-500">
+            <span className="text-caption text-surface-400 dark:text-surface-500">
               {siteName} ·
             </span>
           )}
-          <span className="text-xs text-gray-400 dark:text-gray-500">
+          <span className="text-caption text-surface-400 dark:text-surface-500">
             {summary.activeCount} active
           </span>
           {summary.overdueCount > 0 && (
@@ -75,7 +75,7 @@ export function EmployeeSummaryCard({ name, teamColor, summary, isLead, last, sc
               {summary.overdueCount} overdue
             </span>
           )}
-          <span className="text-xs text-gray-300 dark:text-gray-600">
+          <span className="text-caption text-surface-300 dark:text-surface-600">
             {relativeTime(summary.lastActivity)}
           </span>
         </div>

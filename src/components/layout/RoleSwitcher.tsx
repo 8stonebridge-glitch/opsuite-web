@@ -25,14 +25,14 @@ export function RoleSwitcher() {
   // Non-demo accounts: show minimal header with org name + inbox button
   if (!true) {
     return (
-      <div className="bg-white dark:bg-gray-950 px-5 pt-5 pb-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-surface-950 px-5 pt-5 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Avatar name={state.onboarding.orgName || 'O'} color={color} />
           <div>
-            <span className="block text-base font-semibold text-gray-900 dark:text-gray-100">
+            <span className="block text-heading text-surface-900 dark:text-surface-100">
               {state.onboarding.orgName || 'My Organization'}
             </span>
-            <span className="block text-xs text-gray-400 dark:text-gray-500">
+            <span className="block text-caption text-surface-400 dark:text-surface-500">
               {roleLabel}
               {state.onboarding.industry ? ` · ${state.onboarding.industry.name}` : ''}
             </span>
@@ -68,14 +68,14 @@ export function RoleSwitcher() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-950 px-5 pt-5 pb-4 flex items-center justify-between gap-2 overflow-hidden">
+    <div className="bg-white dark:bg-surface-950 px-5 pt-5 pb-4 flex items-center justify-between gap-2 overflow-hidden">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <Avatar name={name} color={color} />
         <div className="flex-1 min-w-0">
-          <span className="block text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
+          <span className="block text-heading text-surface-900 dark:text-surface-100 truncate">
             {state.role === 'admin' ? state.onboarding.orgName : name}
           </span>
-          <span className="block text-xs text-gray-400 dark:text-gray-500 truncate">
+          <span className="block text-caption text-surface-400 dark:text-surface-500 truncate">
             {roleLabel}
             {state.onboarding.industry ? ` · ${state.onboarding.industry.name}` : ''}
           </span>

@@ -35,7 +35,7 @@ const NOTIFICATION_ICONS: Record<string, LucideIcon> = {
 
 function IconForType({ type }: { type: AppNotification['type'] }) {
   const Icon = NOTIFICATION_ICONS[type] || ClipboardList;
-  return <Icon className="h-4 w-4 text-gray-500 dark:text-gray-400" />;
+  return <Icon className="h-4 w-4 text-surface-500 dark:text-surface-400" />;
 }
 
 // ── Single row ───────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ function NotificationRow({
   return (
     <button
       onClick={onPress}
-      className="flex items-center px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left"
+      className="flex items-center px-5 py-3.5 hover:bg-surface-50 dark:hover:bg-surface-800 w-full text-left"
     >
       {/* Unread dot */}
       <div className="w-3 flex items-center mr-2">
@@ -62,19 +62,19 @@ function NotificationRow({
       </div>
 
       {/* Icon */}
-      <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-3 flex-shrink-0">
+      <div className="w-8 h-8 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center mr-3 flex-shrink-0">
         <IconForType type={notification.type} />
       </div>
 
       {/* Content */}
       <div className="flex-1 mr-2 min-w-0">
-        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block truncate">
+        <span className="text-caption text-surface-900 dark:text-surface-100 block truncate">
           {notification.title}
         </span>
-        <span className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5 block truncate">
+        <span className="text-[13px] text-surface-500 dark:text-surface-400 mt-0.5 block truncate">
           {notification.body}
         </span>
-        <span className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 block">
+        <span className="text-[11px] text-surface-400 dark:text-surface-500 mt-1 block">
           {relativeTime(notification.timestamp)}
         </span>
       </div>
@@ -87,7 +87,7 @@ function NotificationRow({
         }}
         className="p-1.5 flex-shrink-0"
       >
-        <X className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+        <X className="h-4 w-4 text-surface-400 dark:text-surface-500" />
       </button>
     </button>
   );
@@ -184,20 +184,20 @@ export function InboxSheet() {
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="flex-1 bg-black/30 dark:bg-black/50" onClick={closeInbox} />
-      <div className="bg-white dark:bg-gray-950 rounded-t-3xl max-h-[75%] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-surface-950 rounded-t-3xl max-h-[75%] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-800">
-          <span className="text-base font-bold text-gray-900 dark:text-gray-100">Inbox</span>
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-surface-100 dark:border-surface-800">
+          <span className="text-heading text-surface-900 dark:text-surface-100">Inbox</span>
           <button onClick={closeInbox} className="p-1">
-            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <X className="h-5 w-5 text-surface-500 dark:text-surface-400" />
           </button>
         </div>
 
         {/* List */}
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center py-16">
-            <BellOff className="h-10 w-10 text-gray-300 dark:text-gray-600" />
-            <span className="text-sm text-gray-400 dark:text-gray-500 mt-3">No notifications yet</span>
+            <BellOff className="h-10 w-10 text-surface-300 dark:text-surface-600" />
+            <span className="text-caption text-surface-400 dark:text-surface-500 mt-3">No notifications yet</span>
           </div>
         ) : (
           <div className="overflow-auto pb-10">

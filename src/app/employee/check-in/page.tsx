@@ -124,7 +124,7 @@ export default function EmployeeCheckInScreen() {
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="overflow-y-auto pb-24">
         {/* Check-in CTA */}
         <div className="px-5 pt-4">
@@ -134,8 +134,8 @@ export default function EmployeeCheckInScreen() {
                 <div className="h-16 w-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${color}18` }}>
                   <span className="text-3xl" style={{ color }}>&#x2714;</span>
                 </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">Daily Handoff</p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mb-4 text-center">
+                <p className="text-title text-surface-900 dark:text-surface-100 mb-1">Daily Handoff</p>
+                <p className="text-body text-surface-400 dark:text-surface-500 mb-4 text-center">
                   {openTasks.length > 0
                     ? `You have ${openTasks.length} open task${openTasks.length > 1 ? 's' : ''}`
                     : 'No active tasks today'}
@@ -151,8 +151,8 @@ export default function EmployeeCheckInScreen() {
             <Card className="mb-4">
               <div className="flex flex-col items-center py-3">
                 <span className="text-4xl" style={{ color }}>&#x2714;</span>
-                <p className="text-base font-bold text-gray-900 dark:text-gray-100 mt-1">Checked In</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                <p className="text-heading text-surface-900 dark:text-surface-100 mt-1">Checked In</p>
+                <p className="text-caption text-surface-400 dark:text-surface-500 mt-0.5">
                   Today at {todayCheckIn.checkedInAt} · {todayCheckIn.summary}
                 </p>
               </div>
@@ -162,7 +162,7 @@ export default function EmployeeCheckInScreen() {
 
         {/* 7-Day Strip */}
         <div className="px-5 mb-4">
-          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+          <p className="text-micro font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
             This Week
           </p>
           <Card>
@@ -181,7 +181,7 @@ export default function EmployeeCheckInScreen() {
                     onClick={() => !isFuture && setExpandedDate(expandedDate === day ? null : day)}
                     className="flex flex-col items-center flex-1"
                   >
-                    <span className={`text-xs mb-1 ${isToday ? 'font-bold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                    <span className={`text-caption mb-1 ${isToday ? 'font-bold text-surface-900 dark:text-surface-100' : 'text-surface-400 dark:text-surface-500'}`}>
                       {getDayLabel(day)}
                     </span>
                     <div
@@ -189,7 +189,7 @@ export default function EmployeeCheckInScreen() {
                       style={isToday ? { borderColor: color } : undefined}
                     >
                       {isFuture || isWeekend ? (
-                        <div className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700" />
+                        <div className="h-2 w-2 rounded-full bg-surface-200 dark:bg-surface-700" />
                       ) : checked ? (
                         <span className="text-lg text-emerald-600">&#x2714;</span>
                       ) : (
@@ -202,7 +202,7 @@ export default function EmployeeCheckInScreen() {
             </div>
 
             {expandedDate && (
-              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="mt-3 pt-3 border-t border-surface-100 dark:border-surface-800">
                 <DayDetail
                   date={expandedDate}
                   checkIn={getCheckInForDate(state.checkIns, state.userId || '', expandedDate)}
@@ -215,13 +215,13 @@ export default function EmployeeCheckInScreen() {
         {/* Month Navigation */}
         <div className="px-5 mb-3">
           <div className="flex items-center justify-between">
-            <button onClick={prevMonth} className="p-2 text-gray-500">
+            <button onClick={prevMonth} className="p-2 text-surface-500">
               &larr;
             </button>
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <span className="text-caption font-semibold text-surface-700 dark:text-surface-300">
               {formatMonthLabel(viewYear, viewMonth)}
             </span>
-            <button onClick={nextMonth} className="p-2 text-gray-500" style={isCurrentMonth ? { opacity: 0.3 } : undefined}>
+            <button onClick={nextMonth} className="p-2 text-surface-500" style={isCurrentMonth ? { opacity: 0.3 } : undefined}>
               &rarr;
             </button>
           </div>
@@ -274,11 +274,11 @@ function StatTab({ label, value, active, activeColor, onPress }: { label: string
   return (
     <button
       onClick={onPress}
-      className={`flex-1 min-w-[70px] px-3 sm:px-4 py-2.5 rounded-2xl ${active ? '' : 'bg-gray-100 dark:bg-gray-800'}`}
+      className={`flex-1 min-w-[70px] px-3 sm:px-4 py-2.5 rounded-card ${active ? '' : 'bg-surface-100 dark:bg-surface-800'}`}
       style={active ? { backgroundColor: activeColor } : undefined}
     >
-      <span className={`text-xs font-medium block ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}>{label}</span>
-      <span className={`text-lg font-bold block ${active ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`}>{value}</span>
+      <span className={`text-caption font-medium block ${active ? 'text-white' : 'text-surface-500 dark:text-surface-400'}`}>{label}</span>
+      <span className={`text-title block ${active ? 'text-white' : 'text-surface-900 dark:text-surface-100'}`}>{value}</span>
     </button>
   );
 }
@@ -286,15 +286,15 @@ function StatTab({ label, value, active, activeColor, onPress }: { label: string
 function DayDetail({ date, checkIn }: { date: string; checkIn?: CheckIn }) {
   return (
     <div>
-      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{formatCheckInDate(date)}</p>
+      <p className="text-body font-medium text-surface-900 dark:text-surface-100 mb-1">{formatCheckInDate(date)}</p>
       {checkIn?.status === 'Checked-In' ? (
         <div className="space-y-1">
-          <p className="text-xs text-gray-600 dark:text-gray-400">Checked in at {checkIn.checkedInAt}</p>
-          {checkIn.type && <p className="text-xs text-gray-600 dark:text-gray-400">{checkIn.type}</p>}
-          {checkIn.summary && <p className="text-xs text-gray-500 dark:text-gray-500">{checkIn.summary}</p>}
+          <p className="text-caption text-surface-600 dark:text-surface-400">Checked in at {checkIn.checkedInAt}</p>
+          {checkIn.type && <p className="text-caption text-surface-600 dark:text-surface-400">{checkIn.type}</p>}
+          {checkIn.summary && <p className="text-caption text-surface-500 dark:text-surface-500">{checkIn.summary}</p>}
         </div>
       ) : (
-        <p className="text-xs text-red-500">Missed</p>
+        <p className="text-caption text-red-500">Missed</p>
       )}
     </div>
   );
@@ -306,8 +306,8 @@ function CheckInList({ days, checkIns, userId, emptyMessage, color, isMissed }: 
   if (days.length === 0) {
     return (
       <div className="py-8 flex flex-col items-center">
-        <span className="text-gray-300 dark:text-gray-600">{isMissed ? <Smile className="size-8" /> : <Calendar className="size-8" />}</span>
-        <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">{emptyMessage}</p>
+        <span className="text-surface-300 dark:text-surface-600">{isMissed ? <Smile className="size-8" /> : <Calendar className="size-8" />}</span>
+        <p className="text-surface-400 dark:text-surface-500 text-body mt-2">{emptyMessage}</p>
       </div>
     );
   }
@@ -331,16 +331,16 @@ function CheckInList({ days, checkIns, userId, emptyMessage, color, isMissed }: 
                   </span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCheckInDate(day)}</p>
+                  <p className="text-body font-medium text-surface-900 dark:text-surface-100">{formatCheckInDate(day)}</p>
                   {!isMissed && ci?.checkedInAt && (
-                    <p className="text-xs text-gray-400 dark:text-gray-500">{ci.checkedInAt} · {ci.summary || ''}</p>
+                    <p className="text-caption text-surface-400 dark:text-surface-500">{ci.checkedInAt} · {ci.summary || ''}</p>
                   )}
                 </div>
-                <span className="text-gray-400 text-xs">{isExpanded ? '\u25B2' : '\u25BC'}</span>
+                <span className="text-surface-400 text-caption">{isExpanded ? '\u25B2' : '\u25BC'}</span>
               </div>
 
               {isExpanded && (
-                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div className="mt-3 pt-3 border-t border-surface-100 dark:border-surface-800">
                   <DayDetail date={day} checkIn={ci} />
                 </div>
               )}
@@ -359,22 +359,22 @@ function RateView({ stats, color }: { stats: { checked: number; missed: number; 
     <Card>
       <div className="flex flex-col items-center py-4">
         <span className="text-5xl font-bold" style={{ color }}>{stats.percentage}%</span>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Attendance Rate</p>
+        <p className="text-body text-surface-400 dark:text-surface-500 mt-1">Attendance Rate</p>
 
-        <div className="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full mt-4 overflow-hidden">
+        <div className="w-full h-3 bg-surface-100 dark:bg-surface-800 rounded-full mt-4 overflow-hidden">
           <div className="h-3 rounded-full" style={{ width: `${stats.percentage}%`, backgroundColor: color }} />
         </div>
 
         <div className="flex justify-between w-full mt-3">
           <div className="flex items-center gap-1">
             <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-xs text-gray-500 dark:text-gray-400">{stats.checked} checked</span>
+            <span className="text-caption text-surface-500 dark:text-surface-400">{stats.checked} checked</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="h-2.5 w-2.5 rounded-full bg-gray-300 dark:bg-gray-600" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">{stats.missed} missed</span>
+            <div className="h-2.5 w-2.5 rounded-full bg-surface-300 dark:bg-surface-600" />
+            <span className="text-caption text-surface-500 dark:text-surface-400">{stats.missed} missed</span>
           </div>
-          <span className="text-xs text-gray-400 dark:text-gray-500">{total} workdays</span>
+          <span className="text-caption text-surface-400 dark:text-surface-500">{total} workdays</span>
         </div>
       </div>
     </Card>
@@ -389,9 +389,9 @@ function StreaksView({ stats, color }: { stats: { currentStreak: number; longest
           <div className="h-16 w-16 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#fef3c7' }}>
             <span className="text-3xl">🔥</span>
           </div>
-          <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">{stats.currentStreak}</span>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Current Streak</p>
-          <p className="text-xs text-gray-300 dark:text-gray-600 mt-0.5">consecutive workdays</p>
+          <span className="text-4xl font-bold text-surface-900 dark:text-surface-100">{stats.currentStreak}</span>
+          <p className="text-body text-surface-400 dark:text-surface-500 mt-1">Current Streak</p>
+          <p className="text-caption text-surface-300 dark:text-surface-600 mt-0.5">consecutive workdays</p>
         </div>
       </Card>
 
@@ -400,15 +400,15 @@ function StreaksView({ stats, color }: { stats: { currentStreak: number; longest
           <span className="text-xl">🏆</span>
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Best Streak</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500">Your longest run</p>
+          <p className="text-body font-medium text-surface-900 dark:text-surface-100">Best Streak</p>
+          <p className="text-caption text-surface-400 dark:text-surface-500">Your longest run</p>
         </div>
-        <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.longestStreak}</span>
+        <span className="text-title text-surface-900 dark:text-surface-100">{stats.longestStreak}</span>
       </Card>
 
       {stats.currentStreak >= 5 && (
         <Card className="flex items-center justify-center py-3" style={{ backgroundColor: '#fefce8' }}>
-          <span className="text-sm font-semibold text-amber-700">
+          <span className="text-caption font-semibold text-amber-700">
             {stats.currentStreak >= 20
               ? 'Legendary! Keep going!'
               : stats.currentStreak >= 10

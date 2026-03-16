@@ -52,7 +52,7 @@ export default function OwnerMoreScreen() {
     const trimmedName = siteName.trim();
 
     if (trimmedName.length < 2) {
-      setSiteError('Enter a site name with at least 2 characters.');
+      setSiteError('Enter a team name with at least 2 characters.');
       return;
     }
 
@@ -72,7 +72,7 @@ export default function OwnerMoreScreen() {
       setSiteCode('');
       setShowCreateSite(false);
     } catch (error) {
-      setSiteError(error instanceof Error ? error.message : 'We could not create that site yet.');
+      setSiteError(error instanceof Error ? error.message : 'We could not create that team yet.');
     } finally {
       setIsSavingSite(false);
     }
@@ -88,7 +88,7 @@ export default function OwnerMoreScreen() {
   const displayEmail = user?.email || '';
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="overflow-y-auto pb-28 md:pb-8">
         <div className="px-5 lg:px-6 pt-5 space-y-4 max-w-2xl mx-auto">
 
@@ -98,15 +98,15 @@ export default function OwnerMoreScreen() {
               <div className="flex items-center gap-4">
                 <Avatar name={displayName} color={color} size="lg" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                  <p className="text-title text-surface-900 dark:text-surface-100 truncate">
                     {displayName}
                   </p>
                   {displayEmail && (
-                    <p className="text-sm text-gray-400 dark:text-gray-500 truncate">
+                    <p className="text-body text-surface-400 dark:text-surface-500 truncate">
                       {displayEmail}
                     </p>
                   )}
-                  <p className="text-xs font-medium mt-0.5" style={{ color }}>
+                  <p className="text-caption font-medium mt-0.5" style={{ color }}>
                     Owner
                   </p>
                 </div>
@@ -149,42 +149,42 @@ export default function OwnerMoreScreen() {
             <SectionLabel>Organization</SectionLabel>
             <Card>
               <CardContent className="py-0">
-                <SettingRow icon={<Building2 className="size-4 text-gray-400" />} label="Org Name" value={state.onboarding.orgName} />
-                <SettingRow icon={<Briefcase className="size-4 text-gray-400" />} label="Industry" value={state.onboarding.industry?.name || '-'} />
-                <div className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
-                  <MapPin className="size-4 text-gray-400 shrink-0" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                <SettingRow icon={<Building2 className="size-4 text-surface-400" />} label="Org Name" value={state.onboarding.orgName} />
+                <SettingRow icon={<Briefcase className="size-4 text-surface-400" />} label="Industry" value={state.onboarding.industry?.name || '-'} />
+                <div className="flex items-center gap-3 py-3.5 border-b border-surface-100 dark:border-surface-800">
+                  <MapPin className="size-4 text-surface-400 shrink-0" />
+                  <span className="text-body text-surface-700 dark:text-surface-300 flex-1">
                     {sitesLabel}
                   </span>
-                  <span className="text-sm text-gray-400 dark:text-gray-500 mr-2">
+                  <span className="text-body text-surface-400 dark:text-surface-500 mr-2">
                     {state.onboarding.sites.length}
                   </span>
                   <button
                     onClick={() => setShowCreateSite(true)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
                     style={{ backgroundColor: color + '12' }}
                   >
                     <Plus className="size-4" style={{ color }} />
                   </button>
                 </div>
-                <SettingRow icon={<Users className="size-4 text-gray-400" />} label="Teams" value={String(teams.length)} />
-                <SettingRow icon={<User className="size-4 text-gray-400" />} label="Employees" value={String(allEmployees.length)} />
-                <SettingRow icon={<ClipboardList className="size-4 text-gray-400" />} label="Total Tasks" value={String(state.tasks.length)} />
+                <SettingRow icon={<Users className="size-4 text-surface-400" />} label="Teams" value={String(teams.length)} />
+                <SettingRow icon={<User className="size-4 text-surface-400" />} label="Employees" value={String(allEmployees.length)} />
+                <SettingRow icon={<ClipboardList className="size-4 text-surface-400" />} label="Total Tasks" value={String(state.tasks.length)} />
 
                 {/* Org Mode Toggle */}
                 <div className="flex items-center gap-3 py-3.5">
-                  <Shuffle className="size-4 text-gray-400 shrink-0" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">Org Mode</span>
-                  <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                  <Shuffle className="size-4 text-surface-400 shrink-0" />
+                  <span className="text-body text-surface-700 dark:text-surface-300 flex-1">Org Mode</span>
+                  <div className="flex rounded-lg overflow-hidden border border-surface-200 dark:border-surface-700">
                     <button
                       onClick={() => {
                         if (orgMode === 'managed') return;
                         dispatch({ type: 'SET_ORG_MODE', mode: 'managed' });
                       }}
-                      className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      className={`px-3 py-1.5 text-caption font-semibold transition-colors ${
                         orgMode === 'managed'
-                          ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                          : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                          ? 'bg-surface-900 dark:bg-surface-100 text-white dark:text-surface-900'
+                          : 'bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400'
                       }`}
                     >
                       Managed
@@ -194,17 +194,17 @@ export default function OwnerMoreScreen() {
                         if (orgMode === 'direct') return;
                         dispatch({ type: 'SET_ORG_MODE', mode: 'direct' });
                       }}
-                      className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      className={`px-3 py-1.5 text-caption font-semibold transition-colors ${
                         orgMode === 'direct'
-                          ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                          : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                          ? 'bg-surface-900 dark:bg-surface-100 text-white dark:text-surface-900'
+                          : 'bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400'
                       }`}
                     >
                       Direct
                     </button>
                   </div>
                 </div>
-                <p className="text-xs text-gray-400 dark:text-gray-500 -mt-1 ml-7 pb-2">
+                <p className="text-caption text-surface-400 dark:text-surface-500 -mt-1 ml-7 pb-2">
                   {orgMode === 'managed' ? 'Teams with subadmin leads' : 'Admin manages employees directly'}
                 </p>
               </CardContent>
@@ -216,7 +216,7 @@ export default function OwnerMoreScreen() {
             <SectionLabel>App Settings</SectionLabel>
             <Card>
               <CardContent className="py-0">
-                <SettingRow icon={<Bell className="size-4 text-gray-400" />} label="Notifications" value="Coming soon" />
+                <SettingRow icon={<Bell className="size-4 text-surface-400" />} label="Notifications" value="Coming soon" />
                 <div className="py-1">
                   <ThemeSwitcher />
                 </div>
@@ -227,7 +227,7 @@ export default function OwnerMoreScreen() {
           {/* App Info */}
           <Card>
             <CardContent className="py-0">
-              <SettingRow icon={<Info className="size-4 text-gray-400" />} label="Version" value="1.0.0" last />
+              <SettingRow icon={<Info className="size-4 text-surface-400" />} label="Version" value="1.0.0" last />
             </CardContent>
           </Card>
 
@@ -239,7 +239,7 @@ export default function OwnerMoreScreen() {
                 window.location.href = '/sign-in';
               }
             }}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-body font-medium"
           >
             <LogOut className="size-4" />
             Sign Out
@@ -251,17 +251,17 @@ export default function OwnerMoreScreen() {
       {showCreateSite && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowCreateSite(false)} />
-          <div className="relative bg-white dark:bg-gray-950 rounded-t-3xl md:rounded-2xl px-5 pt-5 pb-10 w-full md:max-w-lg">
+          <div className="relative bg-white dark:bg-surface-950 rounded-t-3xl md:rounded-card px-5 pt-5 pb-10 w-full md:max-w-lg">
             <div className="flex items-center justify-between mb-5">
-              <p className="text-base font-bold text-gray-900 dark:text-gray-100">Add Site</p>
-              <button onClick={() => setShowCreateSite(false)} className="text-gray-500 text-xl">&times;</button>
+              <p className="text-heading text-surface-900 dark:text-surface-100">Add Team</p>
+              <button onClick={() => setShowCreateSite(false)} className="text-surface-500 text-xl">&times;</button>
             </div>
 
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-              Site Name
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
+              Team Name
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-gray-100 mb-4 outline-none border border-gray-200 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-600 transition-colors"
+              className="w-full bg-surface-50 dark:bg-surface-900 rounded-xl px-4 py-3 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none border border-surface-200 dark:border-surface-800 focus:border-surface-400 dark:focus:border-surface-600 transition-colors"
               placeholder="Victoria Hub"
               value={siteName}
               onChange={(e) => {
@@ -270,11 +270,11 @@ export default function OwnerMoreScreen() {
               }}
             />
 
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-              Site Code (optional)
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
+              Team Code (optional)
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-gray-100 mb-4 outline-none uppercase border border-gray-200 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-600 transition-colors"
+              className="w-full bg-surface-50 dark:bg-surface-900 rounded-xl px-4 py-3 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none uppercase border border-surface-200 dark:border-surface-800 focus:border-surface-400 dark:focus:border-surface-600 transition-colors"
               placeholder="VIC-HUB"
               value={siteCode}
               onChange={(e) => {
@@ -284,14 +284,14 @@ export default function OwnerMoreScreen() {
             />
 
             {siteError ? (
-              <p className="text-sm text-red-600 mb-4">{siteError}</p>
+              <p className="text-body text-red-600 mb-4">{siteError}</p>
             ) : null}
 
             <Button
               onClick={() => void handleCreateSite()}
               disabled={isSavingSite}
               style={{ backgroundColor: color }}
-            >{isSavingSite ? 'Creating site...' : 'Create Site'}</Button>
+            >{isSavingSite ? 'Creating team...' : 'Create Team'}</Button>
           </div>
         </div>
       )}
@@ -302,7 +302,7 @@ export default function OwnerMoreScreen() {
 /* ─── Section Label ─── */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
+    <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2 px-1">
       {children}
     </p>
   );
@@ -322,13 +322,13 @@ function SettingRow({
 }) {
   return (
     <div
-      className={`flex gap-3 py-3.5 items-center ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}
+      className={`flex gap-3 py-3.5 items-center ${last ? '' : 'border-b border-surface-100 dark:border-surface-800'}`}
     >
       <div className="shrink-0">{icon}</div>
-      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 pr-2 min-w-0">
+      <span className="text-body text-surface-700 dark:text-surface-300 flex-1 pr-2 min-w-0">
         {label}
       </span>
-      <span className="text-sm text-gray-400 dark:text-gray-500 text-right max-w-[46%] shrink truncate">
+      <span className="text-body text-surface-400 dark:text-surface-500 text-right max-w-[46%] shrink truncate">
         {value}
       </span>
     </div>
@@ -356,22 +356,22 @@ function StepperRow({
   last?: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-3 py-3.5 ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}>
+    <div className={`flex items-center gap-3 py-3.5 ${last ? '' : 'border-b border-surface-100 dark:border-surface-800'}`}>
       <div className="shrink-0" style={{ color }}>{icon}</div>
-      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 min-w-0 truncate">{label}</span>
+      <span className="text-body text-surface-700 dark:text-surface-300 flex-1 min-w-0 truncate">{label}</span>
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onMinus}
-          className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-base"
+          className="w-9 h-9 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors text-body"
         >
           -
         </button>
-        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-[3rem] text-center">
+        <span className="text-body font-semibold text-surface-900 dark:text-surface-100 min-w-[3rem] text-center">
           {value}{unit === 'workdays' ? 'd' : unit === 'cycles' ? 'x' : unit}
         </span>
         <button
           onClick={onPlus}
-          className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-base"
+          className="w-9 h-9 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors text-body"
         >
           +
         </button>

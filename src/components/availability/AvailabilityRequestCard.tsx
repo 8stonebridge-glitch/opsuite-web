@@ -4,15 +4,44 @@ import { useState } from 'react';
 import type { AvailabilityRecord, AvailabilityType } from '../../types';
 import { useApp } from '../../store/AppContext';
 import { useAllEmployees } from '../../store/selectors';
-import { useTheme } from '../../providers/ThemeProvider';
-import { Card } from '../ui/Card';
+import { Card, CardContent, CardFooter } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { Avatar } from '../ui/Avatar';
-import { Calendar } from 'lucide-react';
+import {
+  Plane,
+  Thermometer,
+  Moon,
+  Calendar,
+  Check,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 
-const TYPE_CONFIG: Record<AvailabilityType, { icon: string; label: string; color: string }> = {
-  leave: { icon: 'airplane', label: 'Leave', color: '#3b82f6' },
-  sick: { icon: 'medkit', label: 'Sick', color: '#ef4444' },
-  off_duty: { icon: 'moon', label: 'Off Duty', color: '#6366f1' },
+const TYPE_CONFIG: Record<
+  AvailabilityType,
+  { Icon: LucideIcon; label: string; color: string; bg: string; darkBg: string }
+> = {
+  leave: {
+    Icon: Plane,
+    label: 'Leave',
+    color: '#3b82f6',
+    bg: 'bg-blue-50',
+    darkBg: 'dark:bg-blue-950',
+  },
+  sick: {
+    Icon: Thermometer,
+    label: 'Sick',
+    color: '#ef4444',
+    bg: 'bg-red-50',
+    darkBg: 'dark:bg-red-950',
+  },
+  off_duty: {
+    Icon: Moon,
+    label: 'Off Duty',
+    color: '#6366f1',
+    bg: 'bg-indigo-50',
+    darkBg: 'dark:bg-indigo-950',
+  },
 };
 
 interface AvailabilityRequestCardProps {
@@ -21,17 +50,21 @@ interface AvailabilityRequestCardProps {
 }
 
 export function AvailabilityRequestCard({ record, approverId }: AvailabilityRequestCardProps) {
-  const { state, dispatch } = useApp();
-  const { isDark } = useTheme();
+  const { dispatch } = useApp();
   const allEmployees = useAllEmployees();
   const [isSubmitting, setIsSubmitting] = useState<'approve' | 'reject' | null>(null);
   const employee = allEmployees.find((e) => e.id === record.memberId);
-  const typeConfig = TYPE_CONFIG[record.type];
+  const config = TYPE_CONFIG[record.type];
 
   const dateRange =
     record.startDate === record.endDate
       ? formatShortDate(record.startDate)
-      : `${formatShortDate(record.startDate)} - ${formatShortDate(record.endDate)}`;
+      : `${formatShortDate(record.startDate)} \u2013 ${formatShortDate(record.endDate)}`;
+
+  // Calculate day count
+  const start = new Date(record.startDate + 'T00:00:00');
+  const end = new Date(record.endDate + 'T00:00:00');
+  const dayCount = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
 
   const handleApprove = async () => {
     setIsSubmitting('approve');
@@ -61,69 +94,83 @@ export function AvailabilityRequestCard({ record, approverId }: AvailabilityRequ
 
   return (
     <Card>
-      <div className="flex items-center gap-3 mb-3">
-        <Avatar name={employee?.name || 'Unknown'} color={typeConfig.color} size="sm" />
-        <div className="flex-1">
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block">
-            {employee?.name || 'Unknown'}
-          </span>
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            {employee?.teamName || 'Direct report'}
-          </span>
-        </div>
-        <div
-          className="px-2.5 py-1 rounded-full flex items-center gap-1"
-          style={{ backgroundColor: typeConfig.color + '15' }}
-        >
-          <span style={{ color: typeConfig.color, fontSize: 12 }}>*</span>
-          <span
-            className="text-[10px] font-semibold"
-            style={{ color: typeConfig.color }}
+      <CardContent className="py-0">
+        {/* Type icon + person info */}
+        <div className="flex items-start gap-3">
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${config.bg} ${config.darkBg}`}
           >
-            {typeConfig.label}
+            <config.Icon className="size-[18px]" style={{ color: config.color }} />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-foreground truncate">
+                {employee?.name || 'Unknown'}
+              </span>
+              <span
+                className="shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                style={{ backgroundColor: config.color + '14', color: config.color }}
+              >
+                {config.label}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {employee?.teamName || 'Direct report'}
+            </p>
+          </div>
+        </div>
+
+        {/* Date range + day count */}
+        <div className="flex items-center gap-4 mt-3 pl-[52px]">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="size-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-foreground">{dateRange}</span>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {dayCount} {dayCount === 1 ? 'day' : 'days'}
           </span>
         </div>
-      </div>
 
-      <div className="flex items-center gap-2 mb-2">
-        <Calendar className="size-3.5 text-gray-400 dark:text-gray-500" />
-        <span className="text-xs text-gray-500 dark:text-gray-400">{dateRange}</span>
-      </div>
+        {/* Notes */}
+        {record.notes && (
+          <p className="text-xs text-muted-foreground mt-2 pl-[52px] line-clamp-2 leading-relaxed">
+            &ldquo;{record.notes}&rdquo;
+          </p>
+        )}
+      </CardContent>
 
-      {record.notes ? (
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-3 line-clamp-2">
-          {record.notes}
-        </p>
-      ) : null}
-
-      <div className="flex gap-2">
-        <button
+      {/* Action buttons in card footer */}
+      <CardFooter className="gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-emerald-800 dark:hover:bg-emerald-950"
           onClick={() => {
-            if (window.confirm('Are you sure you want to approve this leave request?')) {
+            if (window.confirm('Approve this request?')) {
               void handleApprove();
             }
           }}
           disabled={Boolean(isSubmitting)}
-          className="flex-1 py-2.5 rounded-xl text-center bg-green-50 dark:bg-green-950"
         >
-          <span className="text-xs font-semibold text-green-600">
-            {isSubmitting === 'approve' ? 'Approving...' : 'Approve'}
-          </span>
-        </button>
-        <button
+          <Check data-icon="inline-start" className="size-3.5" />
+          {isSubmitting === 'approve' ? 'Approving...' : 'Approve'}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-800 dark:hover:bg-red-950"
           onClick={() => {
-            if (window.confirm('Are you sure you want to reject this leave request?')) {
+            if (window.confirm('Reject this request?')) {
               void handleReject();
             }
           }}
           disabled={Boolean(isSubmitting)}
-          className="flex-1 py-2.5 rounded-xl text-center bg-red-50 dark:bg-red-950"
         >
-          <span className="text-xs font-semibold text-red-500">
-            {isSubmitting === 'reject' ? 'Rejecting...' : 'Reject'}
-          </span>
-        </button>
-      </div>
+          <X data-icon="inline-start" className="size-3.5" />
+          {isSubmitting === 'reject' ? 'Rejecting...' : 'Decline'}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

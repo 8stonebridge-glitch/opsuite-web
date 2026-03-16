@@ -22,7 +22,6 @@ export function Select({ label, placeholder = 'Select', options, value, onChange
   const { isDark } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -37,28 +36,28 @@ export function Select({ label, placeholder = 'Select', options, value, onChange
   return (
     <div ref={containerRef} className="relative">
       {label && (
-        <span className="block text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+        <span className="block text-caption font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
           {label}
         </span>
       )}
       <button
-        className="bg-gray-50 dark:bg-gray-800 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-2 w-full text-left"
+        className="bg-surface-50 dark:bg-surface-800 rounded-card px-4 py-3.5 flex items-center justify-between gap-2 w-full text-left"
         onClick={() => setOpen(!open)}
         type="button"
       >
-        <span className={`truncate max-w-[140px] ${selected ? 'text-base text-gray-900 dark:text-gray-100' : 'text-base text-gray-300 dark:text-gray-600'}`}>
+        <span className={`truncate max-w-[140px] ${selected ? 'text-body text-surface-900 dark:text-surface-100' : 'text-body text-surface-300 dark:text-surface-600'}`}>
           {selected?.label || placeholder}
         </span>
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke={isDark ? '#6b7280' : '#9ca3af'} strokeWidth={2}>
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke={isDark ? '#78716C' : '#A8A29E'} strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-lg max-h-60 overflow-auto">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-            <span className="text-base font-bold text-gray-900 dark:text-gray-100">{label || 'Select'}</span>
-            <button onClick={() => setOpen(false)} type="button" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-surface-900 rounded-card border border-surface-200 dark:border-surface-700 shadow-elevated max-h-60 overflow-auto">
+          <div className="px-5 py-4 border-b border-surface-200 dark:border-surface-700 flex items-center justify-between">
+            <span className="text-heading text-surface-900 dark:text-surface-100">{label || 'Select'}</span>
+            <button onClick={() => setOpen(false)} type="button" className="text-surface-500 hover:text-surface-700 dark:text-surface-400 dark:hover:text-surface-200">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -67,8 +66,8 @@ export function Select({ label, placeholder = 'Select', options, value, onChange
           {options.map((item) => (
             <button
               key={item.value}
-              className={`px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                item.value === value ? 'bg-emerald-50 dark:bg-emerald-950' : ''
+              className={`px-5 py-4 border-b border-surface-100 dark:border-surface-800 flex items-center justify-between w-full text-left hover:bg-surface-50 dark:hover:bg-surface-800 ${
+                item.value === value ? 'bg-brand-50 dark:bg-brand-950' : ''
               }`}
               onClick={() => {
                 onChange(item.value);
@@ -76,7 +75,7 @@ export function Select({ label, placeholder = 'Select', options, value, onChange
               }}
               type="button"
             >
-              <span className={`text-base ${item.value === value ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-gray-100'}`}>
+              <span className={`text-body ${item.value === value ? 'font-semibold text-brand-600 dark:text-brand-400' : 'text-surface-900 dark:text-surface-100'}`}>
                 {item.label}
               </span>
               {item.value === value && (

@@ -18,17 +18,17 @@ export default function SubAdminMoreScreen() {
   const { signOut } = useClerk();
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4 space-y-3">
           <Card className="flex flex-col items-center py-6">
             <Avatar name={name} color={team?.color || color} size="lg" />
-            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-3">{name}</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500">{team?.name || 'Team'} Lead</p>
+            <p className="text-title text-surface-900 dark:text-surface-100 mt-3">{name}</p>
+            <p className="text-caption text-surface-400 dark:text-surface-500">{team?.name || 'Team'} Lead</p>
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Org Policy
             </p>
             <SettingRow icon="⏸" label="Stalled alert after" value={`${state.orgSettings.noChangeAlertWorkdays} workdays`} />
@@ -36,7 +36,7 @@ export default function SubAdminMoreScreen() {
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Team
             </p>
             <SettingRow icon="👥" label="Team" value={team?.name || '-'} />
@@ -45,7 +45,7 @@ export default function SubAdminMoreScreen() {
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               App Settings
             </p>
             <SettingRow icon="🔔" label="Notifications" value="Coming soon" last />
@@ -76,10 +76,10 @@ export default function SubAdminMoreScreen() {
 
 function SettingRow({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
   return (
-    <div className={`flex gap-3 py-3 items-start ${last ? '' : 'border-b border-gray-100 dark:border-gray-800'}`}>
-      <span className="text-base">{icon}</span>
-      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 pr-2 min-w-0">{label}</span>
-      <span className="text-sm text-gray-400 dark:text-gray-500 text-right max-w-[46%] shrink truncate">{value}</span>
+    <div className={`flex gap-3 py-3 items-start ${last ? '' : 'border-b border-surface-100 dark:border-surface-800'}`}>
+      <span className="text-body">{icon}</span>
+      <span className="text-body text-surface-700 dark:text-surface-300 flex-1 pr-2 min-w-0">{label}</span>
+      <span className="text-body text-surface-400 dark:text-surface-500 text-right max-w-[46%] shrink truncate">{value}</span>
     </div>
   );
 }

@@ -278,30 +278,30 @@ export default function OwnerPeopleScreen() {
   };
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="overflow-y-auto pb-24">
         <div className="px-5 pt-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider">
               {isDirect ? 'People' : 'Teams'}
             </p>
             <div className="flex flex-row gap-2">
               <button
                 onClick={() => setShowCreateMember(true)}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700"
               >
                 <span style={{ color }} className="text-sm">+</span>
-                <span className="text-xs font-semibold whitespace-nowrap" style={{ color }}>
+                <span className="text-caption whitespace-nowrap" style={{ color }}>
                   Add Person
                 </span>
               </button>
               {!isDirect && (
                 <button
                   onClick={() => setShowCreateTeam(true)}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700"
                 >
                   <span style={{ color }} className="text-sm">+</span>
-                  <span className="text-xs font-semibold whitespace-nowrap" style={{ color }}>
+                  <span className="text-caption whitespace-nowrap" style={{ color }}>
                     Add Team
                   </span>
                 </button>
@@ -407,10 +407,10 @@ export default function OwnerPeopleScreen() {
                     <div className="flex items-center gap-3 px-4 -my-1">
                       <Avatar name={team.name} color={team.color} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                        <p className="text-body font-semibold text-surface-900 dark:text-surface-100 truncate">
                           {team.name}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                        <p className="text-caption text-surface-400 dark:text-surface-500 truncate">
                           {allMembers.length} {allMembers.length === 1 ? 'person' : 'people'} · {teamActiveCount} active
                           {teamOverdueCount > 0 ? ` · ${teamOverdueCount} overdue` : ''}
                         </p>
@@ -423,7 +423,7 @@ export default function OwnerPeopleScreen() {
                           </span>
                         )}
                       </div>
-                      <span className="text-gray-400 text-xs flex items-center justify-center w-10 h-10 shrink-0">{isExpanded ? '▲' : '▼'}</span>
+                      <span className="text-surface-400 text-caption flex items-center justify-center w-10 h-10 shrink-0">{isExpanded ? '▲' : '▼'}</span>
                     </div>
                   </Card>
                 </button>
@@ -476,7 +476,7 @@ export default function OwnerPeopleScreen() {
                         }
                         className="py-2 w-full text-center"
                       >
-                        <span className="text-xs font-medium text-gray-400">
+                        <span className="text-caption font-medium text-surface-400">
                           View all ({allMembers.length})
                         </span>
                       </button>
@@ -493,10 +493,10 @@ export default function OwnerPeopleScreen() {
       {showCreateMember && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="fixed inset-0 bg-black/30" onClick={() => setShowCreateMember(false)} />
-          <div className="relative bg-white dark:bg-gray-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white dark:bg-surface-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <p className="text-base font-bold text-gray-900 dark:text-gray-100">Add Person</p>
-              <button onClick={() => setShowCreateMember(false)} className="text-gray-500 text-xl">&times;</button>
+              <p className="text-heading text-surface-900 dark:text-surface-100">Add Person</p>
+              <button onClick={() => setShowCreateMember(false)} className="text-surface-500 text-xl">&times;</button>
             </div>
 
             {!isDirect && (
@@ -516,11 +516,11 @@ export default function OwnerPeopleScreen() {
             )}
 
             <div className="mt-4">
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
                 Full Name
               </p>
               <input
-                className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 mb-4 outline-none"
+                className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none"
                 placeholder="Ada Nwobi"
                 value={memberName}
                 onChange={(e) => {
@@ -529,11 +529,11 @@ export default function OwnerPeopleScreen() {
                 }}
               />
 
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
                 Work Email
               </p>
               <input
-                className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 mb-4 outline-none"
+                className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none"
                 placeholder="ada@company.com"
                 value={memberEmail}
                 onChange={(e) => {
@@ -545,11 +545,11 @@ export default function OwnerPeopleScreen() {
 
               {!true && (
                 <>
-                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+                  <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
                     Password <span className="text-red-400">*</span>
                   </p>
                   <input
-                    className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 outline-none"
+                    className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 outline-none"
                     placeholder="Min. 6 characters (required)"
                     value={memberPassword}
                     onChange={(e) => {
@@ -625,7 +625,7 @@ export default function OwnerPeopleScreen() {
               </div>
             )}
 
-            <p className="text-sm text-gray-400 dark:text-gray-500 leading-6 mt-5">
+            <p className="text-body text-surface-400 dark:text-surface-500 leading-6 mt-5">
               {true
                 ? (isDirect
                   ? 'This employee will report directly to you.'
@@ -636,7 +636,7 @@ export default function OwnerPeopleScreen() {
             </p>
 
             {memberError ? (
-              <p className="text-sm text-red-600 mt-4">{memberError}</p>
+              <p className="text-body text-red-600 mt-4">{memberError}</p>
             ) : null}
 
             <div className="mt-5">
@@ -654,17 +654,17 @@ export default function OwnerPeopleScreen() {
       {showCreateTeam && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="fixed inset-0 bg-black/30" onClick={() => setShowCreateTeam(false)} />
-          <div className="relative bg-white dark:bg-gray-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white dark:bg-surface-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <p className="text-base font-bold text-gray-900 dark:text-gray-100">Add Team</p>
-              <button onClick={() => setShowCreateTeam(false)} className="text-gray-500 text-xl">&times;</button>
+              <p className="text-heading text-surface-900 dark:text-surface-100">Add Team</p>
+              <button onClick={() => setShowCreateTeam(false)} className="text-surface-500 text-xl">&times;</button>
             </div>
 
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Team Name
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 mb-4 outline-none"
+              className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none"
               placeholder="Operations North"
               value={teamName}
               onChange={(e) => {
@@ -690,11 +690,11 @@ export default function OwnerPeopleScreen() {
             <div className="mt-4">
               {true ? (
                 <>
-                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+                  <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
                     Lead Name
                   </p>
                   <input
-                    className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 outline-none"
+                    className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 outline-none"
                     placeholder="Enter a lead name"
                     value={demoLeadName}
                     onChange={(e) => {
@@ -722,7 +722,7 @@ export default function OwnerPeopleScreen() {
             </div>
 
             <div className="mt-4">
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+              <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
                 Team Color
               </p>
               <div className="flex flex-wrap gap-3">
@@ -732,7 +732,7 @@ export default function OwnerPeopleScreen() {
                     <button
                       key={swatch}
                       onClick={() => setTeamColor(swatch)}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${selected ? 'ring-2 ring-gray-900 dark:ring-gray-100' : ''}`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${selected ? 'ring-2 ring-surface-900 dark:ring-surface-100' : ''}`}
                       style={{ backgroundColor: swatch }}
                     >
                       {selected ? <span className="text-white text-sm">✓</span> : null}
@@ -743,17 +743,17 @@ export default function OwnerPeopleScreen() {
             </div>
 
             {!true && !canCreateRealTeam ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 leading-6 mt-5">
+              <p className="text-body text-surface-400 dark:text-surface-500 leading-6 mt-5">
                 This org does not have any available subadmins yet. Create or invite a subadmin first, then you can attach that lead to a new team.
               </p>
             ) : (
-              <p className="text-sm text-gray-400 dark:text-gray-500 leading-6 mt-5">
+              <p className="text-body text-surface-400 dark:text-surface-500 leading-6 mt-5">
                 Teams show up in owner, subadmin, and employee views. We keep the lead attached at creation so the team has a clear owner from day one.
               </p>
             )}
 
             {teamError ? (
-              <p className="text-sm text-red-600 mt-4">{teamError}</p>
+              <p className="text-body text-red-600 mt-4">{teamError}</p>
             ) : null}
 
             <div className="mt-5">
@@ -771,38 +771,38 @@ export default function OwnerPeopleScreen() {
       {editMember && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="fixed inset-0 bg-black/30" onClick={() => setEditMember(null)} />
-          <div className="relative bg-white dark:bg-gray-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white dark:bg-surface-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <p className="text-base font-bold text-gray-900 dark:text-gray-100">Edit Person</p>
-              <button onClick={() => setEditMember(null)} className="text-gray-500 text-xl">&times;</button>
+              <p className="text-heading text-surface-900 dark:text-surface-100">Edit Person</p>
+              <button onClick={() => setEditMember(null)} className="text-surface-500 text-xl">&times;</button>
             </div>
 
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Full Name
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 mb-4 outline-none"
+              className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none"
               placeholder="Full name"
               value={editName}
               onChange={(e) => { setEditName(e.target.value); setEditError(''); }}
             />
 
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               Email
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 mb-4 outline-none"
+              className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 mb-4 outline-none"
               placeholder="New email (leave empty to keep current)"
               value={editEmail}
               onChange={(e) => { setEditEmail(e.target.value); setEditError(''); }}
               type="email"
             />
 
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="text-caption text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-2">
               New Password
             </p>
             <input
-              className="w-full bg-gray-50 dark:bg-gray-900 rounded-2xl px-4 py-3.5 text-base text-gray-900 dark:text-gray-100 outline-none"
+              className="w-full bg-surface-50 dark:bg-surface-900 rounded-card px-4 py-3.5 text-body text-surface-900 dark:text-surface-100 outline-none"
               placeholder="Leave empty to keep current"
               value={editPassword}
               onChange={(e) => { setEditPassword(e.target.value); setEditError(''); }}
@@ -833,12 +833,12 @@ export default function OwnerPeopleScreen() {
               </div>
             )}
 
-            <p className="text-sm text-gray-400 dark:text-gray-500 leading-6 mt-4">
+            <p className="text-body text-surface-400 dark:text-surface-500 leading-6 mt-4">
               Only fill in the fields you want to change.
             </p>
 
             {editError ? (
-              <p className="text-sm text-red-600 mt-3">{editError}</p>
+              <p className="text-body text-red-600 mt-3">{editError}</p>
             ) : null}
 
             <div className="mt-5 space-y-3">
@@ -854,7 +854,7 @@ export default function OwnerPeopleScreen() {
                     setEditMember(null);
                   }
                 }}
-                className="w-full py-3 text-center text-sm font-semibold text-red-600"
+                className="w-full py-3 text-center text-body font-semibold text-red-600"
               >
                 Remove Person
               </button>

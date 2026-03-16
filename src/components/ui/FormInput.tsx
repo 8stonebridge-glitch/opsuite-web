@@ -19,12 +19,12 @@ function FormInput({ label, containerClassName = '', onChangeText, onChange, cla
   return (
     <div className={containerClassName}>
       {label && (
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+        <label className="text-caption font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
           {label}
         </label>
       )}
       <Input
-        className={cn('h-10 rounded-xl', className)}
+        className={cn('h-10 rounded-input', className)}
         onChange={handleChange}
         {...props}
       />

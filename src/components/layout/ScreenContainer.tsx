@@ -14,7 +14,7 @@ export function ScreenContainer({
 }: ScreenContainerProps) {
   if (scroll) {
     return (
-      <div className="flex-1 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="flex-1 bg-surface-50 dark:bg-surface-900 min-h-screen">
         <div
           className="flex-1 overflow-auto pb-24"
           {...props}
@@ -26,7 +26,7 @@ export function ScreenContainer({
   }
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="flex-1 bg-surface-50 dark:bg-surface-900 min-h-screen">
       <div className="flex-1" {...props}>
         {children}
       </div>
