@@ -2,15 +2,20 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation } from 'convex/react';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
 import { uid } from '@/utils/id';
-import { generateSeedData } from '@/store/seed';
+import { api } from '@/lib/convexApi';
 
 export default function AddSitesPage() {
   const router = useRouter();
   const { state, dispatch } = useApp();
   const [siteName, setSiteName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const createOrg = useMutation(api.organizations.create);
+  const createSite = useMutation(api.sites.create);
 
   const sitesLabel = state.onboarding.industry?.sitesLabel || 'Sites';
 
@@ -20,14 +25,32 @@ export default function AddSitesPage() {
     setSiteName('');
   };
 
-  const finish = () => {
-    dispatch({ type: 'FINISH_ONBOARDING' });
-    const indId = state.onboarding.industry?.id || '';
-    const seed = generateSeedData(indId, state.onboarding.sites, state.onboarding.adminName || 'Admin');
-    dispatch({ type: 'SET_TASKS', tasks: seed.tasks });
-    dispatch({ type: 'SET_AUDIT', entries: seed.audit });
-    dispatch({ type: 'SET_CHECKINS', checkIns: seed.checkIns });
-    router.replace('/');
+  const finish = async () => {
+    if (isCreating) return;
+    setIsCreating(true);
+
+    try {
+      // 1. Create the organization in Convex
+      const result = await createOrg({
+        name: state.onboarding.orgName || 'My Organization',
+        industryId: state.onboarding.industry?.id,
+        mode: 'managed',
+      });
+
+      // 2. Create sites in Convex
+      for (const site of state.onboarding.sites) {
+        await createSite({ name: site.name });
+      }
+
+      // 3. Mark onboarding complete locally
+      dispatch({ type: 'FINISH_ONBOARDING' });
+
+      // 4. Navigate to dashboard — ConvexDataBridge will pick up the new org
+      router.replace('/admin/overview');
+    } catch (err) {
+      console.error('Failed to create organization:', err);
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -69,7 +92,10 @@ export default function AddSitesPage() {
       <div className="mt-8">
         <Button
           onClick={finish}
-        >{state.onboarding.sites.length > 0 ? `Launch ${state.onboarding.orgName}` : 'Skip for now'}</Button>
+          disabled={isCreating}
+        >
+          {isCreating ? 'Creating...' : state.onboarding.sites.length > 0 ? `Launch ${state.onboarding.orgName}` : 'Skip for now'}
+        </Button>
       </div>
     </div>
   );

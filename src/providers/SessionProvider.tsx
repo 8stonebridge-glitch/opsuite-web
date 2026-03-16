@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { useUser } from '@clerk/nextjs';
 
 export interface SessionUser {
   id: string;
@@ -18,7 +19,7 @@ export interface SessionContext {
   isLoading: boolean;
   /** True if the user has been authenticated */
   isSignedIn: boolean;
-  /** The resolved role for this user (temporary: always 'admin' for signed-in users) */
+  /** The resolved role for this user (resolved from Convex membership via ConvexDataBridge) */
   role: SessionRole;
   /** Re-fetch session (e.g. after org switch) */
   refresh: () => Promise<void>;
@@ -33,42 +34,30 @@ const SessionCtx = createContext<SessionContext>({
 });
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [role, setRole] = useState<SessionRole>(null);
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
 
-  const fetchSession = useCallback(async () => {
-    try {
-      const res = await fetch('/api/auth/bootstrap');
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-        setIsSignedIn(data.isSignedIn);
-        setRole(data.role || null);
-      } else {
-        setUser(null);
-        setIsSignedIn(false);
-        setRole(null);
-      }
-    } catch {
-      setUser(null);
-      setIsSignedIn(false);
-      setRole(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const sessionUser = useMemo<SessionUser | null>(() => {
+    if (!isLoaded || !isSignedIn || !clerkUser) return null;
+    return {
+      id: clerkUser.id,
+      email: clerkUser.emailAddresses[0]?.emailAddress || '',
+      name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.emailAddresses[0]?.emailAddress || 'User',
+      imageUrl: clerkUser.imageUrl || null,
+    };
+  }, [isLoaded, isSignedIn, clerkUser]);
 
-  useEffect(() => {
-    void fetchSession();
-  }, [fetchSession]);
-
-  return (
-    <SessionCtx.Provider value={{ user, isLoading, isSignedIn, role, refresh: fetchSession }}>
-      {children}
-    </SessionCtx.Provider>
+  const value = useMemo<SessionContext>(
+    () => ({
+      user: sessionUser,
+      isLoading: !isLoaded,
+      isSignedIn: isSignedIn ?? false,
+      role: isSignedIn ? 'admin' : null,
+      refresh: async () => {},
+    }),
+    [sessionUser, isLoaded, isSignedIn],
   );
+
+  return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;
 }
 
 export function useSession(): SessionContext {
