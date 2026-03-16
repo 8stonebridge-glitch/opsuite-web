@@ -40,9 +40,11 @@ export default function HomePage() {
     // Wait for ConvexDataBridge to resolve org/role (or timeout)
     if (!state.onboardingComplete && !timedOut) return;
 
-    // If timed out without org data, send to onboarding
+    // If timed out without org data, fall back to admin overview
+    // (the dashboard pages handle missing data gracefully)
     if (!state.onboardingComplete && timedOut) {
-      router.replace('/onboarding/org-name');
+      console.warn('[HomePage] Convex data did not resolve in 6s, falling back to /admin/overview');
+      router.replace('/admin/overview');
       return;
     }
 

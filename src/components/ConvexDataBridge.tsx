@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useQuery, useMutation, useConvexAuth } from 'convex/react';
+import { useQuery, useMutation, useAction, useConvexAuth } from 'convex/react';
 import { api } from '@/lib/convexApi';
 import { useApp } from '@/store/AppContext';
 import { INDUSTRIES } from '@/constants/industries';
@@ -13,12 +13,15 @@ import type { Team, Employee, Role, Site } from '@/types';
  * components keep working without changes.
  *
  * It also calls syncFromAuth on mount to ensure the user record
- * exists in Convex.
+ * exists in Convex. If the mutation fails (e.g. JWT missing email
+ * claim), it falls back to syncFromAuthAction which fetches the
+ * email from the Clerk API server-side.
  */
 export function ConvexDataBridge() {
   const { dispatch } = useApp();
   const { isAuthenticated, isLoading: isConvexLoading } = useConvexAuth();
   const syncFromAuth = useMutation(api.users.syncFromAuth);
+  const syncFromAuthAction = useAction(api.users.syncFromAuthAction);
   const hasSynced = useRef(false);
 
   // Debug: log auth state changes so we can diagnose stuck spinners
@@ -31,14 +34,18 @@ export function ConvexDataBridge() {
   const viewer = useQuery(api.users.viewer, isAuthenticated ? {} : 'skip');
 
   // ── 2. Sync user on first auth ──
+  // Try mutation first; fall back to action if JWT lacks email claim
   useEffect(() => {
     if (viewer?.identity && !hasSynced.current) {
       hasSynced.current = true;
       syncFromAuth({}).catch((err: any) => {
-        console.error('[ConvexDataBridge] syncFromAuth failed:', err);
+        console.warn('[ConvexDataBridge] syncFromAuth mutation failed, trying action fallback:', err.message);
+        syncFromAuthAction({}).catch((actionErr: any) => {
+          console.error('[ConvexDataBridge] syncFromAuthAction also failed:', actionErr);
+        });
       });
     }
-  }, [viewer?.identity, syncFromAuth]);
+  }, [viewer?.identity, syncFromAuth, syncFromAuthAction]);
 
   // ── 3. Active organization ──
   const activeOrg = useQuery(api.organizations.active, isAuthenticated && viewer?.user ? {} : 'skip');
