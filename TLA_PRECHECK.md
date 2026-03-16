@@ -53,5 +53,5 @@ That gives us a formal check on the core task lifecycle before we rely on browse
 ## Recommended next order
 
 1. expand the machine for rework/no-change/accountability if needed
-2. run `npx playwright test`
-3. add deeper e2e coverage for auth and People flows
+2. extend browser coverage beyond auth + People into task lifecycle flows
+3. add deeper backend authorization checks for manager vs employee transitions

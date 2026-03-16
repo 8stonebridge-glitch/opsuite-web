@@ -310,3 +310,105 @@ We also aligned Google SSO in both files to use the same post-auth redirect targ
 - `src/app/sign-in/[[...sign-in]]/page.tsx`
 - `src/app/sign-up/[[...sign-up]]/page.tsx`
 - `src/middleware.ts`
+
+---
+
+## BUG-005: Playwright Owner Session Reached Convex Before App User Sync
+
+**Date:** 2026-03-16
+**Severity:** High
+**Status:** Resolved
+
+### Symptom
+The Playwright People flow could reach the admin shell, but the page never hydrated the site list reliably. The create-person modal then failed validation because no site was available to select.
+
+In the server logs this showed up as:
+
+```text
+Uncaught Error: User record not initialized
+```
+
+### Root Cause
+The test-only state bridge route was asking Convex for organization, site, and membership data before the signed-in Clerk user had been synchronized into the app's `users` table.
+
+That meant this path could fail on first load:
+
+1. synthetic Playwright owner session hits `/api/e2e/state`
+2. route gets a valid Convex token
+3. route immediately queries `organizations.active`, `sites.listForActiveOrganization`, and `memberships.listForActiveOrganization`
+4. Convex auth helpers call `requireCurrentUser`
+5. the app user record does not exist yet
+6. the route fails before it can hydrate the People page
+
+### Fix
+We made the test-only state bridge initialize the app user first, using the same auth sync action as the owner bootstrap flow.
+
+**File: `src/app/api/e2e/state/route.ts`**
+```tsx
+// Added before reading org/site/membership state
+await fetchAction(api.users.syncFromAuthAction, {}, { token });
+```
+
+### Why This Fix Works
+- Convex now sees a valid app user record before any org-scoped queries run
+- the e2e state bridge can safely populate:
+  - org name
+  - org mode
+  - sites
+  - standalone employees
+- the People UI gets the site list it needs for the create-person form
+
+### Lessons Learned
+- Any route that depends on Convex membership context must ensure the Clerk identity has been synchronized first
+- The e2e bootstrap path and the e2e state path need to follow the same auth initialization rules
+- “Signed in” at Clerk level is not enough if the app database still expects a synced user row
+
+### Related Files
+- `src/app/api/e2e/state/route.ts`
+- `src/app/api/e2e/bootstrap-owner/route.ts`
+- `src/lib/server/adminPeople.ts`
+
+---
+
+## BUG-006: Edit Person Modal Could Reopen in a Stuck Saving State
+
+**Date:** 2026-03-16
+**Severity:** Medium
+**Status:** Resolved
+
+### Symptom
+After saving changes to a person and reopening the edit modal quickly, the modal could come back showing:
+
+- `Saving...`
+- disabled `Remove Person`
+
+even though no save was currently in progress.
+
+### Root Cause
+The modal-opening path reused the previous edit state without explicitly resetting the `isSavingEdit` flag. If the modal was reopened while the previous save cycle was still settling, the UI could inherit the stale saving state.
+
+### Fix
+We reset the edit-saving flag whenever the edit modal is opened.
+
+**File: `src/app/admin/people/page.tsx`**
+```tsx
+const openEditModal = (...) => {
+  setIsSavingEdit(false);
+  setEditMember(...);
+  ...
+};
+```
+
+### Why This Fix Works
+- each modal open starts from a clean interaction state
+- the delete button no longer inherits a stale disabled state
+- create/edit/delete flows are now stable enough for browser coverage
+
+### Lessons Learned
+- modal entry points should reset transient async UI flags
+- page state that survives modal close/open cycles can easily create false disabled/loading states
+- browser tests are good at surfacing these “state leak” bugs because they reopen flows quickly
+
+### Related Files
+- `src/app/admin/people/page.tsx`
+- `tests/e2e/people.spec.ts`
