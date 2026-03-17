@@ -7,7 +7,6 @@ import { useApp } from '@/store/AppContext';
 import { useSession } from '@/providers/SessionProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { InboxButton } from '@/components/inbox/InboxButton';
 import { Home, ClipboardList, MapPin, Users, Settings } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
 
@@ -115,7 +114,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {state.onboarding.orgName || 'OpSuite'}
           </span>
         </div>
-        <InboxButton />
       </div>
 
       {/* Main Content */}

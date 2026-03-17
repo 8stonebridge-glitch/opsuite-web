@@ -17,9 +17,20 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { EmployeeSummaryCard } from '@/components/people/EmployeeSummaryCard';
 import { useApp } from '@/store/AppContext';
-import { CreateMemberModal } from '@/components/people/CreateMemberModal';
-import { CreateTeamModal } from '@/components/people/CreateTeamModal';
-import { EditMemberModal } from '@/components/people/EditMemberModal';
+import dynamic from 'next/dynamic';
+
+const CreateMemberModal = dynamic(
+  () => import('@/components/people/CreateMemberModal').then(m => ({ default: m.CreateMemberModal })),
+  { ssr: false }
+);
+const CreateTeamModal = dynamic(
+  () => import('@/components/people/CreateTeamModal').then(m => ({ default: m.CreateTeamModal })),
+  { ssr: false }
+);
+const EditMemberModal = dynamic(
+  () => import('@/components/people/EditMemberModal').then(m => ({ default: m.EditMemberModal })),
+  { ssr: false }
+);
 import { TeamRow } from '@/components/people/TeamRow';
 
 const PREVIEW_LIMIT = 8;

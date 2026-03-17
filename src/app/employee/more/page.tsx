@@ -12,7 +12,12 @@ import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { Card } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { LeaveRequestSheet } from '@/components/availability/LeaveRequestSheet';
+import dynamic from 'next/dynamic';
+
+const LeaveRequestSheet = dynamic(
+  () => import('@/components/availability/LeaveRequestSheet').then(m => ({ default: m.LeaveRequestSheet })),
+  { ssr: false }
+);
 import { AvailabilityHistory } from '@/components/availability/AvailabilityHistory';
 
 export default function EmployeeMoreScreen() {

@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
@@ -8,6 +9,17 @@ const isPublicRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
     await auth.protect();
+  }
+
+  // Server-side redirect: send "/" to the default dashboard instantly
+  // instead of loading a client-side spinner with a 6-second timeout.
+  if (request.nextUrl.pathname === '/') {
+    const { userId } = await auth();
+    if (userId) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/overview';
+      return NextResponse.redirect(url);
+    }
   }
 });
 

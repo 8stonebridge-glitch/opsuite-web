@@ -1,38 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession } from '@/providers/SessionProvider';
 
 /**
- * Wraps protected page content. While loading, shows a spinner.
- * If not signed in, redirects to /sign-in.
- *
- * Usage: Wrap children in role layouts (admin/layout.tsx etc.)
+ * Client-side auth fallback. Middleware already blocks unauthenticated
+ * requests server-side, so this component just hides children if
+ * the client-side auth state hasn't resolved yet — no spinner needed.
  */
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isLoading, isSignedIn } = useSession();
-  const router = useRouter();
+  const { isSignedIn } = useSession();
 
-  useEffect(() => {
-    if (!isLoading && !isSignedIn) {
-      router.replace('/sign-in');
-    }
-  }, [isLoading, isSignedIn, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-surface-50 dark:bg-surface-950">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-surface-200 border-t-emerald-600 dark:border-surface-700 dark:border-t-emerald-400" />
-          <p className="text-caption text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    // Will redirect in useEffect, show nothing while redirecting
+  // Middleware already redirects unauthenticated users.
+  // Render nothing briefly while Clerk hydrates on the client.
+  if (isSignedIn === false) {
     return null;
   }
 

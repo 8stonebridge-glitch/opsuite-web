@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useAction, useConvexAuth } from 'convex/react';
+import { usePathname } from 'next/navigation';
 import { api } from '@/lib/convexApi';
 import { useApp } from '@/store/AppContext';
 import { INDUSTRIES } from '@/constants/industries';
@@ -60,6 +61,15 @@ export function ConvexDataBridge() {
     }
   }, [isAuthenticated]);
 
+  // ── Route-based query gating ──
+  // Only subscribe to data the current page actually needs.
+  const pathname = usePathname();
+  const needsTasks = pathname.includes('/tasks') || pathname.includes('/overview') || pathname.includes('/my-day');
+  const needsPeople = pathname.includes('/people') || pathname.includes('/overview') || pathname.includes('/check-in');
+  const needsSites = pathname.includes('/sites') || pathname.includes('/people') || pathname.includes('/overview');
+  const needsAvailability = pathname.includes('/availability') || pathname.includes('/more') || pathname.includes('/overview');
+  const needsHandoffs = pathname.includes('/check-in') || pathname.includes('/handoff') || pathname.includes('/overview') || pathname.includes('/my-day');
+
   // ── 1. User viewer (check if auth is active) ──
   // Only query when authenticated to avoid "Unauthenticated" errors
   const viewer = useQuery(api.users.viewer, isAuthenticated ? {} : 'skip');
@@ -82,24 +92,24 @@ export function ConvexDataBridge() {
   // activeOrg and viewer load in parallel; we just need isAuthenticated.
   const activeOrg = useQuery(api.organizations.active, isAuthenticated ? {} : 'skip');
 
-  // ── 4. Tasks (only query when we have an active org) ──
+  // ── 4. Tasks (only on task/overview/my-day pages) ──
   const hasActiveOrg = !!activeOrg?.organization;
-  const tasksData = useQuery(api.tasks.listForCurrentScope, hasActiveOrg ? {} : 'skip');
+  const tasksData = useQuery(api.tasks.listForCurrentScope, hasActiveOrg && needsTasks ? {} : 'skip');
 
-  // ── 5. Memberships ──
-  const membershipsData = useQuery(api.memberships.listForActiveOrganization, hasActiveOrg ? {} : 'skip');
+  // ── 5. Memberships (only on people/overview/check-in pages) ──
+  const membershipsData = useQuery(api.memberships.listForActiveOrganization, hasActiveOrg && needsPeople ? {} : 'skip');
 
-  // ── 6. Sites ──
-  const sitesData = useQuery(api.sites.listForActiveOrganization, hasActiveOrg ? {} : 'skip');
+  // ── 6. Sites (only on sites/people/overview pages) ──
+  const sitesData = useQuery(api.sites.listForActiveOrganization, hasActiveOrg && needsSites ? {} : 'skip');
 
-  // ── 7. Teams ──
-  const teamsData = useQuery(api.teams.listForActiveOrganization, hasActiveOrg ? {} : 'skip');
+  // ── 7. Teams (only on people/overview/check-in pages) ──
+  const teamsData = useQuery(api.teams.listForActiveOrganization, hasActiveOrg && needsPeople ? {} : 'skip');
 
-  // ── 8. Availability ──
-  const availabilityData = useQuery(api.availability.listForCurrentScope, hasActiveOrg ? {} : 'skip');
+  // ── 8. Availability (only on availability/more/overview pages) ──
+  const availabilityData = useQuery(api.availability.listForCurrentScope, hasActiveOrg && needsAvailability ? {} : 'skip');
 
-  // ── 9. Handoffs + Check-ins ──
-  const handoffsData = useQuery(api.handoffs.listForCurrentScope, hasActiveOrg ? {} : 'skip');
+  // ── 9. Handoffs + Check-ins (only on check-in/handoff/overview/my-day pages) ──
+  const handoffsData = useQuery(api.handoffs.listForCurrentScope, hasActiveOrg && needsHandoffs ? {} : 'skip');
 
   // ── Sync org data into AppContext ──
   useEffect(() => {

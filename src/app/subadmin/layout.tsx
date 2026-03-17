@@ -25,21 +25,10 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const router = useRouter();
 
-  // Wait for ConvexDataBridge to resolve role before guarding.
-  // state.onboardingComplete is set by ConvexDataBridge after org data loads.
-  const isHydrated = state.onboardingComplete;
-
-  if (isHydrated && state.role !== 'subadmin') {
+  // Role guard — redirect if wrong role (middleware already handles auth)
+  if (state.onboardingComplete && state.role !== 'subadmin') {
     if (typeof window !== 'undefined') router.push('/');
     return null;
-  }
-
-  if (!isHydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-surface-50 dark:bg-surface-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-surface-200 border-t-emerald-600 dark:border-surface-700 dark:border-t-emerald-400" />
-      </div>
-    );
   }
 
   return (
