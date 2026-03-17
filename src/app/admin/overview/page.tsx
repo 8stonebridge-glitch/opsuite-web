@@ -138,7 +138,7 @@ export default function OwnerOverviewScreen() {
                   />
                   <div className="space-y-3">
                     {pendingRequests.map((r) => (
-                      <AvailabilityRequestCard key={r.id} record={r} approverId="admin" />
+                      <AvailabilityRequestCard key={r.id} record={r} approverId={state.userId ?? ''} />
                     ))}
                   </div>
                 </section>

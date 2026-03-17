@@ -24,11 +24,6 @@ export function ConvexDataBridge() {
   const syncFromAuthAction = useAction(api.users.syncFromAuthAction);
   const hasSynced = useRef(false);
 
-  // Debug: log auth state changes so we can diagnose stuck spinners
-  useEffect(() => {
-    console.log('[ConvexDataBridge] auth state:', { isConvexLoading, isAuthenticated });
-  }, [isConvexLoading, isAuthenticated]);
-
   // ── 1. User viewer (check if auth is active) ──
   // Only query when authenticated to avoid "Unauthenticated" errors
   const viewer = useQuery(api.users.viewer, isAuthenticated ? {} : 'skip');
@@ -38,10 +33,9 @@ export function ConvexDataBridge() {
   useEffect(() => {
     if (viewer?.identity && !hasSynced.current) {
       hasSynced.current = true;
-      syncFromAuth({}).catch((err: any) => {
-        console.warn('[ConvexDataBridge] syncFromAuth mutation failed, trying action fallback:', err.message);
-        syncFromAuthAction({}).catch((actionErr: any) => {
-          console.error('[ConvexDataBridge] syncFromAuthAction also failed:', actionErr);
+      syncFromAuth({}).catch((_err: any) => {
+        syncFromAuthAction({}).catch(() => {
+          // both sync paths failed — user will see Unauthenticated errors
         });
       });
     }
