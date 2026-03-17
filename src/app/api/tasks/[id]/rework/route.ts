@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConvexActionError, requestTaskRework } from '@/lib/server/convexActions';
+import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const rl = checkRateLimit(getClientIp(request), { limit: 20, windowMs: 60_000, key: 'tasks-rework' });
+  if (!rl.allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   try {
     const { id } = await params;
     const body = (await request.json()) as { reason?: string };
@@ -13,11 +16,7 @@ export async function POST(
       return NextResponse.json({ error: 'Rework reason is required' }, { status: 400 });
     }
 
-    const result = await requestTaskRework({
-      taskId: id,
-      reason: body.reason,
-    });
-
+    const result = await requestTaskRework({ taskId: id, reason: body.reason });
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof ConvexActionError) {

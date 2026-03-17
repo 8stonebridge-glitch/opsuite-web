@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConvexActionError, approveTask } from '@/lib/server/convexActions';
+import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const rl = checkRateLimit(getClientIp(request), { limit: 30, windowMs: 60_000, key: 'tasks-approve' });
+  if (!rl.allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   try {
     const { id } = await params;
-
     const result = await approveTask({ taskId: id });
-
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof ConvexActionError) {
