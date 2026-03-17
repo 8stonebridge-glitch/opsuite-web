@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConvexActionError, createTask } from '@/lib/server/convexActions';
+import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
 
 export async function POST(request: NextRequest) {
+  const rl = checkRateLimit(getClientIp(request), { limit: 60, windowMs: 60_000, key: 'tasks' });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429 });
+  }
+
   try {
     const body = (await request.json()) as {
       title?: string;

@@ -78,7 +78,9 @@ export function ConvexDataBridge() {
   }, [viewer?.identity, syncFromAuth, syncFromAuthAction]);
 
   // ── 3. Active organization ──
-  const activeOrg = useQuery(api.organizations.active, isAuthenticated && viewer?.user ? {} : 'skip');
+  // Deliberately NOT gated on viewer?.user — that caused a sequential waterfall.
+  // activeOrg and viewer load in parallel; we just need isAuthenticated.
+  const activeOrg = useQuery(api.organizations.active, isAuthenticated ? {} : 'skip');
 
   // ── 4. Tasks (only query when we have an active org) ──
   const hasActiveOrg = !!activeOrg?.organization;

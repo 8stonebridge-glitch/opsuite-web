@@ -3,11 +3,9 @@
 import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SearchInput } from '../ui/SearchInput';
-import { TaskCard } from './TaskCard';
-import { TaskTableRow } from './TaskTableRow';
-import { TaskTableHeader } from './TaskTableHeader';
 import { TaskFilters, type FilterValue } from './TaskFilters';
-import { EmptyState } from '../ui/EmptyState';
+import { TaskCardView } from './TaskCardView';
+import { TaskTableView } from './TaskTableView';
 import { useApp } from '../../store/AppContext';
 import {
   useScopedTasks,
@@ -16,9 +14,10 @@ import {
   useTeams,
 } from '../../store/selectors';
 import { isOverdue } from '../../utils/date';
-import { consecutiveNoChangeWorkdays, isStalledTask } from '../../utils/task-helpers';
+import { consecutiveNoChangeWorkdays, compareTasks } from '../../utils/task-helpers';
+import { buildTaskSections } from '../../utils/taskSections';
 import { useTheme } from '../../providers/ThemeProvider';
-import type { Task, Team } from '../../types';
+import type { Task } from '../../types';
 
 type GroupBy = 'status' | 'site' | 'team';
 type DisplayMode = 'cards' | 'table';
@@ -27,54 +26,7 @@ interface TaskListScreenProps {
   basePath: string;
 }
 
-interface Section {
-  title: string;
-  data: Task[];
-}
-
-// ── Sort helpers ───────────────────────────────────────────────────────
-
-const PRIORITY_ORDER: Record<string, number> = { critical: 0, medium: 1, low: 2 };
-const STATUS_ORDER: Record<string, number> = {
-  'Open': 0, 'In Progress': 1, 'Pending Approval': 2, 'Submitted': 3, 'Verified': 4,
-};
 const PAGE_SIZE = 20;
-
-function compareTasks(a: Task, b: Task, key: string, dir: 'asc' | 'desc', teams: Team[]): number {
-  const mul = dir === 'asc' ? 1 : -1;
-
-  switch (key) {
-    case 'due': {
-      // nulls last
-      if (!a.due && !b.due) return 0;
-      if (!a.due) return 1;
-      if (!b.due) return -1;
-      return mul * a.due.localeCompare(b.due);
-    }
-    case 'priority':
-      return mul * ((PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2));
-    case 'status':
-      return mul * ((STATUS_ORDER[a.status] ?? 4) - (STATUS_ORDER[b.status] ?? 4));
-    case 'lastActivity': {
-      const aDate = a.lastActivityAt || a.createdAt;
-      const bDate = b.lastActivityAt || b.createdAt;
-      return mul * bDate.localeCompare(aDate); // newest first by default
-    }
-    case 'assignee':
-      return mul * a.assignee.localeCompare(b.assignee);
-    case 'site':
-      return mul * a.site.localeCompare(b.site);
-    case 'team': {
-      const aTeam = teams.find((t) => t.id === a.teamId)?.name || '';
-      const bTeam = teams.find((t) => t.id === b.teamId)?.name || '';
-      return mul * aTeam.localeCompare(bTeam);
-    }
-    case 'title':
-      return mul * a.title.localeCompare(b.title);
-    default:
-      return 0;
-  }
-}
 
 // ── Component ──────────────────────────────────────────────────────────
 
@@ -109,7 +61,6 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
   const [tableSortDir, setTableSortDir] = useState<'asc' | 'desc'>('asc');
   const [tableVisibleCount, setTableVisibleCount] = useState(PAGE_SIZE);
 
-  // Auto-select tab when navigated with ?filter= query param (e.g. from inbox)
   useEffect(() => {
     const f = filterParam?.toLowerCase();
     if (f === 'review' || f === 'active' || f === 'done') {
@@ -134,113 +85,34 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
     [state.audit, state.availability]
   );
 
-  // Search filter
   const searched = useMemo(() => {
     if (!search) return baseTasks;
     const q = search.toLowerCase();
-    return baseTasks.filter(
-      (t) =>
-        `${t.title}${t.site}${t.assignee}${t.category || ''}${t.status}`
-          .toLowerCase()
-          .includes(q)
+    return baseTasks.filter((t) =>
+      `${t.title}${t.site}${t.assignee}${t.category || ''}${t.status}`.toLowerCase().includes(q)
     );
   }, [baseTasks, search]);
 
-  // Counts for filter tabs
-  const counts = useMemo(() => {
-    const active = searched.filter(
-      (t) => t.status === 'Open' || t.status === 'In Progress'
-    ).length;
-    const review = searched.filter(
-      (t) => t.status === 'Pending Approval' || t.status === 'Submitted'
-    ).length;
-    const done = searched.filter((t) => t.status === 'Verified').length;
-    return { active, review, done };
-  }, [searched]);
+  const counts = useMemo(() => ({
+    active: searched.filter((t) => t.status === 'Open' || t.status === 'In Progress').length,
+    review: searched.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted').length,
+    done: searched.filter((t) => t.status === 'Verified').length,
+  }), [searched]);
 
-  // Get filtered tasks for current tab
   const filteredTasks = useMemo(() => {
-    if (filter === 'active') {
-      return searched.filter((t) => t.status === 'Open' || t.status === 'In Progress');
-    }
-    if (filter === 'review') {
-      return searched.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted');
-    }
-    if (filter === 'done') {
-      return searched.filter((t) => t.status === 'Verified');
-    }
+    if (filter === 'active') return searched.filter((t) => t.status === 'Open' || t.status === 'In Progress');
+    if (filter === 'review') return searched.filter((t) => t.status === 'Pending Approval' || t.status === 'Submitted');
+    if (filter === 'done') return searched.filter((t) => t.status === 'Verified');
     return [];
   }, [searched, filter]);
 
-  // ── Card mode: sections ──────────────────────────────────────────────
-  const sections: Section[] = useMemo(() => {
-    if (groupBy === 'site') {
-      const bySite = new Map<string, Task[]>();
-      for (const t of filteredTasks) {
-        const key = t.site || 'Unknown';
-        if (!bySite.has(key)) bySite.set(key, []);
-        bySite.get(key)!.push(t);
-      }
-      return Array.from(bySite.entries()).map(([title, data]) => ({ title, data }));
-    }
+  const sections = useMemo(
+    () => buildTaskSections(filteredTasks, filter, groupBy, teams, stalledThreshold, state.audit, state.availability),
+    [filteredTasks, filter, groupBy, teams, stalledThreshold, state.audit, state.availability]
+  );
 
-    if (groupBy === 'team') {
-      const byTeam = new Map<string, Task[]>();
-      for (const t of filteredTasks) {
-        const team = teams.find((tm) => tm.id === t.teamId);
-        const key = team?.name || 'Unknown';
-        if (!byTeam.has(key)) byTeam.set(key, []);
-        byTeam.get(key)!.push(t);
-      }
-      return Array.from(byTeam.entries()).map(([title, data]) => ({ title, data }));
-    }
-
-    // Default: status subsections
-    if (filter === 'active') {
-      const overdueTasks = filteredTasks.filter((t) => isOverdue(t.due, t.status));
-      const stalledTasks = filteredTasks.filter(
-        (t) =>
-          !isOverdue(t.due, t.status) &&
-          (typeof t.stalledDays === 'number'
-            ? t.stalledDays >= stalledThreshold
-            : isStalledTask(t, state.audit, stalledThreshold, state.availability))
-      );
-      const stalledIds = new Set(stalledTasks.map((t) => t.id));
-      const reworkTasks = filteredTasks.filter(
-        (t) => t.reworked && !isOverdue(t.due, t.status) && !stalledIds.has(t.id)
-      );
-      const normalTasks = filteredTasks.filter(
-        (t) => !isOverdue(t.due, t.status) && !t.reworked && !stalledIds.has(t.id)
-      );
-      const groups: Section[] = [];
-      if (overdueTasks.length) groups.push({ title: 'Overdue', data: overdueTasks });
-      if (stalledTasks.length) groups.push({ title: 'Stalled', data: stalledTasks });
-      if (reworkTasks.length) groups.push({ title: 'Rework', data: reworkTasks });
-      if (normalTasks.length) groups.push({ title: 'Active', data: normalTasks });
-      return groups;
-    }
-
-    if (filter === 'review') {
-      const pending = filteredTasks.filter((t) => t.status === 'Pending Approval');
-      const submitted = filteredTasks.filter((t) => t.status === 'Submitted');
-      const groups: Section[] = [];
-      if (pending.length) groups.push({ title: 'Pending Approval', data: pending });
-      if (submitted.length) groups.push({ title: 'Awaiting Verification', data: submitted });
-      return groups;
-    }
-
-    if (filter === 'done') {
-      if (filteredTasks.length) return [{ title: 'Done', data: filteredTasks }];
-      return [];
-    }
-
-    return [];
-  }, [filteredTasks, filter, groupBy, stalledThreshold, state.audit, state.availability]);
-
-  // ── Table mode: sorted flat list ─────────────────────────────────────
   const sortedTasks = useMemo(() => {
     const sorted = [...filteredTasks];
-    // Overdue items always float to top
     sorted.sort((a, b) => {
       const aOverdue = isOverdue(a.due, a.status) ? 0 : 1;
       const bOverdue = isOverdue(b.due, b.status) ? 0 : 1;
@@ -255,7 +127,6 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
     [sortedTasks, tableVisibleCount]
   );
 
-  // Reset pagination when filter/search changes
   const handleFilterChange = useCallback((f: FilterValue) => {
     setFilter(f);
     setTableVisibleCount(PAGE_SIZE);
@@ -277,49 +148,25 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
     });
   }, []);
 
-  const goToDetail = (id: string) => {
-    router.push(`${basePath}/${id}`);
-  };
-
-  const goToNew = () => {
-    router.push(`${basePath}/new`);
-  };
+  const goToDetail = (id: string) => router.push(`${basePath}/${id}`);
+  const goToNew = () => router.push(`${basePath}/new`);
 
   return (
     <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
       <div className="flex-1 px-5 pt-3">
         {isManager && (
-          <div className="flex rounded-card bg-surface-200 dark:bg-surface-800 p-1 mb-4">
-            <button
-              onClick={() => { setScope('assigned'); setFilter('active'); setTableVisibleCount(PAGE_SIZE); }}
-              className={`flex-1 py-2.5 rounded-xl text-center ${
-                scope === 'assigned' ? 'bg-white dark:bg-surface-900 shadow-sm' : ''
-              }`}
-            >
-              <span className={`text-caption ${scope === 'assigned' ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}>
-                My Assigned{' '}
-                <span className="text-surface-400 dark:text-surface-500 font-normal">{myAssigned.length}</span>
-              </span>
-            </button>
-            <button
-              onClick={() => { setScope('all'); setFilter('active'); setTableVisibleCount(PAGE_SIZE); }}
-              className={`flex-1 py-2.5 rounded-xl text-center ${
-                scope === 'all' ? 'bg-white dark:bg-surface-900 shadow-sm' : ''
-              }`}
-            >
-              <span className={`text-caption ${scope === 'all' ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}>
-                All Tasks{' '}
-                <span className="text-surface-400 dark:text-surface-500 font-normal">{allScoped.length}</span>
-              </span>
-            </button>
-          </div>
+          <ScopeToggle
+            scope={scope}
+            myCount={myAssigned.length}
+            allCount={allScoped.length}
+            onSelectAssigned={() => { setScope('assigned'); setFilter('active'); setTableVisibleCount(PAGE_SIZE); }}
+            onSelectAll={() => { setScope('all'); setFilter('active'); setTableVisibleCount(PAGE_SIZE); }}
+          />
         )}
-
         <div className="flex items-center gap-2">
           <div className="flex-1">
             <SearchInput value={search} onChangeText={handleSearchChange} />
           </div>
-          {/* GroupBy toggle — only in card mode for owner admin */}
           {displayMode === 'cards' && state.role === 'admin' && (
             <button
               onClick={() => {
@@ -334,7 +181,6 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
               </span>
             </button>
           )}
-          {/* Cards/Table toggle */}
           <button
             onClick={() => setDisplayMode((m) => (m === 'cards' ? 'table' : 'cards'))}
             className="h-10 w-10 rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 flex items-center justify-center"
@@ -345,77 +191,30 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
           </button>
         </div>
         <TaskFilters value={filter} onChange={handleFilterChange} color={color} counts={counts} />
-
-        {displayMode === 'cards' ? (
-          /* ── Card View ──────────────────────────────────────────── */
-          <div className="pb-24 md:pb-36">
-            {sections.length === 0 ? (
-              <EmptyState icon="clipboard-outline" title="No tasks" />
-            ) : (
-              sections.map((section) => (
-                <div key={section.title}>
-                  <div className="flex items-center gap-2 mb-2 mt-1">
-                    {section.title === 'Overdue' && <span className="text-red-600 text-body">!</span>}
-                    {section.title === 'Stalled' && <span className="text-amber-600 text-body">||</span>}
-                    {section.title === 'Rework' && <span className="text-amber-600 text-body">R</span>}
-                    <span className={`text-micro uppercase tracking-wider ${
-                      section.title === 'Overdue' ? 'text-red-500' :
-                      section.title === 'Stalled' ? 'text-amber-600' :
-                      section.title === 'Rework' ? 'text-amber-600' : 'text-surface-400 dark:text-surface-500'
-                    }`}>
-                      {section.title} · {section.data.length}
-                    </span>
-                  </div>
-                  {section.data.map((item) => (
-                    <TaskCard
-                      key={item.id}
-                      task={item}
-                      onPress={() => goToDetail(item.id)}
-                      stalledDays={
-                        getStalledDays(item) >= stalledThreshold ? getStalledDays(item) : undefined
-                      }
-                    />
-                  ))}
-                  <div className="h-3" />
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          /* ── Table View ─────────────────────────────────────────── */
-          <div className="pb-24 md:pb-36">
-            <TaskTableHeader
+        <div className="pb-24 md:pb-36">
+          {displayMode === 'cards' ? (
+            <TaskCardView
+              sections={sections}
+              stalledThreshold={stalledThreshold}
+              getStalledDays={getStalledDays}
+              onPress={goToDetail}
+            />
+          ) : (
+            <TaskTableView
+              visibleTasks={visibleTableTasks}
+              totalCount={sortedTasks.length}
+              visibleCount={tableVisibleCount}
               sortKey={tableSortKey}
               sortDir={tableSortDir}
+              role={state.role}
+              color={color}
               onSort={handleSort}
+              onPress={goToDetail}
+              onLoadMore={() => setTableVisibleCount((c) => c + PAGE_SIZE)}
             />
-            {visibleTableTasks.length === 0 ? (
-              <EmptyState icon="clipboard-outline" title="No tasks" />
-            ) : (
-              visibleTableTasks.map((item, index) => (
-                <TaskTableRow
-                  key={item.id}
-                  task={item}
-                  role={state.role}
-                  onPress={() => goToDetail(item.id)}
-                  isLast={index === visibleTableTasks.length - 1 && sortedTasks.length <= tableVisibleCount}
-                />
-              ))
-            )}
-            {sortedTasks.length > tableVisibleCount && (
-              <button
-                onClick={() => setTableVisibleCount((c) => c + PAGE_SIZE)}
-                className="flex items-center justify-center py-3 mt-1 gap-1 w-full"
-              >
-                <span className="text-caption" style={{ color }}>
-                  Load more ({sortedTasks.length - tableVisibleCount} remaining)
-                </span>
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
-
       {isManager && (
         <button
           onClick={goToNew}
@@ -425,6 +224,41 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
           +
         </button>
       )}
+    </div>
+  );
+}
+
+// ── ScopeToggle ────────────────────────────────────────────────────────
+
+function ScopeToggle({
+  scope, myCount, allCount, onSelectAssigned, onSelectAll,
+}: {
+  scope: 'assigned' | 'all';
+  myCount: number;
+  allCount: number;
+  onSelectAssigned: () => void;
+  onSelectAll: () => void;
+}) {
+  return (
+    <div className="flex rounded-card bg-surface-200 dark:bg-surface-800 p-1 mb-4">
+      <button
+        onClick={onSelectAssigned}
+        className={`flex-1 py-2.5 rounded-xl text-center ${scope === 'assigned' ? 'bg-white dark:bg-surface-900 shadow-sm' : ''}`}
+      >
+        <span className={`text-caption ${scope === 'assigned' ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}>
+          My Assigned{' '}
+          <span className="text-surface-400 dark:text-surface-500 font-normal">{myCount}</span>
+        </span>
+      </button>
+      <button
+        onClick={onSelectAll}
+        className={`flex-1 py-2.5 rounded-xl text-center ${scope === 'all' ? 'bg-white dark:bg-surface-900 shadow-sm' : ''}`}
+      >
+        <span className={`text-caption ${scope === 'all' ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}>
+          All Tasks{' '}
+          <span className="text-surface-400 dark:text-surface-500 font-normal">{allCount}</span>
+        </span>
+      </button>
     </div>
   );
 }

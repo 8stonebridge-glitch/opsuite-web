@@ -1,6 +1,53 @@
-import type { Task, TaskStatus, Role, AuditEntry, AvailabilityRecord } from '../types';
+import type { Task, TaskStatus, Role, AuditEntry, AvailabilityRecord, Team } from '../types';
 import { getToday, isOverdue } from './date';
 import { isProtectedUnavailable } from './availability-helpers';
+
+// ── Sort helpers (used by TaskListScreen) ───────────────────────────
+
+export const PRIORITY_ORDER: Record<string, number> = { critical: 0, medium: 1, low: 2 };
+export const STATUS_ORDER: Record<string, number> = {
+  'Open': 0, 'In Progress': 1, 'Pending Approval': 2, 'Submitted': 3, 'Verified': 4,
+};
+
+export function compareTasks(
+  a: Task,
+  b: Task,
+  key: string,
+  dir: 'asc' | 'desc',
+  teams: Team[]
+): number {
+  const mul = dir === 'asc' ? 1 : -1;
+  switch (key) {
+    case 'due': {
+      if (!a.due && !b.due) return 0;
+      if (!a.due) return 1;
+      if (!b.due) return -1;
+      return mul * a.due.localeCompare(b.due);
+    }
+    case 'priority':
+      return mul * ((PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2));
+    case 'status':
+      return mul * ((STATUS_ORDER[a.status] ?? 4) - (STATUS_ORDER[b.status] ?? 4));
+    case 'lastActivity': {
+      const aDate = a.lastActivityAt || a.createdAt;
+      const bDate = b.lastActivityAt || b.createdAt;
+      return mul * bDate.localeCompare(aDate);
+    }
+    case 'assignee':
+      return mul * a.assignee.localeCompare(b.assignee);
+    case 'site':
+      return mul * a.site.localeCompare(b.site);
+    case 'team': {
+      const aTeam = teams.find((t) => t.id === a.teamId)?.name || '';
+      const bTeam = teams.find((t) => t.id === b.teamId)?.name || '';
+      return mul * aTeam.localeCompare(bTeam);
+    }
+    case 'title':
+      return mul * a.title.localeCompare(b.title);
+    default:
+      return 0;
+  }
+}
 
 export function getNextStatuses(
   current: TaskStatus,
