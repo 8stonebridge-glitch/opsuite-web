@@ -6,24 +6,31 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
 ]);
 
-export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect({
-      unauthenticatedUrl: new URL('/sign-in', request.url).toString(),
-    });
-  }
-
-  // Server-side redirect: send "/" to the default dashboard instantly
-  // instead of loading a client-side spinner with a 6-second timeout.
-  if (request.nextUrl.pathname === '/') {
-    const { userId } = await auth();
-    if (userId) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/admin/overview';
-      return NextResponse.redirect(url);
+export default clerkMiddleware(
+  async (auth, request) => {
+    if (!isPublicRoute(request)) {
+      await auth.protect({
+        unauthenticatedUrl: new URL('/sign-in', request.url).toString(),
+      });
     }
-  }
-});
+
+    // Server-side redirect: send "/" to the default dashboard instantly
+    // instead of loading a client-side spinner with a 6-second timeout.
+    if (request.nextUrl.pathname === '/') {
+      const { userId } = await auth();
+      if (userId) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/admin/overview';
+        return NextResponse.redirect(url);
+      }
+    }
+  },
+  {
+    // Hardcoded as safety net — env vars have been corrupted with trailing \n before
+    signInUrl: '/sign-in',
+    signUpUrl: '/sign-up',
+  },
+);
 
 export const config = {
   matcher: [

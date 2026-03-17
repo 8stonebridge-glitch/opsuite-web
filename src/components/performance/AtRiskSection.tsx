@@ -12,9 +12,9 @@ interface AtRiskSectionProps {
 }
 
 export function AtRiskSection({ employees, limit = 5 }: AtRiskSectionProps) {
-  if (employees.length === 0) return null;
-
   const allEmployees = useAllEmployees();
+
+  if (employees.length === 0) return null;
   const preview = employees.slice(0, limit);
 
   return (

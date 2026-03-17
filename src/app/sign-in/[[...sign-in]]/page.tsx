@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSignIn } from '@clerk/nextjs';
+import { useSignIn, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClipboardList, Users, MapPin, Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -21,8 +21,16 @@ const POST_SIGN_IN_URL =
 
 export default function SignInPage() {
   const { signIn } = useSignIn();
+  const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
   const transferAttempted = useRef(false);
+
+  // Already authenticated — redirect to dashboard
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace(POST_SIGN_IN_URL);
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

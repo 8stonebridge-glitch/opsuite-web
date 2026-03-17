@@ -38,9 +38,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const { state } = useApp();
   const isPlaywrightTest = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
-  const [fallbackUser, setFallbackUser] = useState<SessionUser | null>(null);
-  const [isFallbackLoading, setIsFallbackLoading] = useState(false);
-  const [hasCheckedFallback, setHasCheckedFallback] = useState(false);
+  type FallbackState = { status: 'idle' | 'loading' | 'done'; user: SessionUser | null };
+  const [fallback, setFallback] = useState<FallbackState>({ status: 'idle', user: null });
 
   const sessionUser = useMemo<SessionUser | null>(() => {
     if (!isLoaded || !isSignedIn || !clerkUser) return null;
@@ -53,56 +52,36 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [isLoaded, isSignedIn, clerkUser]);
 
   useEffect(() => {
-    if (!isPlaywrightTest) {
-      return;
-    }
-
-    if (!isLoaded) {
-      return;
-    }
-
-    if (isSignedIn) {
-      setFallbackUser(null);
-      setHasCheckedFallback(true);
+    if (!isPlaywrightTest || !isLoaded || isSignedIn) {
       return;
     }
 
     let cancelled = false;
-    setIsFallbackLoading(true);
-    setHasCheckedFallback(false);
 
-    void fetch('/api/e2e/session')
-      .then(async (response) => {
+    void Promise.resolve().then(async () => {
+      if (cancelled) return;
+      setFallback({ status: 'loading', user: null });
+      try {
+        const response = await fetch('/api/e2e/session');
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || cancelled) {
-          return;
-        }
-
-        setFallbackUser(data?.user ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setFallbackUser(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setIsFallbackLoading(false);
-          setHasCheckedFallback(true);
-        }
-      });
+        if (cancelled) return;
+        setFallback({ status: 'done', user: response.ok ? (data?.user ?? null) : null });
+      } catch {
+        if (!cancelled) setFallback({ status: 'done', user: null });
+      }
+    });
 
     return () => {
       cancelled = true;
     };
   }, [isLoaded, isPlaywrightTest, isSignedIn]);
 
-  const resolvedUser = sessionUser ?? fallbackUser;
-  const resolvedSignedIn = (isSignedIn ?? false) || !!fallbackUser;
+  const resolvedUser = sessionUser ?? fallback.user;
+  const resolvedSignedIn = (isSignedIn ?? false) || !!fallback.user;
   const resolvedLoading =
     !isLoaded ||
-    isFallbackLoading ||
-    (isPlaywrightTest && !(isSignedIn ?? false) && !hasCheckedFallback);
+    fallback.status === 'loading' ||
+    (isPlaywrightTest && !(isSignedIn ?? false) && fallback.status === 'idle');
 
   const value = useMemo<SessionContext>(
     () => ({

@@ -54,19 +54,16 @@ function TaskListScreenInner({ basePath }: TaskListScreenProps) {
   const myAssigned = localAssigned;
   const [scope, setScope] = useState<'assigned' | 'all'>('assigned');
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterValue>('active');
+  const [filter, setFilter] = useState<FilterValue>(() => {
+    const f = filterParam?.toLowerCase();
+    if (f === 'review' || f === 'active' || f === 'done') return f as FilterValue;
+    return 'active';
+  });
   const [groupBy, setGroupBy] = useState<GroupBy>('status');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('cards');
   const [tableSortKey, setTableSortKey] = useState('due');
   const [tableSortDir, setTableSortDir] = useState<'asc' | 'desc'>('asc');
   const [tableVisibleCount, setTableVisibleCount] = useState(PAGE_SIZE);
-
-  useEffect(() => {
-    const f = filterParam?.toLowerCase();
-    if (f === 'review' || f === 'active' || f === 'done') {
-      setFilter(f as FilterValue);
-    }
-  }, [filterParam]);
 
   const baseTasks = isManager ? (scope === 'assigned' ? myAssigned : allScoped) : allScoped;
   const stalledThreshold = state.orgSettings.noChangeAlertWorkdays;

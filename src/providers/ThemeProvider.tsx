@@ -32,20 +32,18 @@ function resolveScheme(pref: ThemePreference): 'light' | 'dark' {
   return pref;
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreference] = useState<ThemePreference>('system');
-  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
-
-  // Restore saved preference on mount
-  useEffect(() => {
+function getSavedPreference(): ThemePreference {
+  if (typeof window === 'undefined') return 'system';
+  try {
     const saved = localStorage.getItem(THEME_KEY);
-    if (saved === 'dark' || saved === 'light' || saved === 'system') {
-      setPreference(saved);
-      setColorScheme(resolveScheme(saved));
-    } else {
-      setColorScheme(getSystemScheme());
-    }
-  }, []);
+    if (saved === 'dark' || saved === 'light' || saved === 'system') return saved;
+  } catch { /* private browsing or storage unavailable */ }
+  return 'system';
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [preference, setPreference] = useState<ThemePreference>(getSavedPreference);
+  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>(() => resolveScheme(getSavedPreference()));
 
   // Apply class to <html>
   useEffect(() => {
@@ -70,13 +68,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const next = colorScheme === 'dark' ? 'light' : 'dark';
     setPreference(next);
     setColorScheme(next);
-    localStorage.setItem(THEME_KEY, next);
+    try { localStorage.setItem(THEME_KEY, next); } catch { /* storage unavailable */ }
   };
 
   const setTheme = (scheme: ThemePreference) => {
     setPreference(scheme);
     setColorScheme(resolveScheme(scheme));
-    localStorage.setItem(THEME_KEY, scheme);
+    try { localStorage.setItem(THEME_KEY, scheme); } catch { /* storage unavailable */ }
   };
 
   return (
