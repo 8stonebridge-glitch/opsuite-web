@@ -7,6 +7,35 @@ import { useApp } from '@/store/AppContext';
 import { INDUSTRIES } from '@/constants/industries';
 import type { Team, Employee, Role, Site } from '@/types';
 
+// ── Local types for Convex response shapes ────────────────────────────
+interface ConvexSiteDoc {
+  _id: string;
+  name: string;
+}
+
+interface ConvexMembershipEntry {
+  membership: {
+    _id: string;
+    role: string;
+    teamIds?: string[];
+    siteIds?: string[];
+  };
+  user: {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+  };
+}
+
+interface ConvexTeamDoc {
+  _id: string;
+  name: string;
+  color?: string;
+  siteId?: string;
+  subadminMembershipId?: string;
+}
+
 /**
  * ConvexDataBridge subscribes to real-time Convex queries and
  * feeds the data into AppContext so all existing selectors and
@@ -23,6 +52,13 @@ export function ConvexDataBridge() {
   const syncFromAuth = useMutation(api.users.syncFromAuth);
   const syncFromAuthAction = useAction(api.users.syncFromAuthAction);
   const hasSynced = useRef(false);
+
+  // ── Reset sync flag on sign-out so re-login works cleanly ──
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hasSynced.current = false;
+    }
+  }, [isAuthenticated]);
 
   // ── 1. User viewer (check if auth is active) ──
   // Only query when authenticated to avoid "Unauthenticated" errors
@@ -73,7 +109,7 @@ export function ConvexDataBridge() {
 
     // Map Convex industry ID to our Industry type
     const industry = org.industryId
-      ? INDUSTRIES.find((i: any) => i.id === org.industryId) || null
+      ? INDUSTRIES.find((i) => i.id === org.industryId) ?? null
       : null;
 
     dispatch({ type: 'SET_ORG_NAME', name: org.name });
@@ -141,34 +177,32 @@ export function ConvexDataBridge() {
     if (!teamsData || !membershipsData || !sitesData) return;
 
     // Build a site lookup
+    const convexSites = sitesData as ConvexSiteDoc[];
+    const convexTeams = teamsData as ConvexTeamDoc[];
+    const convexMembers = membershipsData as ConvexMembershipEntry[];
+
     const siteMap = new Map<string, string>();
-    for (const s of sitesData as any[]) {
+    for (const s of convexSites) {
       siteMap.set(String(s._id), s.name);
     }
 
-    const convexTeams = teamsData as any[];
-    const convexMembers = membershipsData as any[];
-
     // Build team objects matching the Team type
-    const teams: Team[] = convexTeams.map((ct: any) => {
+    const teams: Team[] = convexTeams.map((ct) => {
       const teamId = String(ct._id);
 
-      // Find lead: subadmin whose membershipId matches ct.subadminMembershipId,
-      // or any subadmin assigned to this team
-      const leadEntry = convexMembers.find((m: any) => {
+      const leadEntry = convexMembers.find((m) => {
         if (ct.subadminMembershipId && String(m.membership._id) === String(ct.subadminMembershipId)) {
           return true;
         }
         return (
           m.membership.role === 'subadmin' &&
-          m.membership.teamIds?.some((tid: any) => String(tid) === teamId)
+          m.membership.teamIds?.some((tid) => String(tid) === teamId)
         );
       });
 
-      // Find members: employees assigned to this team
-      const memberEntries = convexMembers.filter((m: any) =>
+      const memberEntries = convexMembers.filter((m) =>
         m.membership.role === 'employee' &&
-        m.membership.teamIds?.some((tid: any) => String(tid) === teamId)
+        m.membership.teamIds?.some((tid) => String(tid) === teamId),
       );
 
       const leadEmployee: Employee = leadEntry
@@ -191,7 +225,7 @@ export function ConvexDataBridge() {
             teamName: ct.name,
           };
 
-      const members: Employee[] = memberEntries.map((m: any) => ({
+      const members: Employee[] = memberEntries.map((m) => ({
         id: String(m.user._id),
         name: m.user.name,
         role: 'employee' as Role,
@@ -206,14 +240,14 @@ export function ConvexDataBridge() {
       return {
         id: teamId,
         name: ct.name,
-        color: ct.color || '#059669',
+        color: ct.color ?? '#059669',
         siteId: ct.siteId ? String(ct.siteId) : undefined,
         lead: leadEmployee,
         members: members.sort((a, b) => a.name.localeCompare(b.name)),
       };
     });
 
-    const sites: Site[] = (sitesData as any[]).map((s: any) => ({
+    const sites: Site[] = convexSites.map((s) => ({
       id: String(s._id),
       name: s.name,
     }));
@@ -223,9 +257,9 @@ export function ConvexDataBridge() {
     );
 
     const standaloneEmployees: Employee[] = convexMembers
-      .filter((entry: any) => entry.membership.role !== 'owner_admin')
-      .filter((entry: any) => !teamLinkedIds.has(String(entry.user._id)))
-      .map((entry: any) => ({
+      .filter((entry) => entry.membership.role !== 'owner_admin')
+      .filter((entry) => !teamLinkedIds.has(String(entry.user._id)))
+      .map((entry) => ({
         id: String(entry.user._id),
         name: entry.user.name,
         role: entry.membership.role === 'subadmin' ? ('subadmin' as Role) : ('employee' as Role),

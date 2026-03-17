@@ -412,3 +412,14 @@ const openEditModal = (...) => {
 ### Related Files
 - `src/app/admin/people/page.tsx`
 - `tests/e2e/people.spec.ts`
+
+---
+
+## Notes, Error Logs, and Mistakes We Tripped Over
+
+- Clerk never hydrates -> infinite spinner: if `useUser().isLoaded` stays false, the app sits on a spinner. Always verify Clerk env (publishable key, allowed origins) and check browser console/network for failed `*.clerk.accounts.dev` calls.
+- Better Auth leftovers caused confusion: Convex still had `auth.ts` and Better Auth HTTP routes. Once we removed them and relied on Clerk-only auth, the auth flow stabilized.
+- Pending email fallback is intentional: `pending:${email}` in Convex user records is load-bearing for first-login sync; keep it when adding `authUserId` support.
+- Race on auth finalize: `signIn.finalize() + router.push()` was too fast; letting Clerk handle navigation fixed the bounce-back to sign-in.
+- State leaks in modals: reopening a modal without resetting local loading flags caused “Saving…” to stick and hide destructive actions.
+- Test harness missing auth sync: e2e state route failed with “User record not initialized” until we ran `syncFromAuthAction` first.
