@@ -32,7 +32,42 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Patch DOM methods to tolerate nodes injected by browser extensions
+            (MetaMask, Polkadot.js, Grammarly, password managers, auto-translators).
+            Extensions inject DOM nodes before React hydrates, causing insertBefore/
+            removeChild to fail. This catches those errors silently. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof Node !== 'undefined') {
+                const origRemoveChild = Node.prototype.removeChild;
+                Node.prototype.removeChild = function(child) {
+                  if (child.parentNode !== this) {
+                    if (typeof console !== 'undefined') {
+                      console.warn('removeChild: node not a child, likely extension interference');
+                    }
+                    return child;
+                  }
+                  return origRemoveChild.apply(this, arguments);
+                };
+                const origInsertBefore = Node.prototype.insertBefore;
+                Node.prototype.insertBefore = function(newNode, refNode) {
+                  if (refNode && refNode.parentNode !== this) {
+                    if (typeof console !== 'undefined') {
+                      console.warn('insertBefore: ref node not a child, likely extension interference');
+                    }
+                    return newNode;
+                  }
+                  return origInsertBefore.apply(this, arguments);
+                };
+              }
+            `,
+          }}
+        />
+      </head>
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-surface-950 text-surface-900 dark:text-surface-100`}
       >
         <ClerkProvider
