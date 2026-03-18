@@ -59,6 +59,10 @@ export default function SignInPage() {
             </Link>
           </p>
         </div>
+
+        {/* Clerk bot protection CAPTCHA — required when Smart CAPTCHA is enabled */}
+        <div id="clerk-captcha" className="mt-4" />
+
         <p className="mt-10 text-micro text-surface-400 dark:text-surface-600 text-center max-w-xs">
           By continuing, you agree to OpSuite&apos;s Terms of Service and Privacy Policy.
         </p>
