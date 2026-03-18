@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useMutation } from 'convex/react';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { useApp } from '@/store/AppContext';
-import { uid } from '@/utils/id';
+import { api } from '@/lib/convexApi';
 import type { Site } from '@/types';
+import type { Id } from '@/lib/convexApiTypes';
 
 const COLOR_SWATCHES = ['#6366f1', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2'] as const;
 
@@ -16,7 +17,7 @@ interface Props {
 }
 
 export function CreateTeamModal({ sites, color, onClose }: Props) {
-  const { dispatch } = useApp();
+  const createTeam = useMutation(api.teams.create);
   const [teamName, setTeamName] = useState('');
   const [teamColor, setTeamColor] = useState('#6366f1');
   const [teamSiteId, setTeamSiteId] = useState(sites[0]?.id ?? '');
@@ -34,17 +35,10 @@ export function CreateTeamModal({ sites, color, onClose }: Props) {
     setIsSaving(true);
 
     try {
-      const nextTeamId = uid();
-      dispatch({
-        type: 'ADD_TEAM',
-        team: {
-          id: nextTeamId,
-          name,
-          color: teamColor,
-          siteId: teamSiteId,
-          lead: { id: uid(), name: demoLeadName.trim(), role: 'subadmin', teamId: nextTeamId, teamName: name },
-          members: [],
-        },
+      await createTeam({
+        name,
+        color: teamColor,
+        siteId: teamSiteId as Id<'sites'>,
       });
       onClose();
     } catch (error) {

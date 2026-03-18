@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
+import { api } from '@/lib/convexApi';
 import { useSiteHealth, useIndustryColor, useSitesLabel } from '@/store/selectors';
 import { HealthCard } from '@/components/overview/HealthCard';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/providers/ThemeProvider';
-import { uid } from '@/utils/id';
 
 export default function SitesScreen() {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
+  const createSite = useMutation(api.sites.create);
   const color = useIndustryColor();
   const { isDark } = useTheme();
   const label = useSitesLabel();
@@ -34,14 +36,7 @@ export default function SitesScreen() {
     setIsSavingSite(true);
 
     try {
-      dispatch({
-        type: 'ADD_SITE',
-        site: {
-          id: uid(),
-          name: trimmedName,
-        },
-      });
-
+      await createSite({ name: trimmedName, code: trimmedCode || undefined });
       setSiteName('');
       setSiteCode('');
       setShowCreateSite(false);

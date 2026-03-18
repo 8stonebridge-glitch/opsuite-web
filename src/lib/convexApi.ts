@@ -97,6 +97,9 @@ interface ConvexApi {
     listForActiveOrganization: FunctionReference<'query', 'public', Record<string, never>, TeamDoc[]>;
     create: FunctionReference<'mutation', 'public', { name: string; color?: string; siteId?: Id<'sites'>; subadminMembershipId?: Id<'memberships'> }, TeamDoc | null>;
   };
+  orgSettings: {
+    update: FunctionReference<'mutation', 'public', { organizationId: Id<'organizations'>; noChangeAlertWorkdays?: number; reworkAlertCycles?: number }, OrgSettingsDoc | null>;
+  };
   availability: {
     listForCurrentScope: FunctionReference<'query', 'public', Record<string, never>, AvailabilityRecord[]>;
     createRequest: FunctionReference<'mutation', 'public', { type: AvailabilityType; startDate: string; endDate: string; notes?: string }, AvailabilityRecord>;

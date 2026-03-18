@@ -125,6 +125,7 @@ export function ConvexDataBridge() {
       : null;
 
     dispatch({ type: 'SET_ORG_NAME', name: org.name });
+    dispatch({ type: 'SWITCH_ORGANIZATION', workspaceId: String(org._id) });
     dispatch({ type: 'SET_INDUSTRY', industry });
 
     // Set the admin name from the viewer

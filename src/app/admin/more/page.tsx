@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useMutation } from 'convex/react';
 import { useClerk } from '@clerk/nextjs';
 import { useApp } from '@/store/AppContext';
+import { api } from '@/lib/convexApi';
 import { useIndustryColor, useTeams, useAllEmployees, useOrgMode, useSitesLabel } from '@/store/selectors';
 import { useSession } from '@/providers/SessionProvider';
 import { OrgSwitcher } from '@/components/layout/OrgSwitcher';
 import { SectionLabel, StepperRow } from '@/components/more/MoreHelpers';
 import { Card, CardContent } from '@/components/ui/Card';
-import { uid } from '@/utils/id';
 import {
   ProfileCard,
   OrganizationSection,
@@ -28,17 +29,30 @@ export default function OwnerMoreScreen() {
   const { user } = useSession();
   const [showCreateSite, setShowCreateSite] = useState(false);
 
+  const createSite = useMutation(api.sites.create);
+  const updateSettings = useMutation(api.orgSettings.update);
+  const updateMode = useMutation(api.organizations.updateMode);
+
   const adjustSetting = useCallback(
     (key: 'noChangeAlertWorkdays' | 'reworkAlertCycles', delta: number) => {
       const newVal = Math.max(1, Math.min(10, state.orgSettings[key] + delta));
+      // Optimistic local update + persist to Convex
       dispatch({ type: 'SET_ORG_SETTINGS', settings: { [key]: newVal } });
+      if (state.activeWorkspaceId) {
+        updateSettings({ organizationId: state.activeWorkspaceId as any, [key]: newVal }).catch(console.error);
+      }
     },
-    [state.orgSettings, dispatch],
+    [state.orgSettings, state.activeWorkspaceId, dispatch, updateSettings],
   );
 
   const handleOrgModeChange = useCallback(
-    (mode: OrgMode) => { if (orgMode !== mode) dispatch({ type: 'SET_ORG_MODE', mode }); },
-    [orgMode, dispatch],
+    (mode: OrgMode) => {
+      if (orgMode !== mode) {
+        dispatch({ type: 'SET_ORG_MODE', mode });
+        updateMode({ mode }).catch(console.error);
+      }
+    },
+    [orgMode, dispatch, updateMode],
   );
 
   return (
@@ -61,7 +75,7 @@ export default function OwnerMoreScreen() {
         <CreateSiteModal
           color={color}
           onClose={() => setShowCreateSite(false)}
-          onCreateSite={async (name) => { dispatch({ type: 'ADD_SITE', site: { id: uid(), name } }); setShowCreateSite(false); }}
+          onCreateSite={async (name) => { await createSite({ name }); setShowCreateSite(false); }}
         />
       )}
     </div>
