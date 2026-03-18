@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useClerk } from '@clerk/nextjs';
 import { useApp } from '@/store/AppContext';
 import { useCurrentName, useMyTeam, useIndustryColor, useCheckInStats, useAvailability } from '@/store/selectors';
-import { getToday, getNowISO } from '@/utils/date';
-import { uid } from '@/utils/id';
+import { getToday } from '@/utils/date';
 import { useTheme } from '@/providers/ThemeProvider';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { Card } from '@/components/ui/Card';
@@ -45,23 +44,23 @@ export default function EmployeeMoreScreen() {
 
   const handleReportSick = async () => {
     if (!state.userId || !state.activeWorkspaceId) return;
-    dispatch({
-      type: 'REQUEST_AVAILABILITY',
-      record: {
-        id: uid(),
-        organizationId: state.activeWorkspaceId,
-        memberId: state.userId,
-        type: 'sick',
-        status: 'pending',
-        startDate: today,
-        endDate: today,
-        notes: 'Reported sick',
-        requestedById: state.userId,
-        approvedById: null,
-        createdAt: getNowISO(),
-        approvedAt: null,
-      },
-    });
+    setIsSubmittingSick(true);
+    try {
+      await fetch('/api/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'sick',
+          startDate: today,
+          endDate: today,
+          notes: 'Reported sick',
+        }),
+      });
+    } catch (error) {
+      console.error('[handleReportSick]', error);
+    } finally {
+      setIsSubmittingSick(false);
+    }
   };
 
   const submittedCount = state.tasks.filter(
