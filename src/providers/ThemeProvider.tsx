@@ -42,27 +42,40 @@ function getSavedPreference(): ThemePreference {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreference] = useState<ThemePreference>(getSavedPreference);
-  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>(() => resolveScheme(getSavedPreference()));
+  // Always start with 'system'/'light' on server + first client render to avoid hydration mismatch.
+  // The real preference is applied in useEffect after mount.
+  const [preference, setPreference] = useState<ThemePreference>('system');
+  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
+  const [mounted, setMounted] = useState(false);
+
+  // Hydrate from localStorage after mount — safe, runs only on client
+  useEffect(() => {
+    const savedPref = getSavedPreference();
+    const savedScheme = resolveScheme(savedPref);
+    setPreference(savedPref);
+    setColorScheme(savedScheme);
+    setMounted(true);
+  }, []);
 
   // Apply class to <html>
   useEffect(() => {
+    if (!mounted) return;
     const root = document.documentElement;
     if (colorScheme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-  }, [colorScheme]);
+  }, [colorScheme, mounted]);
 
   // Listen for system scheme changes
   useEffect(() => {
-    if (preference !== 'system') return;
+    if (!mounted || preference !== 'system') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = () => setColorScheme(getSystemScheme());
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
-  }, [preference]);
+  }, [preference, mounted]);
 
   const toggleTheme = () => {
     const next = colorScheme === 'dark' ? 'light' : 'dark';
