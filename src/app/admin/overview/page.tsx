@@ -19,6 +19,7 @@ import { AvailabilityRequestCard } from '@/components/availability/AvailabilityR
 import { Card, CardContent } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { useSession } from '@/providers/SessionProvider';
+import { useState, useEffect } from 'react';
 import { Activity, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 import { SectionHeader, QuickStat, SiteHealthRow, TeamHealthRow } from '@/components/overview/OverviewHelpers';
 
@@ -39,9 +40,12 @@ export default function OwnerOverviewScreen() {
   const awayToday = useAwayToday();
   const coverageNeeded = useCoverageNeeded();
 
-  // Greeting based on time of day
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  // Greeting based on time of day — deferred to useEffect to avoid SSR/client mismatch
+  const [greeting, setGreeting] = useState('Welcome');
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setGreeting(hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening');
+  }, []);
 
   return (
     <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">

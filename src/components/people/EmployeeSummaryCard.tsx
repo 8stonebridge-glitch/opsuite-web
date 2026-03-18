@@ -75,7 +75,7 @@ export function EmployeeSummaryCard({ name, teamColor, summary, isLead, last, sc
               {summary.overdueCount} overdue
             </span>
           )}
-          <span className="text-caption text-surface-300 dark:text-surface-600">
+          <span className="text-caption text-surface-300 dark:text-surface-600" suppressHydrationWarning>
             {relativeTime(summary.lastActivity)}
           </span>
         </div>

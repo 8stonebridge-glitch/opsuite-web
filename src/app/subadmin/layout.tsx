@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useIndustryColor, useDashboardCounters } from '@/store/selectors';
@@ -25,11 +26,12 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const router = useRouter();
 
-  // Role guard — redirect if wrong role (middleware already handles auth)
-  if (state.onboardingComplete && state.role !== 'subadmin') {
-    if (typeof window !== 'undefined') router.push('/');
-    return null;
-  }
+  // Role guard — redirect if wrong role (runs in useEffect to avoid hydration mismatch)
+  useEffect(() => {
+    if (state.onboardingComplete && state.role !== 'subadmin') {
+      router.push('/');
+    }
+  }, [state.onboardingComplete, state.role, router]);
 
   return (
     <ProtectedRoute>

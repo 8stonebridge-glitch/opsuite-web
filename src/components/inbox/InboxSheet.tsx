@@ -74,7 +74,7 @@ function NotificationRow({
         <span className="text-[13px] text-surface-500 dark:text-surface-400 mt-0.5 block truncate">
           {notification.body}
         </span>
-        <span className="text-[11px] text-surface-400 dark:text-surface-500 mt-1 block">
+        <span className="text-[11px] text-surface-400 dark:text-surface-500 mt-1 block" suppressHydrationWarning>
           {relativeTime(notification.timestamp)}
         </span>
       </div>

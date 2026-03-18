@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import {
@@ -29,9 +29,18 @@ export default function EmployeeCheckInScreen() {
   const myTasks = useScopedTasks();
   const today = getToday();
 
-  const now = new Date();
-  const [viewYear, setViewYear] = useState(now.getFullYear());
-  const [viewMonth, setViewMonth] = useState(now.getMonth());
+  // Use fixed defaults for SSR, then update to real date after mount to avoid hydration mismatch
+  const [currentYear, setCurrentYear] = useState(2026);
+  const [currentMonth, setCurrentMonth] = useState(0);
+  const [viewYear, setViewYear] = useState(2026);
+  const [viewMonth, setViewMonth] = useState(0);
+  useEffect(() => {
+    const now = new Date();
+    setCurrentYear(currentYear);
+    setCurrentMonth(currentMonth);
+    setViewYear(currentYear);
+    setViewMonth(currentMonth);
+  }, []);
   const stats = useCheckInStats(viewYear, viewMonth);
 
   const [activeTab, setActiveTab] = useState<StatsTab>('checked');
@@ -72,7 +81,7 @@ export default function EmployeeCheckInScreen() {
   };
 
   const nextMonth = () => {
-    const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
+    const isCurrentMonth = viewYear === currentYear && viewMonth === currentMonth;
     if (isCurrentMonth) return;
     if (viewMonth === 11) {
       setViewMonth(0);
@@ -98,7 +107,7 @@ export default function EmployeeCheckInScreen() {
     [monthDays, state.checkIns, state.userId]
   );
 
-  const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
+  const isCurrentMonth = viewYear === currentYear && viewMonth === currentMonth;
 
   return (
     <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">
