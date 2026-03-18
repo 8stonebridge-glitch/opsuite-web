@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalMutation, mutation, query } from "./_generated/server";
+import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { displayNameFromIdentity, requireCurrentUser } from "./authHelpers";
 import {
@@ -151,8 +151,8 @@ export const setActiveOrganization = mutation({
   },
 });
 
-// DEBUG: list all users (temporary)
-export const debugListAll = query({
+// Internal only — not callable from client browsers
+export const debugListAll = internalQuery({
   args: {},
   handler: async (ctx) => {
     const users = await ctx.db.query("users").collect();
@@ -165,9 +165,8 @@ export const debugListAll = query({
   },
 });
 
-// One-time cleanup: deduplicate user records by email.
-// Keeps the record with a membership (or authUserId), deletes the rest.
-export const deduplicateUsers = mutation({
+// One-time cleanup — internal only, not callable from client browsers
+export const deduplicateUsers = internalMutation({
   args: {},
   handler: async (ctx) => {
     const allUsers = await ctx.db.query("users").collect();

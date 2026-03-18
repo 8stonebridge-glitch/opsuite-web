@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../providers/ThemeProvider';
 import { Select, type SelectOption } from '../ui/Select';
 import { FormInput as Input } from '../ui/FormInput';
@@ -181,6 +181,12 @@ export function DueDatePicker({
   const { isDark } = useTheme();
   const errMsg = dueDateError || (touched && !dueDate ? 'Due date is required' : '');
 
+  // Defer to useEffect to avoid SSR/client hydration mismatch
+  const [minDate, setMinDate] = useState('');
+  useEffect(() => {
+    setMinDate(new Date().toISOString().split('T')[0]);
+  }, []);
+
   return (
     <div>
       <span className="text-micro text-surface-400 dark:text-surface-500 uppercase tracking-wider block mb-2">
@@ -194,7 +200,7 @@ export function DueDatePicker({
           {dueDate ? formatDue(dueDate) || dueDate : 'Select date'}
         </span>
         <span style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>&#x1F4C5;</span>
-        <input type="date" value={dueDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => onDateChange(e.target.value)} style={HIDDEN_INPUT} />
+        <input type="date" value={dueDate} min={minDate} onChange={(e) => onDateChange(e.target.value)} style={HIDDEN_INPUT} />
       </label>
       {errMsg ? <span className="text-micro text-red-600 mt-1 block">{errMsg}</span> : null}
     </div>

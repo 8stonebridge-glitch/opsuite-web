@@ -1,7 +1,26 @@
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { requireCurrentUser, slugifyOrganizationName } from "./authHelpers";
+import { requireCurrentUser, requireOwnerMembership, slugifyOrganizationName } from "./authHelpers";
+
+/** One-time bootstrap: create org + membership for an existing user (no auth required).
+ *  Call via: npx convex run organizations:bootstrapOwner --prod '{"userId":"...","orgName":"..."}' */
+export const bootstrapOwner = internalMutation({
+  args: {
+    userId: v.id("users"),
+    orgName: v.string(),
+    industryId: v.optional(v.string()),
+    mode: v.optional(v.union(v.literal("managed"), v.literal("direct"))),
+  },
+  handler: async (ctx, args) => {
+    return await createOrganizationForOwner(ctx, {
+      ownerUserId: args.userId,
+      name: args.orgName,
+      industryId: args.industryId,
+      mode: args.mode ?? "managed",
+    });
+  },
+});
 
 async function uniqueOrganizationSlug(ctx: MutationCtx | QueryCtx, base: string) {
   let candidate = base;
@@ -200,8 +219,8 @@ export const active = query({
   },
 });
 
-/** One-time backfill: set `mode` on orgs — patches ALL orgs to the given mode. */
-export const backfillMode = mutation({
+/** One-time backfill — internal only, not callable from client browsers */
+export const backfillMode = internalMutation({
   args: {
     mode: v.union(v.literal("managed"), v.literal("direct")),
     force: v.optional(v.boolean()),
@@ -219,17 +238,14 @@ export const backfillMode = mutation({
   },
 });
 
-/** Update the mode of the caller's active organization. */
+/** Update the mode of the caller's active organization (owner only). */
 export const updateMode = mutation({
   args: {
     mode: v.union(v.literal("managed"), v.literal("direct")),
   },
   handler: async (ctx, args) => {
-    const { user } = await requireCurrentUser(ctx);
-    if (!user.activeOrganizationId) throw new Error("No active organization");
-    const org = await ctx.db.get(user.activeOrganizationId);
-    if (!org) throw new Error("Organization not found");
-    await ctx.db.patch(org._id, { mode: args.mode, updatedAt: new Date().toISOString() });
-    return { id: org._id, mode: args.mode };
+    const { organization } = await requireOwnerMembership(ctx);
+    await ctx.db.patch(organization._id, { mode: args.mode, updatedAt: new Date().toISOString() });
+    return { id: organization._id, mode: args.mode };
   },
 });
