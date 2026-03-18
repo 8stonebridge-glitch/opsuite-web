@@ -79,7 +79,7 @@ export function ConvexDataBridge() {
   useEffect(() => {
     if (viewer?.identity && !hasSynced.current) {
       hasSynced.current = true;
-      syncFromAuth({}).catch((_err: any) => {
+      syncFromAuth({}).catch((_err: unknown) => {
         syncFromAuthAction({}).catch(() => {
           // both sync paths failed — user will see Unauthenticated errors
         });

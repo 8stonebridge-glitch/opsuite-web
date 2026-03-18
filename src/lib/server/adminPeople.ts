@@ -242,7 +242,7 @@ export async function deleteProvisionedPerson(userId: string) {
   const { token } = await requireOwnerContext();
   const target = await getManagedMember(token, userId);
   const activeMembershipCount = (await fetchQuery(
-    (api as any).memberships.activeMembershipCountForUser,
+    api.memberships.activeMembershipCountForUser,
     { userId: target.user._id },
     { token },
   )) as number;

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useApp } from '@/store/AppContext';
+import type { Employee } from '@/types';
 
 type E2EStatePayload = {
   orgName: string;
@@ -12,7 +13,7 @@ type E2EStatePayload = {
     reworkAlertCycles: number;
   } | null;
   sites: { id: string; name: string }[];
-  standaloneEmployees: any[];
+  standaloneEmployees: Employee[];
 };
 
 export function E2EDataBridge() {

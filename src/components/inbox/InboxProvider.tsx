@@ -27,7 +27,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   // No backend — notifications are empty for now (local-only mode)
-  const notifications: AppNotification[] = [];
+  const notifications = useMemo<AppNotification[]>(() => [], []);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !readIds.has(n.id)).length,

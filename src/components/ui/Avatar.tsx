@@ -48,6 +48,7 @@ export function Avatar({ name, color = '#059669', size = 'md', image, ring }: Av
       }}
     >
       {image ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img src={image} alt={name} className="h-full w-full object-cover" />
       ) : (
         <span className={`${s.text} font-bold select-none`} style={{ color: contrastText(color) }}>

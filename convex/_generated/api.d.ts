@@ -13,12 +13,18 @@ import type * as availability from "../availability.js";
 import type * as emails from "../emails.js";
 import type * as handoffs from "../handoffs.js";
 import type * as http from "../http.js";
+import type * as membershipHelpers from "../membershipHelpers.js";
+import type * as membershipQueries from "../membershipQueries.js";
 import type * as memberships from "../memberships.js";
 import type * as orgSettings from "../orgSettings.js";
 import type * as organizations from "../organizations.js";
 import type * as sites from "../sites.js";
+import type * as taskHelpers from "../taskHelpers.js";
+import type * as taskHydration from "../taskHydration.js";
+import type * as taskMutations from "../taskMutations.js";
 import type * as tasks from "../tasks.js";
 import type * as teams from "../teams.js";
+import type * as userHelpers from "../userHelpers.js";
 import type * as users from "../users.js";
 
 import type {
@@ -33,12 +39,18 @@ declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   handoffs: typeof handoffs;
   http: typeof http;
+  membershipHelpers: typeof membershipHelpers;
+  membershipQueries: typeof membershipQueries;
   memberships: typeof memberships;
   orgSettings: typeof orgSettings;
   organizations: typeof organizations;
   sites: typeof sites;
+  taskHelpers: typeof taskHelpers;
+  taskHydration: typeof taskHydration;
+  taskMutations: typeof taskMutations;
   tasks: typeof tasks;
   teams: typeof teams;
+  userHelpers: typeof userHelpers;
   users: typeof users;
 }>;
 

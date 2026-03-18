@@ -1,149 +1,15 @@
 import { v } from "convex/values";
-import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx } from "./_generated/server";
-import { requireActiveOrganizationMembership, requireOwnerMembership } from "./authHelpers";
+import type { Id } from "./_generated/dataModel";
+import { mutation, type MutationCtx } from "./_generated/server";
+import { requireOwnerMembership } from "./authHelpers";
+import {
+  validateAssignments,
+  syncSubadminTeamAssignments,
+  upsertUserByEmail,
+} from "./membershipHelpers";
 
-async function validateAssignments(
-  ctx: MutationCtx,
-  organizationId: Id<"organizations">,
-  siteIds: Id<"sites">[],
-  teamIds: Id<"teams">[],
-) {
-  if (siteIds.length === 0) {
-    throw new Error("Every person must be linked to a site");
-  }
-
-  for (const siteId of siteIds) {
-    const site = await ctx.db.get(siteId);
-    if (!site || site.organizationId !== organizationId) {
-      throw new Error("One of the selected sites does not belong to the active organization");
-    }
-  }
-
-  for (const teamId of teamIds) {
-    const team = await ctx.db.get(teamId);
-    if (!team || team.organizationId !== organizationId) {
-      throw new Error("One of the selected teams does not belong to the active organization");
-    }
-    if (team.siteId && !siteIds.some((siteId) => String(siteId) === String(team.siteId))) {
-      throw new Error("Selected team must belong to the selected site");
-    }
-  }
-}
-
-async function syncSubadminTeamAssignments(
-  ctx: MutationCtx,
-  organizationId: Id<"organizations">,
-  membership: Pick<Doc<"memberships">, "_id" | "role">,
-  nextTeamIds: Id<"teams">[],
-) {
-  const organizationTeams = await ctx.db
-    .query("teams")
-    .withIndex("by_organization_id", (q) => q.eq("organizationId", organizationId))
-    .collect();
-
-  const nextTeamSet = new Set(nextTeamIds.map((teamId) => String(teamId)));
-  const now = new Date().toISOString();
-
-  for (const team of organizationTeams) {
-    const currentlyOwnedByMember = team.subadminMembershipId && String(team.subadminMembershipId) === String(membership._id);
-
-    if (currentlyOwnedByMember && (membership.role !== "subadmin" || !nextTeamSet.has(String(team._id)))) {
-      await ctx.db.patch(team._id, {
-        subadminMembershipId: undefined,
-        updatedAt: now,
-      });
-    }
-  }
-
-  if (membership.role !== "subadmin") {
-    return;
-  }
-
-  for (const teamId of nextTeamSet) {
-    const team = organizationTeams.find((entry) => String(entry._id) === teamId);
-    if (!team) continue;
-
-    if (team.subadminMembershipId && String(team.subadminMembershipId) !== String(membership._id)) {
-      throw new Error("One of the selected teams is already linked to another subadmin");
-    }
-
-    if (String(team.subadminMembershipId) !== String(membership._id)) {
-      await ctx.db.patch(team._id, {
-        subadminMembershipId: membership._id,
-        updatedAt: now,
-      });
-    }
-  }
-}
-
-export const listForActiveOrganization = query({
-  args: {},
-  handler: async (ctx) => {
-    const { organizationId, membership } = await requireActiveOrganizationMembership(ctx);
-
-    let visibleMemberships;
-
-    if (membership.role === "employee") {
-      // Employees only need their own membership — no full org scan
-      visibleMemberships = [membership];
-    } else {
-      const memberships = await ctx.db
-        .query("memberships")
-        .withIndex("by_organization_id", (q) => q.eq("organizationId", organizationId))
-        .collect();
-
-      visibleMemberships =
-        membership.role === "owner_admin"
-          ? memberships.filter((entry) => entry.status === "active")
-          : memberships.filter((entry) => {
-              if (entry.status !== "active") return false;
-              if (entry._id === membership._id) return true;
-              if (entry.role === "owner_admin") return false;
-
-              const sharesTeam = entry.teamIds.some((teamId) => membership.teamIds.includes(teamId));
-              const sharesSite = entry.siteIds.some((siteId) => membership.siteIds.includes(siteId));
-              return sharesTeam || sharesSite;
-            });
-    }
-
-    const usersById = new Map(
-      (
-        await Promise.all(visibleMemberships.map((entry) => ctx.db.get(entry.userId)))
-      )
-        .filter(Boolean)
-        .map((user) => [user!._id, user!]),
-    );
-
-    return visibleMemberships
-      .map((entry) => {
-        const user = usersById.get(entry.userId);
-        if (!user) return null;
-        return {
-          membership: entry,
-          user,
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a!.user.name.localeCompare(b!.user.name));
-  },
-});
-
-export const activeMembershipCountForUser = query({
-  args: {
-    userId: v.id("users"),
-  },
-  handler: async (ctx, args) => {
-    await requireOwnerMembership(ctx);
-
-    const memberships = await ctx.db
-      .query("memberships")
-      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
-      .collect();
-
-    return memberships.filter((entry) => entry.status === "active").length;
-  },
-});
+// Re-export queries so api.memberships.* stays unchanged
+export { listForActiveOrganization, activeMembershipCountForUser } from "./membershipQueries";
 
 export const createProvisionedMember = mutation({
   args: {
@@ -162,96 +28,84 @@ export const createProvisionedMember = mutation({
     const trimmedName = args.name.trim();
     const trimmedPhone = args.phone.trim();
 
-    if (!normalizedEmail) {
-      throw new Error("An email address is required");
-    }
-
-    if (!trimmedName) {
-      throw new Error("A member name is required");
-    }
-
-    if (!trimmedPhone) {
-      throw new Error("A phone number is required");
-    }
+    if (!normalizedEmail) throw new Error("An email address is required");
+    if (!trimmedName) throw new Error("A member name is required");
+    if (!trimmedPhone) throw new Error("A phone number is required");
 
     await validateAssignments(ctx, organizationId, args.siteIds, args.teamIds);
 
-    const now = new Date().toISOString();
+    const user = await upsertUserByEmail(ctx, {
+      email: normalizedEmail,
+      name: trimmedName,
+      phone: trimmedPhone,
+      authUserId: args.authUserId,
+    });
 
-    let user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", normalizedEmail))
-      .unique();
-
-    if (user) {
-      await ctx.db.patch(user._id, {
-        ...(args.authUserId ? { authUserId: args.authUserId } : {}),
-        name: trimmedName,
-        phone: trimmedPhone,
-        updatedAt: now,
-      });
-      user = (await ctx.db.get(user._id))!;
-    } else {
-      const userId = await ctx.db.insert("users", {
-        authUserId: args.authUserId || `pending:${normalizedEmail}`,
-        email: normalizedEmail,
-        name: trimmedName,
-        phone: trimmedPhone,
-        createdAt: now,
-        updatedAt: now,
-      });
-      user = (await ctx.db.get(userId))!;
-    }
-
-    const existingMembership = await ctx.db
-      .query("memberships")
-      .withIndex("by_organization_user", (q) =>
-        q.eq("organizationId", organizationId).eq("userId", user._id),
-      )
-      .unique();
-
-    if (existingMembership) {
-      await ctx.db.patch(existingMembership._id, {
-        role: args.role,
-        siteIds: args.siteIds,
-        teamIds: args.teamIds,
-        status: "active",
-        updatedAt: now,
-      });
-
-      const refreshedMembership = (await ctx.db.get(existingMembership._id))!;
-      await syncSubadminTeamAssignments(ctx, organizationId, refreshedMembership, args.teamIds);
-
-      return {
-        user: await ctx.db.get(user._id),
-        membership: refreshedMembership,
-      };
-    }
-
-    const membershipId = await ctx.db.insert("memberships", {
+    const membership = await upsertMembership(ctx, {
       userId: user._id,
       organizationId,
       role: args.role,
       siteIds: args.siteIds,
       teamIds: args.teamIds,
-      status: "active",
       invitedByUserId: ownerUser._id,
-      joinedAt: now,
-      createdAt: now,
-      updatedAt: now,
     });
 
-    const insertedMembership = (await ctx.db.get(membershipId))!;
-    await syncSubadminTeamAssignments(ctx, organizationId, insertedMembership, args.teamIds);
-
-    return {
-      user: await ctx.db.get(user._id),
-      membership: insertedMembership,
-    };
+    return { user: await ctx.db.get(user._id), membership };
   },
 });
 
-/** Remove a member from the organization — owner only (soft-delete via status) */
+async function upsertMembership(
+  ctx: MutationCtx,
+  opts: {
+    userId: Id<"users">;
+    organizationId: Id<"organizations">;
+    role: "subadmin" | "employee";
+    siteIds: Id<"sites">[];
+    teamIds: Id<"teams">[];
+    invitedByUserId: Id<"users">;
+  },
+) {
+  const now = new Date().toISOString();
+
+  const existing = await ctx.db
+    .query("memberships")
+    .withIndex("by_organization_user", (q) =>
+      q.eq("organizationId", opts.organizationId).eq("userId", opts.userId),
+    )
+    .unique();
+
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      role: opts.role,
+      siteIds: opts.siteIds,
+      teamIds: opts.teamIds,
+      status: "active",
+      updatedAt: now,
+    });
+    const refreshed = (await ctx.db.get(existing._id))!;
+    await syncSubadminTeamAssignments(ctx, opts.organizationId, refreshed, opts.teamIds);
+    return refreshed;
+  }
+
+  const id = await ctx.db.insert("memberships", {
+    userId: opts.userId,
+    organizationId: opts.organizationId,
+    role: opts.role,
+    siteIds: opts.siteIds,
+    teamIds: opts.teamIds,
+    status: "active",
+    invitedByUserId: opts.invitedByUserId,
+    joinedAt: now,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const inserted = (await ctx.db.get(id))!;
+  await syncSubadminTeamAssignments(ctx, opts.organizationId, inserted, opts.teamIds);
+  return inserted;
+}
+
+/** Remove a member from the organization -- owner only (soft-delete via status) */
 export const removeMember = mutation({
   args: {
     userId: v.id("users"),
@@ -287,7 +141,7 @@ export const removeMember = mutation({
   },
 });
 
-/** Reassign a member to different teams/sites — owner only */
+/** Reassign a member to different teams/sites -- owner only */
 export const reassignMember = mutation({
   args: {
     userId: v.id("users"),
@@ -317,14 +171,13 @@ export const reassignMember = mutation({
       updatedAt: now,
     });
 
-    const refreshedMembership = (await ctx.db.get(membership._id))!;
-    await syncSubadminTeamAssignments(ctx, organizationId, refreshedMembership, args.teamIds);
-
-    return refreshedMembership;
+    const refreshed = (await ctx.db.get(membership._id))!;
+    await syncSubadminTeamAssignments(ctx, organizationId, refreshed, args.teamIds);
+    return refreshed;
   },
 });
 
-/** Update an existing member's profile (name, email) — owner only */
+/** Update an existing member's profile (name, email) -- owner only */
 export const updateMember = mutation({
   args: {
     userId: v.id("users"),
@@ -335,7 +188,6 @@ export const updateMember = mutation({
   handler: async (ctx, args) => {
     const { organizationId } = await requireOwnerMembership(ctx);
 
-    // Ensure the target user is in this org
     const membership = await ctx.db
       .query("memberships")
       .withIndex("by_organization_user", (q) =>

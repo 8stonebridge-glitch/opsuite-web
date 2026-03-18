@@ -145,7 +145,7 @@ export default function EmployeeMoreScreen() {
           <Button
             variant="outline"
             onClick={async () => {
-              if (window.confirm('Are you sure you want to sign out?')) {
+              if (typeof window !== 'undefined' && window.confirm('Are you sure you want to sign out?')) {
                 await signOut();
                 window.location.href = '/sign-in';
               }

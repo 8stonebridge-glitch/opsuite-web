@@ -14,11 +14,12 @@ const membershipStatus = v.union(
 );
 
 const taskStatus = v.union(
+  v.literal('Pending Approval'),
   v.literal('Open'),
   v.literal('In Progress'),
   v.literal('Submitted'),
-  v.literal('Pending Approval'),
   v.literal('Verified'),
+  v.literal('Completed'),
 );
 
 const priority = v.union(
