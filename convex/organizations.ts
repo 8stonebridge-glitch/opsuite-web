@@ -157,7 +157,19 @@ export const storeSignupDraft = mutation({
 export const active = query({
   args: {},
   handler: async (ctx) => {
-    const { user } = await requireCurrentUser(ctx);
+    // Use getUserIdentity directly so we never throw for unauthenticated or
+    // not-yet-bootstrapped users — both cases just return null gracefully.
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject))
+      .first();
+
+    // User not bootstrapped in Convex yet (syncFromAuth hasn't run) — return null,
+    // ConvexDataBridge will call syncFromAuth and the query will re-run reactively.
+    if (!user) return null;
     if (!user.activeOrganizationId) return null;
 
     const organization = await ctx.db.get(user.activeOrganizationId);
