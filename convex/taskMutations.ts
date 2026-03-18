@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
 import { requireActiveOrganizationMembership } from "./authHelpers";
 import {
   getAllowedNextStatuses,
@@ -228,7 +228,8 @@ export const requestRework = mutation({
   },
 });
 
-export const migrateCompletedToSubmitted = mutation({
+// One-time migration — internal only, not callable from client browsers
+export const migrateCompletedToSubmitted = internalMutation({
   args: {},
   handler: async (ctx) => {
     const { organizationId } = await requireActiveOrganizationMembership(ctx);
