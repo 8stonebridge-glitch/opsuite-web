@@ -40,12 +40,12 @@ export default function OwnerOverviewScreen() {
   const awayToday = useAwayToday();
   const coverageNeeded = useCoverageNeeded();
 
-  // Greeting based on time of day — deferred to useEffect to avoid SSR/client mismatch
-  const [greeting, setGreeting] = useState('Welcome');
+  // Greeting based on time of day — hour deferred to useEffect to avoid SSR/client mismatch
+  const [currentHour, setCurrentHour] = useState(12);
   useEffect(() => {
-    const hour = new Date().getHours();
-    setGreeting(hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening');
+    setCurrentHour(new Date().getHours());
   }, []);
+  const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
     <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">

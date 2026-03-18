@@ -29,17 +29,21 @@ export default function EmployeeCheckInScreen() {
   const myTasks = useScopedTasks();
   const today = getToday();
 
-  // Use fixed defaults for SSR, then update to real date after mount to avoid hydration mismatch
-  const [currentYear, setCurrentYear] = useState(2026);
+  // Defer date to useEffect to avoid SSR/client hydration mismatch
+  const [dateReady, setDateReady] = useState(false);
+  const [currentYear, setCurrentYear] = useState(0);
   const [currentMonth, setCurrentMonth] = useState(0);
-  const [viewYear, setViewYear] = useState(2026);
+  const [viewYear, setViewYear] = useState(0);
   const [viewMonth, setViewMonth] = useState(0);
   useEffect(() => {
     const now = new Date();
-    setCurrentYear(currentYear);
-    setCurrentMonth(currentMonth);
-    setViewYear(currentYear);
-    setViewMonth(currentMonth);
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    setCurrentYear(y);
+    setCurrentMonth(m);
+    setViewYear(y);
+    setViewMonth(m);
+    setDateReady(true);
   }, []);
   const stats = useCheckInStats(viewYear, viewMonth);
 
@@ -108,6 +112,15 @@ export default function EmployeeCheckInScreen() {
   );
 
   const isCurrentMonth = viewYear === currentYear && viewMonth === currentMonth;
+
+  // Wait for client date to be resolved before rendering date-dependent UI
+  if (!dateReady) {
+    return (
+      <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-surface-200 border-t-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">

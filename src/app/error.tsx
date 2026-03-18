@@ -10,8 +10,7 @@ export default function RootError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Error boundary — intentionally not logging in production
-    void error;
+    console.error('[AppError]', error);
   }, [error]);
 
   return (
