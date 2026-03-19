@@ -82,6 +82,8 @@ export function TaskDetailScreen({ updatePath }: TaskDetailScreenProps) {
         .map((m) => ({ label: m.name, value: m.id }))
     : [];
 
+  // Auth is handled by Clerk middleware on all /api/* routes (cookies sent automatically).
+  // State refresh happens via Convex real-time subscriptions in ConvexDataBridge — no manual refetch needed.
   const callApi = async (url: string, opts: RequestInit = {}) => {
     setIsSubmittingStatus(true);
     setError('');

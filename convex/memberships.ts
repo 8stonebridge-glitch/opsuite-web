@@ -199,6 +199,10 @@ export const updateMember = mutation({
       throw new Error("User is not a member of this organization");
     }
 
+    // We intentionally patch the *users* table (not memberships) here because
+    // name, email, and phone are user-profile fields that live on the users table.
+    // The membership lookup above serves as an authorization check — it confirms
+    // the target user belongs to the caller's organization and is active.
     const now = new Date().toISOString();
     const updates: Record<string, string> = { updatedAt: now };
     if (args.name) updates.name = args.name.trim();

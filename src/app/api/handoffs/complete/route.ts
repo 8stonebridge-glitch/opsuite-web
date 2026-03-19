@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { ConvexActionError, completeHandoff } from '@/lib/server/convexActions';
 import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
+
+const completeHandoffSchema = z.object({
+  date: z.string().min(1, 'Date is required'),
+});
 
 export async function POST(request: NextRequest) {
   const rl = checkRateLimit(getClientIp(request), { limit: 20, windowMs: 60_000, key: 'handoffs-complete' });
   if (!rl.allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   try {
-    const body = (await request.json()) as { date?: string };
-
-    if (!body.date) {
-      return NextResponse.json({ error: 'Date is required' }, { status: 400 });
+    let body;
+    try {
+      body = completeHandoffSchema.parse(await request.json());
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: err.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
+      }
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
     const result = await completeHandoff({ date: body.date });

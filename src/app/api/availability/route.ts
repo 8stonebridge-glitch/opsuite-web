@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { ConvexActionError, createAvailabilityRequest } from '@/lib/server/convexActions';
 import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
+
+const availabilitySchema = z.object({
+  type: z.enum(['leave', 'sick', 'off_duty'], 'Type is required'),
+  startDate: z.string().min(1, 'Start date is required'),
+  endDate: z.string().min(1, 'End date is required'),
+  notes: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   const rl = checkRateLimit(getClientIp(request), { limit: 30, windowMs: 60_000, key: 'availability' });
@@ -9,21 +17,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = (await request.json()) as {
-      type?: 'leave' | 'sick' | 'off_duty';
-      startDate?: string;
-      endDate?: string;
-      notes?: string;
-    };
-
-    if (!body.type) {
-      return NextResponse.json({ error: 'Type is required' }, { status: 400 });
-    }
-    if (!body.startDate) {
-      return NextResponse.json({ error: 'Start date is required' }, { status: 400 });
-    }
-    if (!body.endDate) {
-      return NextResponse.json({ error: 'End date is required' }, { status: 400 });
+    let body;
+    try {
+      body = availabilitySchema.parse(await request.json());
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: err.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
+      }
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
     const result = await createAvailabilityRequest({

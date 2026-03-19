@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { ConvexActionError, createTask } from '@/lib/server/convexActions';
 import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
+
+const createTaskSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'critical'], 'Priority is required'),
+  siteId: z.string().optional(),
+  teamId: z.string().optional(),
+  assigneeUserId: z.string().optional(),
+  dueDate: z.string().optional(),
+  note: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   const rl = checkRateLimit(getClientIp(request), { limit: 60, windowMs: 60_000, key: 'tasks' });
@@ -9,22 +21,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = (await request.json()) as {
-      title?: string;
-      description?: string;
-      priority?: 'low' | 'medium' | 'critical';
-      siteId?: string;
-      teamId?: string;
-      assigneeUserId?: string;
-      dueDate?: string;
-      note?: string;
-    };
-
-    if (!body.title?.trim()) {
-      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
-    }
-    if (!body.priority) {
-      return NextResponse.json({ error: 'Priority is required' }, { status: 400 });
+    let body;
+    try {
+      body = createTaskSchema.parse(await request.json());
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: err.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
+      }
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
     const result = await createTask({

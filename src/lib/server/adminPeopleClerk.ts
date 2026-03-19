@@ -33,10 +33,15 @@ export async function ensurePrimaryEmail(
     });
   }
 
-  const removableEmailIds = user.emailAddresses
-    .filter((entry) => normalizeEmail(entry.emailAddress) !== nextEmail)
-    .filter((entry) => !previousEmail || normalizeEmail(entry.emailAddress) === normalizeEmail(previousEmail))
-    .map((entry) => entry.id);
+  // Only remove the previous primary email (if provided and different from the new one).
+  // Without a known previousEmail we cannot safely identify which address to clean up,
+  // so we remove nothing rather than risk deleting unrelated emails.
+  const removableEmailIds = previousEmail
+    ? user.emailAddresses
+        .filter((entry) => normalizeEmail(entry.emailAddress) !== nextEmail)
+        .filter((entry) => normalizeEmail(entry.emailAddress) === normalizeEmail(previousEmail))
+        .map((entry) => entry.id)
+    : [];
 
   for (const emailId of removableEmailIds) {
     try {

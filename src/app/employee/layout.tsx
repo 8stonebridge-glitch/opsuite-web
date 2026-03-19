@@ -30,7 +30,9 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
     setIsMounted(true);
   }, []);
 
-  // Role guard — redirect if wrong role (only after mount to avoid hydration mismatch)
+  // Client-side role guard for UX (redirects wrong-role users to correct dashboard).
+  // Security enforcement happens server-side in Convex functions via requireCurrentUser + role checks.
+  // This guard prevents UI flash, not unauthorized data access.
   useEffect(() => {
     if (isMounted && state.onboardingComplete && state.role !== 'employee') {
       router.push('/');
