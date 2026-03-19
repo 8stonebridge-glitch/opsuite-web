@@ -1,11 +1,18 @@
 import { redirect } from 'next/navigation';
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * Root page — server-side redirect.
  *
- * Authenticated users are already redirected by middleware.ts.
- * If someone reaches this page, they're unauthenticated → send to sign-in.
+ * Authenticated users → onboarding (to create org if needed) or admin dashboard.
+ * Unauthenticated users → sign-in.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const { userId } = await auth();
+
+  if (userId) {
+    redirect('/onboarding');
+  }
+
   redirect('/sign-in');
 }
