@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useSyncExternalStore, useState } from 'react';
+import { useHydrated } from '@/hooks/useHydrated';
 
 const THEME_KEY = 'opsuite_theme';
 
@@ -41,21 +42,34 @@ function getSavedPreference(): ThemePreference {
   return 'system';
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Always start with 'system'/'light' on server + first client render to avoid hydration mismatch.
-  // The real preference is applied in useEffect after mount.
-  const [preference, setPreference] = useState<ThemePreference>('system');
-  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
+// External store for theme preference — avoids setState-in-effect for hydration
+const themeListeners = new Set<() => void>();
+function emitThemeChange() {
+  themeListeners.forEach((l) => l());
+}
+function subscribeTheme(callback: () => void) {
+  themeListeners.add(callback);
+  // Also listen for cross-tab storage changes
+  window.addEventListener('storage', callback);
+  return () => {
+    themeListeners.delete(callback);
+    window.removeEventListener('storage', callback);
+  };
+}
 
-  // Hydrate from localStorage after mount — safe, runs only on client
-  useEffect(() => {
-    const savedPref = getSavedPreference();
-    const savedScheme = resolveScheme(savedPref);
-    setPreference(savedPref);
-    setColorScheme(savedScheme);
-    setMounted(true);
-  }, []);
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const mounted = useHydrated();
+
+  // useSyncExternalStore reads from localStorage without setState-in-effect
+  const preference = useSyncExternalStore(
+    subscribeTheme,
+    getSavedPreference,
+    () => 'system' as ThemePreference,
+  );
+
+  // Derive color scheme — re-reads system preference when needed
+  const [systemScheme, setSystemScheme] = useState<'light' | 'dark'>('light');
+  const colorScheme = preference === 'system' ? (mounted ? systemScheme : 'light') : preference;
 
   // Apply class to <html>
   useEffect(() => {
@@ -68,27 +82,30 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [colorScheme, mounted]);
 
-  // Listen for system scheme changes
+  // Listen for system scheme changes — initialize via subscriber pattern, not direct setState
   useEffect(() => {
-    if (!mounted || preference !== 'system') return;
+    if (!mounted) return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => setColorScheme(getSystemScheme());
+    const handler = () => setSystemScheme(getSystemScheme());
+    // Defer initialization to avoid synchronous setState in effect body
+    const id = setTimeout(handler, 0);
     mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, [preference, mounted]);
+    return () => {
+      clearTimeout(id);
+      mq.removeEventListener('change', handler);
+    };
+  }, [mounted]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const next = colorScheme === 'dark' ? 'light' : 'dark';
-    setPreference(next);
-    setColorScheme(next);
     try { localStorage.setItem(THEME_KEY, next); } catch { /* storage unavailable */ }
-  };
+    emitThemeChange();
+  }, [colorScheme]);
 
-  const setTheme = (scheme: ThemePreference) => {
-    setPreference(scheme);
-    setColorScheme(resolveScheme(scheme));
+  const setTheme = useCallback((scheme: ThemePreference) => {
     try { localStorage.setItem(THEME_KEY, scheme); } catch { /* storage unavailable */ }
-  };
+    emitThemeChange();
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ colorScheme, isDark: colorScheme === 'dark', preference, toggleTheme, setTheme }}>

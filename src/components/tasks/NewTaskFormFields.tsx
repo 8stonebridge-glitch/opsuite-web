@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useHydrated } from '@/hooks/useHydrated';
 import { useTheme } from '../../providers/ThemeProvider';
 import { Select, type SelectOption } from '../ui/Select';
 import { FormInput as Input } from '../ui/FormInput';
@@ -181,11 +182,9 @@ export function DueDatePicker({
   const { isDark } = useTheme();
   const errMsg = dueDateError || (touched && !dueDate ? 'Due date is required' : '');
 
-  // Defer to useEffect to avoid SSR/client hydration mismatch
-  const [minDate, setMinDate] = useState('');
-  useEffect(() => {
-    setMinDate(new Date().toISOString().split('T')[0]);
-  }, []);
+  // useHydrated avoids SSR/client hydration mismatch without setState-in-effect
+  const hydrated = useHydrated();
+  const minDate = hydrated ? new Date().toISOString().split('T')[0] : '';
 
   return (
     <div>

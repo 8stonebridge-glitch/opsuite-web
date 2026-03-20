@@ -19,7 +19,7 @@ import { AvailabilityRequestCard } from '@/components/availability/AvailabilityR
 import { Card, CardContent } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { useSession } from '@/providers/SessionProvider';
-import { useState, useEffect } from 'react';
+import { useHydrated } from '@/hooks/useHydrated';
 import { Activity, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 import { SectionHeader, QuickStat, SiteHealthRow, TeamHealthRow } from '@/components/overview/OverviewHelpers';
 
@@ -40,11 +40,9 @@ export default function OwnerOverviewScreen() {
   const awayToday = useAwayToday();
   const coverageNeeded = useCoverageNeeded();
 
-  // Greeting based on time of day — hour deferred to useEffect to avoid SSR/client mismatch
-  const [currentHour, setCurrentHour] = useState(12);
-  useEffect(() => {
-    setCurrentHour(new Date().getHours());
-  }, []);
+  // Greeting based on time of day — useHydrated avoids SSR/client mismatch without setState-in-effect
+  const hydrated = useHydrated();
+  const currentHour = hydrated ? new Date().getHours() : 12;
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (

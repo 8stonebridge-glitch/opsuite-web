@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useHydrated } from '@/hooks/useHydrated';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useIndustryColor, useDashboardCounters } from '@/store/selectors';
@@ -26,11 +27,7 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const router = useRouter();
 
-  // Mounted flag — server and client render identical initial HTML
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useHydrated();
 
   // Client-side role guard for UX (redirects wrong-role users to correct dashboard).
   // Security enforcement happens server-side in Convex functions via requireCurrentUser + role checks.
