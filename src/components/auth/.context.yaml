@@ -1,0 +1,61 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.019Z
+fingerprint: 1009885d
+scope: src/components/auth
+summary: Authentication and authorization.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+exports:
+  - function GoogleSSOButton(
+  - function PasswordStepForm(
+  - function ProtectedRoute(
+  - function SignUpBrandingPanel()
+  - interface SignUpFormProps
+  - "function SignUpForm(props: SignUpFormProps)"
+  - interface VerificationFormProps
+  - "function VerificationForm(props: VerificationFormProps)"
+  - type SignInResource
+  - interface SignInFormProps
+  - interface EmailStepFormProps
+  - interface PasswordStepFormProps
+  - interface VerificationStepFormProps
+  - BENEFITS
+  - POST_SIGN_UP_URL
+  - INPUT_CLASS
+  - SUBMIT_BTN_CLASS
+  - POST_SIGN_IN_URL
+  - function useSignInFlow()
+  - function useSignUpHandlers()
+dependencies:
+  internal:
+    - ./GoogleSSOButton
+    - ./sign-in-types
+    - ./sign-up-constants
+imports:
+  - path: ./GoogleSSOButton
+    symbols:
+      - default as GoogleSSOButton
+  - path: ./sign-in-types
+    symbols:
+      - EmailStepFormProps
+      - PasswordStepFormProps
+      - VerificationStepFormProps
+  - path: ./sign-up-constants
+    symbols:
+      - BENEFITS
+      - INPUT_CLASS
+      - POST_SIGN_UP_URL
+      - SUBMIT_BTN_CLASS
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports

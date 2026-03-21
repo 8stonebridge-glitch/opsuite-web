@@ -7,6 +7,7 @@ import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
 import { uid } from '@/utils/id';
 import { api } from '@/lib/convexApi';
+import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 
 export default function AddSitesPage() {
   const router = useRouter();
@@ -54,7 +55,9 @@ export default function AddSitesPage() {
   };
 
   return (
-    <div className="px-6 pt-12 pb-8 max-w-lg mx-auto">
+    <>
+    <OnboardingProgress currentStep={4} />
+    <div className="px-6 pt-4 pb-8 max-w-lg mx-auto">
       <button onClick={() => router.back()} className="flex items-center gap-1 mb-6 text-caption text-surface-400 dark:text-surface-500 hover:text-surface-600">
         &larr; Back
       </button>
@@ -98,5 +101,6 @@ export default function AddSitesPage() {
         </Button>
       </div>
     </div>
+    </>
   );
 }

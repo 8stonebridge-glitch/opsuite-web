@@ -1,0 +1,143 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.066Z
+fingerprint: d13e6168
+scope: src/components/tasks
+summary: Task definitions.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+exports:
+  - function AuditTrail(
+  - function TitleField(
+  - TaskActionButtons
+  - function InfoRow(
+  - type FilterValue
+  - function TaskFilters(
+  - "function TaskListScreen(props: TaskListScreenProps)"
+  - function useNewTaskFormState()
+  - function useNewTaskForm()
+dependencies:
+  internal:
+    - ../../providers/ThemeProvider
+    - ../../store/AppContext
+    - ../../store/selectors
+    - ../../types
+    - ../../utils/date
+    - ../../utils/task-helpers
+    - ../../utils/taskSections
+    - ../ui/Badge
+    - ../ui/Button
+    - ../ui/Card
+    - ../ui/EmptyState
+    - ../ui/FormInput
+    - ../ui/SearchInput
+    - ../ui/Select
+    - ./AuditTrail
+    - ./NewTaskFormFields
+    - ./TaskCard
+    - ./TaskCardView
+    - ./TaskDetailPanels
+    - ./TaskFilters
+imports:
+  - path: ../../providers/ThemeProvider
+    symbols:
+      - useTheme
+  - path: ../../store/AppContext
+    symbols:
+      - useApp
+  - path: ../../store/selectors
+    symbols:
+      - useAllEmployees
+      - useIndustryColor
+      - useMyAssignedTasks
+      - useMyTeam
+      - useScopedTasks
+      - useSitesLabel
+      - useTaskAudit
+      - useTeams
+  - path: ../../types
+    symbols:
+      - AuditEntry
+      - Priority
+      - Role
+      - Task
+      - TaskStatus
+  - path: ../../utils/date
+    symbols:
+      - dueLabel
+      - formatDateTime
+      - formatDue
+      - formatHumanDate
+      - formatTime
+      - isOverdue
+  - path: ../../utils/task-helpers
+    symbols:
+      - canDelegateTask
+      - compareTasks
+      - consecutiveNoChangeWorkdays
+      - getNextStatuses
+  - path: ../../utils/taskSections
+    symbols:
+      - TaskSection
+      - buildTaskSections
+  - path: ../ui/Badge
+    symbols:
+      - PriorityBadge
+      - StatusBadge
+  - path: ../ui/Button
+    symbols:
+      - Button
+  - path: ../ui/Card
+    symbols:
+      - Card
+  - path: ../ui/EmptyState
+    symbols:
+      - EmptyState
+  - path: ../ui/FormInput
+    symbols:
+      - FormInput as Input
+  - path: ../ui/SearchInput
+    symbols:
+      - SearchInput
+  - path: ../ui/Select
+    symbols:
+      - Select
+      - SelectOption
+  - path: ./AuditTrail
+    symbols:
+      - AuditTrail
+  - path: ./NewTaskFormFields
+    symbols:
+      - DescriptionField
+      - DueDatePicker
+      - NoteField
+      - PrioritySelector
+      - SiteAssigneeRow
+      - TitleField
+  - path: ./TaskActionButtons
+    symbols:
+      - TaskActionButtons
+  - path: ./TaskCard
+    symbols:
+      - TaskCard
+  - path: ./TaskCardView
+    symbols:
+      - TaskCardView
+  - path: ./TaskDetailPanels
+    symbols:
+      - DelegatePanel
+      - TaskActionButtons
+      - TaskInfoCard
+      - TaskNotePanel
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports

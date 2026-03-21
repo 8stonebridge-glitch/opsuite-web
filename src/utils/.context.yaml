@@ -1,0 +1,104 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.177Z
+fingerprint: 9bffd63d
+scope: src/utils
+summary: Utility functions.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+subdirectories:
+  - name: performance/
+    summary: Contains 4 source files
+exports:
+  - "async function readJsonOrThrow<T>(response: Response): Promise<T>"
+  - "function availabilityForMemberOnDate( memberId: string, date: string, availability: AvailabilityRecord[] ):
+    AvailabilityRecord[]"
+  - "function isProtectedUnavailable( memberId: string, date: string, availability: AvailabilityRecord[] ): boolean"
+  - "function approvalManagerForMember( memberId: string, teams: Team[] ): string"
+  - "function availableWorkdays( memberId: string, startDate: string, endDate: string, availability:
+    AvailabilityRecord[] ): number"
+  - "function tasksBlockedByAbsence( memberId: string, date: string, tasks: Task[], availability: AvailabilityRecord[]
+    ): Task[]"
+  - "function coverageNeededTasksForScope( managerId: string | null, date: string, tasks: Task[], availability:
+    AvailabilityRecord[], teams: Team[], role: Role ): Task[]"
+  - "function pendingAvailabilityRequestsForScope( managerId: string | null, availability: AvailabilityRecord[], teams:
+    Team[], role: Role ): AvailabilityRecord[]"
+  - "function awayTodayForScope( managerId: string | null, date: string, availability: AvailabilityRecord[], teams:
+    Team[], allEmployees: Employee[], role: Role ): Employee[]"
+  - "function getActiveAvailability( memberId: string, date: string, availability: AvailabilityRecord[] ):
+    AvailabilityRecord | null"
+  - "function getCurrentWeekDays(today?: string): string[]"
+  - "function getMonthDays(year: number, month: number): string[]"
+  - "function formatMonthLabel(year: number, month: number): string"
+  - "function getDayLabel(dateStr: string): string"
+  - "function getDayNum(dateStr: string): number"
+  - interface CheckInStats
+  - "function computeCheckInStats( checkIns: CheckIn[], userId: string, year?: number, month?: number ): CheckInStats"
+  - "function getCheckInForDate( checkIns: CheckIn[], userId: string, date: string ): CheckIn | undefined"
+  - "function formatCheckInDate(dateStr: string): string"
+  - "function getToday(): string"
+  - "function getNowISO(): string"
+  - "function isOverdue(dueDate: string | null, status: string): boolean"
+  - "function formatDue(date: string | null): string | null"
+  - "function formatHumanDate(date: string | null): string | null"
+  - "function diffDays(a: string, b: string): number"
+dependencies:
+  internal:
+    - ../components/tasks/TaskFilters
+    - ../types
+    - ./availability-helpers
+    - ./date
+    - ./task-helpers
+imports:
+  - path: ../components/tasks/TaskFilters
+    symbols:
+      - FilterValue
+  - path: ../types
+    symbols:
+      - AuditEntry
+      - AvailabilityRecord
+      - CheckIn
+      - Employee
+      - HandoffRecord
+      - HandoffTaskSummary
+      - Role
+      - Task
+      - TaskStatus
+      - Team
+  - path: ./availability-helpers
+    symbols:
+      - isProtectedUnavailable
+  - path: ./date
+    symbols:
+      - diffDays
+      - getToday
+      - isOverdue
+  - path: ./performance/index
+    symbols:
+      - computeEmployeePerformance
+      - computeMetrics
+      - computeScore
+      - computeSubadminPerformance
+      - getWeekdaysInRange
+      - managerForEmployee
+      - offsetDate
+      - scoreToBand
+  - path: ./task-helpers
+    symbols:
+      - canDelegateTask
+      - consecutiveNoChangeWorkdays
+      - isStalledTask
+      - scopeTasksForRole
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports
+  - subdirectories

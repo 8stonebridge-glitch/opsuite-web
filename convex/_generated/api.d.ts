@@ -26,6 +26,11 @@ import type * as tasks from "../tasks.js";
 import type * as teams from "../teams.js";
 import type * as userHelpers from "../userHelpers.js";
 import type * as users from "../users.js";
+import type * as cronHandlers from "../cronHandlers.js";
+import type * as crons from "../crons.js";
+import type * as taskAudits from "../taskAudits.js";
+import type * as metrics from "../metrics.js";
+import type * as notifications from "../notifications.js";
 
 import type {
   ApiFromModules,
@@ -52,6 +57,11 @@ declare const fullApi: ApiFromModules<{
   teams: typeof teams;
   userHelpers: typeof userHelpers;
   users: typeof users;
+  cronHandlers: typeof cronHandlers;
+  crons: typeof crons;
+  taskAudits: typeof taskAudits;
+  metrics: typeof metrics;
+  notifications: typeof notifications;
 }>;
 
 /**

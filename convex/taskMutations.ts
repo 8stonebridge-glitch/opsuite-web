@@ -13,6 +13,7 @@ import {
   validateEmployeeAssignment,
   validateSiteAndTeam,
 } from "./taskHelpers";
+import { createNotification } from "./notifications";
 
 export const create = mutation({
   args: {
@@ -63,6 +64,25 @@ export const create = mutation({
       organizationId, taskId, membership, assignedMembership,
       isEmployeeSubmission, dueDate: args.dueDate, note: args.note, now,
     });
+
+    // Notify assignee (if different from creator)
+    if (args.assignedToMembershipId && args.assignedToMembershipId !== membership._id) {
+      const assigneeUser = assignedMembership ? await ctx.db.get(assignedMembership.userId) : null;
+      await createNotification(ctx, {
+        organizationId, membershipId: args.assignedToMembershipId,
+        title: "New task assigned", body: `"${args.title.trim()}" has been assigned to you.`,
+        type: "task", taskId, route: "tasks",
+      });
+    }
+    // Notify accountable lead (if different from creator and assignee)
+    if (args.accountableLeadMembershipId !== membership._id &&
+        args.accountableLeadMembershipId !== args.assignedToMembershipId) {
+      await createNotification(ctx, {
+        organizationId, membershipId: args.accountableLeadMembershipId,
+        title: "Task requires oversight", body: `"${args.title.trim()}" was created and needs your oversight.`,
+        type: "task", taskId, route: "tasks",
+      });
+    }
 
     return await ctx.db.get(taskId);
   },
@@ -117,6 +137,15 @@ export const updateStatus = mutation({
       newStatus: args.status, note: args.note, now, today, isStart, isDone,
     });
 
+    // Notify accountable lead when task is submitted for review
+    if (isDone && task.accountableLeadMembershipId !== membership._id) {
+      await createNotification(ctx, {
+        organizationId, membershipId: task.accountableLeadMembershipId,
+        title: "Task submitted for review", body: `"${task.title}" was submitted by ${user.name}.`,
+        type: "review", taskId: task._id, route: "tasks",
+      });
+    }
+
     return await ctx.db.get(task._id);
   },
 });
@@ -161,6 +190,14 @@ export const delegate = mutation({
       organizationId, taskId: task._id, actorMembershipId: membership._id,
       type: "Delegated", message: `Delegated to ${assigneeUser?.name || "team member"} by ${user.name}.`, createdAt: now,
     });
+
+    // Notify new assignee
+    await createNotification(ctx, {
+      organizationId, membershipId: assigneeMembership._id,
+      title: "Task delegated to you", body: `"${task.title}" was delegated to you by ${user.name}.`,
+      type: "task", taskId: task._id, route: "tasks",
+    });
+
     return await ctx.db.get(task._id);
   },
 });
@@ -178,6 +215,16 @@ export const approvePending = mutation({
       organizationId, taskId: task._id, actorMembershipId: membership._id,
       type: "Approval", message: `Approved by ${user.name}. Work may proceed.`, createdAt: now,
     });
+
+    // Notify the creator their task was approved
+    if (task.createdByMembershipId !== membership._id) {
+      await createNotification(ctx, {
+        organizationId, membershipId: task.createdByMembershipId,
+        title: "Task approved", body: `"${task.title}" was approved by ${user.name}.`,
+        type: "task", taskId: task._id, route: "tasks",
+      });
+    }
+
     return await ctx.db.get(task._id);
   },
 });
@@ -196,6 +243,16 @@ export const verify = mutation({
       organizationId, taskId: task._id, actorMembershipId: membership._id,
       type: "Verified", message: `✓ Verified & closed by ${user.name}.${completedLate ? " ⚠ Completed past due date." : ""}`, createdAt: now,
     });
+
+    // Notify assignee their task was verified
+    if (task.assignedToMembershipId && task.assignedToMembershipId !== membership._id) {
+      await createNotification(ctx, {
+        organizationId, membershipId: task.assignedToMembershipId,
+        title: "Task verified", body: `"${task.title}" was verified by ${user.name}.`,
+        type: "review", taskId: task._id, route: "tasks",
+      });
+    }
+
     return await ctx.db.get(task._id);
   },
 });
@@ -224,7 +281,56 @@ export const requestRework = mutation({
     if (escalated) {
       await insertTaskAudit(ctx, { organizationId, taskId: task._id, type: "Escalation", message: `⚠ Escalated to CRITICAL after ${cycle} rework cycles.`, createdAt: now });
     }
+
+    // Notify assignee about rework
+    if (task.assignedToMembershipId && task.assignedToMembershipId !== membership._id) {
+      await createNotification(ctx, {
+        organizationId, membershipId: task.assignedToMembershipId,
+        title: "Rework requested", body: `"${task.title}" needs rework: ${reason}`,
+        type: "task", taskId: task._id, route: "tasks",
+      });
+    }
+
     return await ctx.db.get(task._id);
+  },
+});
+
+export const bulkApprove = mutation({
+  args: { taskIds: v.array(v.id("tasks")) },
+  handler: async (ctx, args) => {
+    if (args.taskIds.length > 25) throw new Error("Cannot bulk approve more than 25 tasks at once");
+    if (args.taskIds.length === 0) return { approved: 0 };
+
+    const { organizationId, membership } = await requireActiveOrganizationMembership(ctx);
+    if (membership.role === "employee") throw new Error("Employees cannot approve tasks");
+
+    const user = await ctx.db.get(membership.userId);
+    if (!user) throw new Error("User not found");
+    const now = new Date().toISOString();
+    let approved = 0;
+
+    for (const taskId of args.taskIds) {
+      const task = await ctx.db.get(taskId);
+      if (!task || task.organizationId !== organizationId) continue;
+      if (task.status !== "Pending Approval") continue;
+
+      await ctx.db.patch(task._id, { status: "Open", lastActivityAt: now, updatedAt: now });
+      await insertTaskAudit(ctx, {
+        organizationId, taskId: task._id, actorMembershipId: membership._id,
+        type: "Approval", message: `Approved by ${user.name}. Work may proceed.`, createdAt: now,
+      });
+
+      if (task.createdByMembershipId !== membership._id) {
+        await createNotification(ctx, {
+          organizationId, membershipId: task.createdByMembershipId,
+          title: "Task approved", body: `"${task.title}" was approved by ${user.name}.`,
+          type: "task", taskId: task._id, route: "tasks",
+        });
+      }
+      approved++;
+    }
+
+    return { approved };
   },
 });
 

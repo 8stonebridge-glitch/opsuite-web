@@ -1,0 +1,79 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.158Z
+fingerprint: 3ad6956c
+scope: src/lib
+summary: Library modules.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+subdirectories:
+  - name: server/
+    summary: Source directory.
+exports:
+  - convex
+  - api
+  - HydratedTask
+  - HydratedAudit
+  - TaskListResult
+  - TaskDetailResult
+  - ActiveOrgResult
+  - ViewerResult
+  - AvailabilityRecord
+  - HandoffRecord
+  - CheckInRecord
+  - HandoffListResult
+  - HandoffProgressResult
+  - MembershipListItem
+  - UserDoc
+  - OrganizationDoc
+  - MembershipDoc
+  - SiteDoc
+  - TeamDoc
+  - OrgSettingsDoc
+  - TaskStatus
+  - Priority
+  - AvailabilityType
+  - AvailabilityStatus
+  - Role
+dependencies:
+  internal:
+    - ./convexApiTypes
+imports:
+  - path: ./convexApiTypes
+    symbols:
+      - ActiveOrgResult
+      - AvailabilityRecord
+      - AvailabilityType
+      - HandoffListResult
+      - HandoffProgressResult
+      - HandoffRecord
+      - HydratedAudit
+      - HydratedTask
+      - Id
+      - MembershipDoc
+      - MembershipListItem
+      - OrgMode
+      - OrgSettingsDoc
+      - OrganizationDoc
+      - Priority
+      - Role
+      - SiteDoc
+      - TaskDetailResult
+      - TaskListResult
+      - TaskStatus
+      - TeamDoc
+      - UserDoc
+      - ViewerResult
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports
+  - subdirectories

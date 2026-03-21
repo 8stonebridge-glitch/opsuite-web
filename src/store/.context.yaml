@@ -1,0 +1,126 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.164Z
+fingerprint: 62cb0a9c
+scope: src/store
+summary: State management.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+exports:
+  - AppState
+  - AppAction
+  - AppContext
+  - function AppProvider(
+  - "function useApp(): AppContextValue"
+  - interface AppState
+  - "EMPTY_APP_STATE: AppState"
+  - type AppAction
+  - "function appReducer(state: AppState, action: AppAction): AppState"
+  - "function useAvailability(): AvailabilityRecord[]"
+  - "function useIsProtectedUnavailableToday(): boolean"
+  - "function useAwayToday(): Employee[]"
+  - "function usePendingRequests(): AvailabilityRecord[]"
+  - "function useCoverageNeeded(): Task[]"
+  - interface SiteHealth
+  - "function useSiteHealth(siteId: string): SiteHealth"
+  - interface TeamHealth
+  - "function useTeamHealth(teamId: string): TeamHealth"
+  - "function useCheckInHealth(employeeIds: string[])"
+  - "function useMyCheckIns(): CheckIn[]"
+  - "function useCheckInStats(year?: number, month?: number): CheckInStats"
+  - interface EmployeeSummary
+  - "function useEmployeeSummaries(): Map<string, EmployeeSummary>"
+  - function useMyDayData()
+  - "function useEmployeePerformance(employeeId: string): EmployeePerformance"
+dependencies:
+  internal:
+    - ../constants/categories
+    - ../types
+    - ../utils/availability-helpers
+    - ../utils/checkin-helpers
+    - ../utils/date
+    - ../utils/handoff-helpers
+    - ../utils/id
+    - ../utils/performance
+    - ../utils/task-helpers
+    - ./AppContext
+    - ./appReducer
+    - ./selectors-user
+imports:
+  - path: ../constants/categories
+    symbols:
+      - CATEGORIES_BY_INDUSTRY
+  - path: ../types
+    symbols:
+      - AuditEntry
+      - AvailabilityRecord
+      - Category
+      - CheckIn
+      - Employee
+      - EmployeePerformance
+      - HandoffRecord
+      - Industry
+      - OnboardingData
+      - OrgMode
+      - OrgSettings
+      - Role
+      - Site
+      - SubadminPerformance
+      - Task
+      - Team
+  - path: ../utils/availability-helpers
+    symbols:
+      - awayTodayForScope
+      - coverageNeededTasksForScope
+      - isProtectedUnavailable
+      - pendingAvailabilityRequestsForScope
+  - path: ../utils/checkin-helpers
+    symbols:
+      - CheckInStats
+      - computeCheckInStats
+  - path: ../utils/date
+    symbols:
+      - getNowISO
+      - getToday
+      - isOverdue
+  - path: ../utils/handoff-helpers
+    symbols:
+      - getHandoffProgress
+  - path: ../utils/id
+    symbols:
+      - uid
+  - path: ../utils/performance
+    symbols:
+      - computeEmployeePerformance
+      - computeSubadminPerformance
+  - path: ../utils/task-helpers
+    symbols:
+      - computeCounters
+      - consecutiveNoChangeWorkdays
+      - isStalledTask
+      - scopeTasksForRole
+  - path: ./AppContext
+    symbols:
+      - useApp
+  - path: ./appReducer
+    symbols:
+      - AppAction
+      - AppState
+      - EMPTY_APP_STATE
+      - appReducer
+  - path: ./selectors-user
+    symbols:
+      - useCurrentName
+      - useTeamMemberIds
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports

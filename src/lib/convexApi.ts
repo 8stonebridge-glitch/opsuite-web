@@ -32,6 +32,13 @@ import type {
   HandoffRecord,
   HandoffListResult,
   HandoffProgressResult,
+  ConversationListItem,
+  ConversationDetail,
+  MessageListResult,
+  PresenceEntry,
+  NotificationItem,
+  TaskAuditDoc,
+  DashboardMetrics,
 } from './convexApiTypes';
 
 // ── Typed API interface ──
@@ -71,6 +78,7 @@ interface ConvexApi {
     approvePending: FunctionReference<'mutation', 'public', { taskId: Id<'tasks'> }, unknown>;
     verify: FunctionReference<'mutation', 'public', { taskId: Id<'tasks'> }, unknown>;
     requestRework: FunctionReference<'mutation', 'public', { taskId: Id<'tasks'>; reason: string }, unknown>;
+    bulkApprove: FunctionReference<'mutation', 'public', { taskIds: Id<'tasks'>[] }, { approved: number }>;
     migrateCompletedToSubmitted: FunctionReference<'mutation', 'public', Record<string, never>, { migrated: number }>;
   };
   memberships: {
@@ -112,6 +120,34 @@ interface ConvexApi {
     completeForToday: FunctionReference<'mutation', 'public', { date: string }, HandoffRecord>;
     listForCurrentScope: FunctionReference<'query', 'public', Record<string, never>, HandoffListResult>;
   };
+  conversations: {
+    list: FunctionReference<'query', 'public', Record<string, never>, ConversationListItem[]>;
+    get: FunctionReference<'query', 'public', { conversationId: Id<'conversations'> }, ConversationDetail>;
+    create: FunctionReference<'mutation', 'public', { participantMembershipIds: Id<'memberships'>[]; subject?: string }, Id<'conversations'>>;
+  };
+  messages: {
+    list: FunctionReference<'query', 'public', { conversationId: Id<'conversations'>; limit?: number; before?: string }, MessageListResult>;
+    send: FunctionReference<'mutation', 'public', { conversationId: Id<'conversations'>; body: string; clientId: string; replyToMessageId?: Id<'messages'> }, Id<'messages'>>;
+    markAsRead: FunctionReference<'mutation', 'public', { conversationId: Id<'conversations'> }, void>;
+  };
+  presence: {
+    setTyping: FunctionReference<'mutation', 'public', { conversationId: Id<'conversations'>; isTyping: boolean }, void>;
+    updateLastSeen: FunctionReference<'mutation', 'public', { conversationId: Id<'conversations'> }, void>;
+    getPresence: FunctionReference<'query', 'public', { conversationId: Id<'conversations'> }, PresenceEntry[]>;
+  };
+  taskAudits: {
+    listForOrganization: FunctionReference<'query', 'public', Record<string, never>, TaskAuditDoc[]>;
+  };
+  metrics: {
+    dashboard: FunctionReference<'query', 'public', Record<string, never>, DashboardMetrics>;
+  };
+  notifications: {
+    list: FunctionReference<'query', 'public', { limit?: number }, NotificationItem[]>;
+    unreadCount: FunctionReference<'query', 'public', Record<string, never>, number>;
+    markRead: FunctionReference<'mutation', 'public', { notificationId: Id<'notifications'> }, void>;
+    markAllRead: FunctionReference<'mutation', 'public', Record<string, never>, void>;
+    dismiss: FunctionReference<'mutation', 'public', { notificationId: Id<'notifications'> }, void>;
+  };
 }
 
 export const api = anyApi as unknown as ConvexApi;
@@ -142,4 +178,7 @@ export type {
   AvailabilityStatus,
   Role as ConvexRole,
   OrgMode,
+  NotificationItem,
+  TaskAuditDoc,
+  DashboardMetrics,
 } from './convexApiTypes';

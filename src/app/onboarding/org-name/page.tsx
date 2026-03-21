@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
+import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 
 export default function OrgNamePage() {
   const router = useRouter();
@@ -17,7 +18,9 @@ export default function OrgNamePage() {
   };
 
   return (
-    <div className="flex-1 px-6 pt-20 pb-8 max-w-lg mx-auto">
+    <>
+    <OnboardingProgress currentStep={1} />
+    <div className="flex-1 px-6 pt-8 pb-8 max-w-lg mx-auto">
       <div className="flex-1">
         <div className="h-12 w-12 rounded-card bg-emerald-600 flex items-center justify-center mb-8">
           <span className="text-white text-xl">O</span>
@@ -38,5 +41,6 @@ export default function OrgNamePage() {
         <Button onClick={next} disabled={!name.trim()}>Continue</Button>
       </div>
     </div>
+    </>
   );
 }

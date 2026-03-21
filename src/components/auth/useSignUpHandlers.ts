@@ -1,13 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import { useSignUp } from '@clerk/nextjs';
+import { useEffect, useRef, useState } from 'react';
+import { useSignUp, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { POST_SIGN_UP_URL } from './sign-up-constants';
 
 export function useSignUpHandlers() {
   const { fetchStatus, signUp } = useSignUp();
+  const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
+
+  // Prevents the isSignedIn useEffect from racing with finalizeSignUp's navigate
+  const didFinalize = useRef(false);
+
+  // Redirect already-signed-in users away from sign-up.
+  // After an active sign-up, finalizeSignUp sets didFinalize so this is skipped.
+  useEffect(() => {
+    if (isLoaded && isSignedIn && !didFinalize.current) {
+      router.replace(POST_SIGN_UP_URL);
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -22,6 +34,8 @@ export function useSignUpHandlers() {
   const finalizeSignUp = async () => {
     if (!signUp) return;
 
+    // Mark before navigation so the isSignedIn useEffect skips its redirect
+    didFinalize.current = true;
     const { error: finalizeError } = await signUp.finalize({
       navigate: async ({ decorateUrl }) => {
         const targetUrl = decorateUrl(POST_SIGN_UP_URL);
@@ -36,6 +50,7 @@ export function useSignUpHandlers() {
     });
 
     if (finalizeError) {
+      didFinalize.current = false; // Reset so future attempts work
       setError(finalizeError.message || 'Unable to finish signing up');
     }
   };
@@ -54,9 +69,14 @@ export function useSignUpHandlers() {
     }
   };
 
+  // FEAT-TIMING-01: Debounce — prevent double-submit
+  const submittingRef = useRef(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signUp) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError('');
     setLoading(true);
 
@@ -84,6 +104,7 @@ export function useSignUpHandlers() {
       setError(err.errors?.[0]?.longMessage || err.message || 'Something went wrong');
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -109,7 +130,7 @@ export function useSignUpHandlers() {
   };
 
   return {
-    isLoaded: fetchStatus === 'idle' && !!signUp,
+    isLoaded: fetchStatus === 'idle' && isLoaded,
     firstName, setFirstName,
     lastName, setLastName,
     email, setEmail,

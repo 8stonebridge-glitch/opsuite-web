@@ -1,27 +1,45 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSignIn, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
-const POST_SIGN_IN_URL =
+// Stable fallback used for SSO OAuth redirectCallbackUrl (doesn't read returnTo,
+// since OAuth flows don't preserve query params through the provider round-trip).
+export const POST_SIGN_IN_URL =
   process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL ||
   process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL ||
   process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL ||
   '/admin/overview';
 
-export { POST_SIGN_IN_URL };
+// FEAT-AUTH-08: Resolve post-sign-in URL per-mount so ?returnTo is always
+// read from the current URL (module-level caching missed subsequent navigations).
+function resolvePostSignInUrl(): string {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    // Only accept relative paths to prevent open redirect
+    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      return returnTo;
+    }
+  }
+  return POST_SIGN_IN_URL;
+}
 
 function useFinalizeSignIn(
   signIn: ReturnType<typeof useSignIn>['signIn'],
   router: ReturnType<typeof useRouter>,
   setError: (msg: string) => void,
+  didFinalizeRef: React.MutableRefObject<boolean>,
+  postSignInUrl: string,
 ) {
   return useCallback(async () => {
     if (!signIn) return;
+    // Mark before navigation so the isSignedIn useEffect skips its redirect
+    didFinalizeRef.current = true;
     const { error: finalizeError } = await signIn.finalize({
       navigate: async ({ decorateUrl }) => {
-        const targetUrl = decorateUrl(POST_SIGN_IN_URL);
+        const targetUrl = decorateUrl(postSignInUrl);
         if (/^https?:\/\//.test(targetUrl)) {
           window.location.assign(targetUrl);
           return;
@@ -30,9 +48,10 @@ function useFinalizeSignIn(
       },
     });
     if (finalizeError) {
+      didFinalizeRef.current = false; // Reset so future attempts work
       setError(finalizeError.message || 'Unable to finish signing in');
     }
-  }, [router, signIn, setError]);
+  }, [router, signIn, setError, didFinalizeRef, postSignInUrl]);
 }
 
 function useTransferFlow(
@@ -99,9 +118,13 @@ function useEmailSubmit(
   setLoading: (v: boolean) => void,
   setStep: (s: 'email' | 'password') => void,
 ) {
+  const submittingRef = useRef(false);
   return useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signIn || !email.trim()) return;
+    // FEAT-TIMING-01: Debounce — prevent double-submit
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError('');
     setLoading(true);
     try {
@@ -115,6 +138,7 @@ function useEmailSubmit(
       setError(err.errors?.[0]?.longMessage || err.message || 'We could not continue with that email address.');
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   }, [signIn, email, setError, setLoading, setStep]);
 }
@@ -127,9 +151,13 @@ function usePasswordSubmit(
   setVerificationCode: (v: string) => void,
   finalizeSignIn: () => Promise<void>,
 ) {
+  const submittingRef = useRef(false);
   return useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signIn || !password) return;
+    // FEAT-TIMING-01: Debounce — prevent double-submit
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError('');
     setLoading(true);
     try {
@@ -152,6 +180,7 @@ function usePasswordSubmit(
       setError(err.errors?.[0]?.longMessage || err.message || 'Invalid password');
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   }, [signIn, password, setError, setLoading, setVerificationCode, finalizeSignIn]);
 }
@@ -190,6 +219,12 @@ export default function useSignInFlow() {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
 
+  // Computed per-mount so ?returnTo is read from the current URL each time
+  // the sign-in page renders, not frozen at module load time.
+  const postSignInUrl = useMemo(() => resolvePostSignInUrl(), []);
+  // Prevents the isSignedIn useEffect from racing with finalizeSignIn's navigate
+  const didFinalize = useRef(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -198,11 +233,15 @@ export default function useSignInFlow() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
 
+  // Only redirect here for users who were already signed in when the page loaded.
+  // After an active sign-in, finalizeSignIn sets didFinalize so this is skipped.
   useEffect(() => {
-    if (isLoaded && isSignedIn) router.replace(POST_SIGN_IN_URL);
-  }, [isLoaded, isSignedIn, router]);
+    if (isLoaded && isSignedIn && !didFinalize.current) {
+      router.replace(postSignInUrl);
+    }
+  }, [isLoaded, isSignedIn, router, postSignInUrl]);
 
-  const finalizeSignIn = useFinalizeSignIn(signIn, router, setError);
+  const finalizeSignIn = useFinalizeSignIn(signIn, router, setError, didFinalize as React.MutableRefObject<boolean>, postSignInUrl);
   useTransferFlow(signIn, finalizeSignIn, setError, setLoading);
 
   const clientTrustFactor = signIn?.supportedSecondFactors?.find(

@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { INDUSTRIES } from '@/constants/industries';
+import { Button } from '@/components/ui/Button';
+import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 
 export default function IndustryPage() {
   const router = useRouter();
@@ -10,11 +12,17 @@ export default function IndustryPage() {
 
   const select = (ind: (typeof INDUSTRIES)[0]) => {
     dispatch({ type: 'SET_INDUSTRY', industry: ind });
+  };
+
+  const next = () => {
+    if (!state.onboarding.industry) return;
     router.push('/onboarding/admin-name');
   };
 
   return (
-    <div className="px-6 pt-12 pb-8 max-w-lg mx-auto">
+    <>
+    <OnboardingProgress currentStep={2} />
+    <div className="px-6 pt-4 pb-8 max-w-lg mx-auto">
       <button onClick={() => router.back()} className="flex items-center gap-1 mb-6 text-caption text-surface-400 dark:text-surface-500 hover:text-surface-600">
         &larr; Back
       </button>
@@ -38,6 +46,10 @@ export default function IndustryPage() {
           </button>
         ))}
       </div>
+      <div className="mt-8">
+        <Button onClick={next} disabled={!state.onboarding.industry}>Continue</Button>
+      </div>
     </div>
+    </>
   );
 }

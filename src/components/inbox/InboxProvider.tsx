@@ -1,12 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
-import type { AppNotification } from '../../types';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../lib/convexApi';
+import type { NotificationItem } from '../../lib/convexApiTypes';
+import type { Id } from '../../lib/convexApiTypes';
 
 // ── Context value ────────────────────────────────────────────────────
 
 interface InboxContextValue {
-  notifications: AppNotification[];
+  notifications: NotificationItem[];
   unreadCount: number;
   showInbox: boolean;
   openInbox: () => void;
@@ -23,42 +26,47 @@ const InboxContext = createContext<InboxContextValue | null>(null);
 
 export function InboxProvider({ children }: { children: ReactNode }) {
   const [showInbox, setShowInbox] = useState(false);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
-  // No backend — notifications are empty for now (local-only mode)
-  const notifications = useMemo<AppNotification[]>(() => [], []);
+  // Real-time Convex queries
+  const notificationsData = useQuery(api.notifications.list, { limit: 50 });
+  const unreadCountData = useQuery(api.notifications.unreadCount, {});
 
-  const unreadCount = useMemo(
-    () => notifications.filter((n) => !readIds.has(n.id)).length,
-    [notifications, readIds]
+  // Convex mutations
+  const markReadMutation = useMutation(api.notifications.markRead);
+  const markAllReadMutation = useMutation(api.notifications.markAllRead);
+  const dismissMutation = useMutation(api.notifications.dismiss);
+
+  const notifications = useMemo<NotificationItem[]>(
+    () => notificationsData ?? [],
+    [notificationsData],
   );
+
+  const unreadCount = unreadCountData ?? 0;
 
   const markRead = useCallback(
     (id: string) => {
-      setReadIds((prev) => new Set(prev).add(id));
+      void markReadMutation({ notificationId: id as Id<'notifications'> });
     },
-    []
+    [markReadMutation],
   );
 
   const dismiss = useCallback(
     (id: string) => {
-      setDismissedIds((prev) => new Set(prev).add(id));
+      void dismissMutation({ notificationId: id as Id<'notifications'> });
     },
-    []
+    [dismissMutation],
   );
 
   const markAllRead = useCallback(() => {
-    setReadIds((prev) => {
-      const next = new Set(prev);
-      notifications.forEach((n) => next.add(n.id));
-      return next;
-    });
-  }, [notifications]);
+    void markAllReadMutation({});
+  }, [markAllReadMutation]);
 
   const isRead = useCallback(
-    (id: string) => readIds.has(id),
-    [readIds]
+    (id: string) => {
+      const notification = notifications.find((n) => n.id === id);
+      return notification?.isRead ?? false;
+    },
+    [notifications],
   );
 
   const openInbox = useCallback(() => setShowInbox(true), []);
@@ -66,7 +74,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<InboxContextValue>(
     () => ({ notifications, unreadCount, showInbox, openInbox, closeInbox, markRead, markAllRead, dismiss, isRead }),
-    [notifications, unreadCount, showInbox, openInbox, closeInbox, markRead, markAllRead, dismiss, isRead]
+    [notifications, unreadCount, showInbox, openInbox, closeInbox, markRead, markAllRead, dismiss, isRead],
   );
 
   return <InboxContext.Provider value={value}>{children}</InboxContext.Provider>;

@@ -1,0 +1,42 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.046Z
+fingerprint: 7fd2c435
+scope: src/components/people
+summary: Source directory.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+dependencies:
+  internal:
+    - ../../providers/ThemeProvider
+    - ../../store/selectors
+    - ../../types
+    - ../performance/ScoreBadge
+    - ../ui/Avatar
+imports:
+  - path: ../../providers/ThemeProvider
+    symbols:
+      - useTheme
+  - path: ../../store/selectors
+    symbols:
+      - EmployeeSummary
+  - path: ../../types
+    symbols:
+      - ScoreBand
+  - path: ../performance/ScoreBadge
+    symbols:
+      - ScoreBadge
+  - path: ../ui/Avatar
+    symbols:
+      - Avatar
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - dependencies.internal
+  - imports

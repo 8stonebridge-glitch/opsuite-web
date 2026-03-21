@@ -8,6 +8,9 @@ import { AppProvider } from '@/store/AppContext';
 import { ConvexDataBridge } from '@/components/ConvexDataBridge';
 import { InitialLoaderDismiss } from '@/components/InitialLoaderDismiss';
 import { AppErrorBoundary } from '@/components/AppErrorBoundary';
+import { AuthErrorBoundary } from '@/components/auth/AuthErrorBoundary';
+import { SessionExpiryGuard } from '@/components/auth/SessionExpiryGuard';
+import { RoleRouterBridge } from '@/components/auth/RoleRouterBridge';
 import { convex } from '@/lib/convex';
 
 const isE2E = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
@@ -17,14 +20,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
       <ThemeProvider>
         <AppErrorBoundary>
-          <AppProvider>
-            <SessionProvider>
-              <InitialLoaderDismiss />
-              <ConvexDataBridge />
-              {isE2E && <E2EBridge />}
-              {children}
-            </SessionProvider>
-          </AppProvider>
+          <AuthErrorBoundary>
+            <AppProvider>
+              <SessionProvider>
+                <InitialLoaderDismiss />
+                <SessionExpiryGuard />
+                <ConvexDataBridge />
+                <RoleRouterBridge />
+                {isE2E && <E2EBridge />}
+                {children}
+              </SessionProvider>
+            </AppProvider>
+          </AuthErrorBoundary>
         </AppErrorBoundary>
       </ThemeProvider>
     </ConvexProviderWithClerk>

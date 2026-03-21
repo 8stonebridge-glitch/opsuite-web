@@ -1,0 +1,40 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.191Z
+fingerprint: 2e23bfd4
+scope: src
+summary: Source code.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+subdirectories:
+  - name: app/
+    summary: Source directory.
+  - name: components/
+    summary: UI components.
+  - name: constants/
+    summary: Contains 2 source files
+  - name: lib/
+    summary: Library modules.
+  - name: machines/
+    summary: Contains 1 source files
+  - name: providers/
+    summary: Contains 2 source files
+  - name: store/
+    summary: State management.
+  - name: types/
+    summary: Contains 1 source files
+  - name: utils/
+    summary: Utility functions.
+exports:
+  - config
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - subdirectories

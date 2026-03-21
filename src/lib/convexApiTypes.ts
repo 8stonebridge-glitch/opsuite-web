@@ -218,6 +218,117 @@ export interface HandoffListResult {
   checkIns: CheckInRecord[];
 }
 
+// ── Messaging types ──
+
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'failed';
+
+export interface ConversationParticipant {
+  membershipId: string;
+  name: string;
+  avatarUrl?: string;
+}
+
+export interface ConversationListItem {
+  _id: Id<'conversations'>;
+  subject?: string;
+  isGroup: boolean;
+  lastMessageText?: string;
+  lastMessageAt?: string;
+  unreadCount: number;
+  participants: ConversationParticipant[];
+  updatedAt: string;
+}
+
+export interface ConversationDetail {
+  _id: Id<'conversations'>;
+  organizationId: Id<'organizations'>;
+  participantIds: Id<'memberships'>[];
+  lastMessageText?: string;
+  lastMessageAt?: string;
+  isGroup: boolean;
+  subject?: string;
+  createdAt: string;
+  updatedAt: string;
+  participants: Array<{
+    membershipId: string;
+    name: string;
+    avatarUrl?: string;
+    isTyping: boolean;
+    lastSeenAt?: string;
+    isCurrentUser: boolean;
+  }>;
+  currentUserUnreadCount: number;
+}
+
+export interface MessageDoc {
+  _id: Id<'messages'>;
+  _creationTime: number;
+  conversationId: Id<'conversations'>;
+  organizationId: Id<'organizations'>;
+  senderMembershipId: Id<'memberships'>;
+  body: string;
+  status: MessageStatus;
+  clientId: string;
+  replyToMessageId?: Id<'messages'>;
+  createdAt: string;
+  updatedAt: string;
+  senderName: string;
+  senderAvatarUrl?: string;
+  isCurrentUser: boolean;
+}
+
+export interface MessageListResult {
+  messages: MessageDoc[];
+  hasMore: boolean;
+  cursor?: string;
+}
+
+export interface PresenceEntry {
+  membershipId: string;
+  name: string;
+  isTyping: boolean;
+  isOnline: boolean;
+  lastSeenAt?: string;
+}
+
+// ── Notification types ──
+
+export type NotificationType = 'task' | 'availability' | 'handoff' | 'coverage' | 'review' | 'system';
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  body: string;
+  timestamp: string;
+  type: NotificationType;
+  taskId?: string;
+  route?: string;
+  isRead: boolean;
+}
+
+/** Raw task audit document */
+export interface TaskAuditDoc {
+  _id: Id<'taskAudits'>;
+  _creationTime: number;
+  organizationId: Id<'organizations'>;
+  taskId: Id<'tasks'>;
+  actorMembershipId?: Id<'memberships'>;
+  type: string;
+  message: string;
+  createdAt: string;
+}
+
+/** Return shape of metrics.dashboard */
+export interface DashboardMetrics {
+  totalTasks: number;
+  openTasks: number;
+  overdueCount: number;
+  avgCompletionDays: number;
+  approvalQueueSize: number;
+  reworkRate: number;
+  handoffComplianceRate: number;
+}
+
 /** Return shape of handoffs.myProgress */
 export interface HandoffProgressResult {
   total: number;

@@ -1,0 +1,133 @@
+version: 1
+last_updated: 2026-03-19T15:51:06.921Z
+fingerprint: ace715d7
+scope: convex
+summary: Source directory.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+subdirectories:
+  - name: _generated/
+    summary: Contains 5 source files
+exports:
+  - "async function requireIdentity(ctx: AuthCtx)"
+  - "async function getCurrentUser(ctx: AuthCtx)"
+  - "async function requireCurrentUser(ctx: AuthCtx)"
+  - "async function requireActiveOrganizationMembership(ctx: AuthCtx)"
+  - "async function requireOwnerMembership(ctx: AuthCtx)"
+  - "function displayNameFromIdentity(identity: Record<string, unknown>)"
+  - "function emailFromIdentity(identity: Record<string, unknown>)"
+  - "function slugifyOrganizationName(name: string)"
+  - listForCurrentScope
+  - createRequest
+  - approve
+  - reject
+  - cancel
+  - sendWelcome
+  - myProgress
+  - completeForToday
+  - 'async function validateAssignments( ctx: MutationCtx, organizationId: Id<"organizations">, siteIds: Id<"sites">[],
+    teamIds: Id<"teams">[], )'
+  - 'async function syncSubadminTeamAssignments( ctx: MutationCtx, organizationId: Id<"organizations">, membership:
+    Pick<Doc<"memberships">, "_id" | "role">, nextTeamIds: Id<"teams">[], )'
+  - "async function upsertUserByEmail( ctx: MutationCtx, opts:"
+  - listForActiveOrganization
+  - activeMembershipCountForUser
+  - createProvisionedMember
+  - removeMember
+  - reassignMember
+  - updateMember
+dependencies:
+  internal:
+    - ./_generated/api
+    - ./_generated/dataModel
+    - ./_generated/server
+    - ./authHelpers
+    - ./membershipHelpers
+    - ./organizations
+    - ./taskHelpers
+    - ./taskHydration
+    - ./userHelpers
+imports:
+  - path: ./_generated/api
+    symbols:
+      - internal
+  - path: ./_generated/dataModel
+    symbols:
+      - Doc
+      - Id
+  - path: ./_generated/server
+    symbols:
+      - MutationCtx
+      - QueryCtx
+      - action
+      - internalMutation
+      - internalQuery
+      - mutation
+      - query
+  - path: ./authHelpers
+    symbols:
+      - displayNameFromIdentity
+      - requireActiveOrganizationMembership
+      - requireCurrentUser
+      - requireIdentity
+      - requireOwnerMembership
+      - slugifyOrganizationName
+  - path: ./membershipHelpers
+    symbols:
+      - syncSubadminTeamAssignments
+      - upsertUserByEmail
+      - validateAssignments
+  - path: ./membershipQueries
+    symbols:
+      - activeMembershipCountForUser
+      - listForActiveOrganization
+  - path: ./organizations
+    symbols:
+      - createOrganizationForOwner
+  - path: ./taskHelpers
+    symbols:
+      - canViewTask
+      - getAllowedNextStatuses
+      - getVisibleTask
+      - insertCreateAudits
+      - insertStatusAudits
+      - insertTaskAudit
+      - mapRole
+      - validateAccountableLead
+      - validateAssignee
+      - validateDueDate
+      - validateEmployeeAssignment
+      - validateSiteAndTeam
+  - path: ./taskHydration
+    symbols:
+      - hydrateAudits
+      - hydrateTasks
+  - path: ./taskMutations
+    symbols:
+      - addNote
+      - approvePending
+      - create
+      - delegate
+      - markNoChange
+      - migrateCompletedToSubmitted
+      - requestRework
+      - updateStatus
+      - verify
+  - path: ./userHelpers
+    symbols:
+      - syncFromAuthArgs
+      - syncFromAuthHandler
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports
+  - subdirectories

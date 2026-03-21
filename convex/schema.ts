@@ -48,6 +48,13 @@ const inviteStatus = v.union(
   v.literal('revoked'),
 );
 
+const messageStatus = v.union(
+  v.literal('sending'),
+  v.literal('sent'),
+  v.literal('delivered'),
+  v.literal('failed'),
+);
+
 export default defineSchema({
   users: defineTable({
     authUserId: v.string(),
@@ -232,12 +239,12 @@ export default defineSchema({
     title: v.string(),
     body: v.string(),
     type: v.union(
-      v.literal('task'),
-      v.literal('availability'),
-      v.literal('handoff'),
-      v.literal('coverage'),
-      v.literal('review'),
-      v.literal('system')
+      v.literal("task"),
+      v.literal("availability"),
+      v.literal("handoff"),
+      v.literal("coverage"),
+      v.literal("review"),
+      v.literal("system"),
     ),
     taskId: v.optional(v.id('tasks')),
     route: v.optional(v.string()),
@@ -249,4 +256,48 @@ export default defineSchema({
     .index('by_membership_id', ['membershipId'])
     .index('by_membership_read', ['membershipId', 'isRead'])
     .index('by_membership_dismissed', ['membershipId', 'isDismissed']),
+
+  conversations: defineTable({
+    organizationId: v.id('organizations'),
+    participantIds: v.array(v.id('memberships')),
+    lastMessageText: v.optional(v.string()),
+    lastMessageAt: v.optional(v.string()),
+    lastMessageByMembershipId: v.optional(v.id('memberships')),
+    isGroup: v.boolean(),
+    subject: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index('by_organization_id', ['organizationId'])
+    .index('by_organization_last_message', ['organizationId', 'lastMessageAt']),
+
+  conversationParticipants: defineTable({
+    conversationId: v.id('conversations'),
+    membershipId: v.id('memberships'),
+    organizationId: v.id('organizations'),
+    lastReadAt: v.optional(v.string()),
+    unreadCount: v.number(),
+    isTyping: v.boolean(),
+    lastSeenAt: v.optional(v.string()),
+    joinedAt: v.string(),
+  })
+    .index('by_conversation_id', ['conversationId'])
+    .index('by_membership_id', ['membershipId'])
+    .index('by_membership_conversation', ['membershipId', 'conversationId'])
+    .index('by_organization_membership', ['organizationId', 'membershipId']),
+
+  messages: defineTable({
+    conversationId: v.id('conversations'),
+    organizationId: v.id('organizations'),
+    senderMembershipId: v.id('memberships'),
+    body: v.string(),
+    status: messageStatus,
+    clientId: v.string(),
+    replyToMessageId: v.optional(v.id('messages')),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index('by_conversation_id', ['conversationId'])
+    .index('by_conversation_created_at', ['conversationId', 'createdAt'])
+    .index('by_client_id', ['clientId']),
 });

@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useInbox } from './InboxProvider';
 import { useApp } from '../../store/AppContext';
-import type { AppNotification, Role } from '../../types';
+import type { NotificationItem } from '../../lib/convexApiTypes';
+import type { Role } from '../../types';
 import { ClipboardList, Calendar, ArrowLeftRight, AlertCircle, CheckCircle, BellOff, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -31,9 +32,10 @@ const NOTIFICATION_ICONS: Record<string, LucideIcon> = {
   handoff: ArrowLeftRight,
   coverage: AlertCircle,
   review: CheckCircle,
+  system: BellOff,
 };
 
-function IconForType({ type }: { type: AppNotification['type'] }) {
+function IconForType({ type }: { type: NotificationItem['type'] }) {
   const Icon = NOTIFICATION_ICONS[type] || ClipboardList;
   return <Icon className="h-4 w-4 text-surface-500 dark:text-surface-400" />;
 }
@@ -46,7 +48,7 @@ function NotificationRow({
   onPress,
   onDismiss,
 }: {
-  notification: AppNotification;
+  notification: NotificationItem;
   isUnread: boolean;
   onPress: () => void;
   onDismiss: () => void;
@@ -100,13 +102,8 @@ export function InboxSheet() {
   const { state } = useApp();
   const router = useRouter();
 
-  const resolveNotificationPath = (notification: AppNotification, role: Role) => {
-    const rolePrefix =
-      role === 'admin'
-        ? '(owner_admin)'
-        : role === 'subadmin'
-        ? '(subadmin)'
-        : '(employee)';
+  const resolveNotificationPath = (notification: NotificationItem, role: Role) => {
+    const rolePrefix = role === 'admin' ? 'admin' : role;
 
     if (notification.taskId) {
       return `/${rolePrefix}/tasks/${notification.taskId}`;
@@ -116,30 +113,30 @@ export function InboxSheet() {
     if (explicitRoute) {
       const routeMap: Record<Role, Record<string, string>> = {
         admin: {
-          overview: '/(owner_admin)/overview',
-          tasks: '/(owner_admin)/tasks',
-          people: '/(owner_admin)/people',
-          sites: '/(owner_admin)/sites',
-          more: '/(owner_admin)/more',
-          availability: '/(owner_admin)/overview',
-          handoff: '/(owner_admin)/overview',
+          overview: '/admin/overview',
+          tasks: '/admin/tasks',
+          people: '/admin/people',
+          sites: '/admin/sites',
+          more: '/admin/more',
+          availability: '/admin/overview',
+          handoff: '/admin/overview',
         },
         subadmin: {
-          overview: '/(subadmin)/overview',
-          tasks: '/(subadmin)/tasks',
-          people: '/(subadmin)/people',
-          'check-ins': '/(subadmin)/check-ins',
-          more: '/(subadmin)/more',
-          availability: '/(subadmin)/overview',
-          handoff: '/(subadmin)/check-ins',
+          overview: '/subadmin/overview',
+          tasks: '/subadmin/tasks',
+          people: '/subadmin/people',
+          'check-ins': '/subadmin/check-ins',
+          more: '/subadmin/more',
+          availability: '/subadmin/overview',
+          handoff: '/subadmin/check-ins',
         },
         employee: {
-          'my-day': '/(employee)/my-day',
-          tasks: '/(employee)/tasks',
-          'check-in': '/(employee)/check-in',
-          more: '/(employee)/more',
-          availability: '/(employee)/more',
-          handoff: '/(employee)/check-in',
+          'my-day': '/employee/my-day',
+          tasks: '/employee/tasks',
+          'check-in': '/employee/check-in',
+          more: '/employee/more',
+          availability: '/employee/more',
+          handoff: '/employee/check-in',
         },
       };
 
@@ -149,9 +146,9 @@ export function InboxSheet() {
 
     switch (notification.type) {
       case 'availability':
-        return role === 'employee' ? '/(employee)/more' : role === 'subadmin' ? '/(subadmin)/overview' : '/(owner_admin)/overview';
+        return role === 'employee' ? '/employee/more' : role === 'subadmin' ? '/subadmin/overview' : '/admin/overview';
       case 'handoff':
-        return role === 'employee' ? '/(employee)/check-in' : role === 'subadmin' ? '/(subadmin)/check-ins' : '/(owner_admin)/overview';
+        return role === 'employee' ? '/employee/check-in' : role === 'subadmin' ? '/subadmin/check-ins' : '/admin/overview';
       case 'coverage':
       case 'review':
       case 'task':
@@ -160,7 +157,7 @@ export function InboxSheet() {
     }
   };
 
-  const handlePress = (notification: AppNotification) => {
+  const handlePress = (notification: NotificationItem) => {
     markRead(notification.id);
     closeInbox();
     let targetPath = resolveNotificationPath(notification, state.role);

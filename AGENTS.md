@@ -872,3 +872,50 @@ After 10 builds check Neo4j:
 - Gemini verification was slow? → Cache PROCEED results in Neo4j with TTL, skip re-verification for packages verified within 7 days
 - Too many CAUTION false positives? → Train confidence thresholds from Neo4j verification history
 - License issues recurring? → Add dedicated license scanner (FOSSA / Snyk) as 5th MCP tool
+
+<!-- autocontext:agents-section -->
+## Project Context
+
+This project uses [autocontext](https://github.com/salehsquared/autocontext) for structured codebase documentation.
+
+**Every directory with source files contains a `.context.yaml` file.** It describes:
+
+- What the directory contains and its purpose (summary)
+- Architectural decisions and constraints (things you can't infer from code)
+- Subdirectory routing (what's inside each subdirectory)
+
+### How to Use Context Files
+
+1. **Before exploring a directory**, read its `.context.yaml` summary to understand what it does
+2. **Before modifying code**, check `decisions` and `constraints` for rationale and hard rules
+3. **After modifying files**, update the summary if the directory's purpose changed
+4. **To check freshness**, run `context status` — stale contexts may have outdated information
+
+### Directory Index
+
+| Directory | Summary |
+|-----------|---------|
+| `.` (root) | Node.js project |
+| `claude build ` | Documentation. |
+| `convex` | Source directory. |
+| `src` | Source code. |
+| `src/app` | Source directory. |
+| `src/components` | UI components. |
+| `src/components/auth` | Authentication and authorization. |
+| `src/components/people` | Source directory. |
+| `src/components/tasks` | Task definitions. |
+| `src/components/ui` | Source directory. |
+| `src/lib` | Library modules. |
+| `src/lib/server` | Source directory. |
+| `src/store` | State management. |
+| `src/utils` | Utility functions. |
+
+### Maintenance
+
+When you significantly change files in a directory, update its `.context.yaml`:
+- Update `summary` if the directory's purpose shifted
+- Update `decisions` if architectural choices changed
+- Update `constraints` if hard rules changed
+
+The `maintenance` field in each `.context.yaml` contains specific instructions.
+<!-- autocontext:agents-section-end -->

@@ -1,0 +1,59 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.152Z
+fingerprint: 3ed0fb40
+scope: src/lib/server
+summary: Source directory.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+exports:
+  - class AdminPeopleError
+  - type CreatePersonInput
+  - type UpdatePersonInput
+  - "function normalizeEmail(value: string)"
+  - "function normalizePhone(value: string)"
+  - "async function resolveConvexTokenForRequest(params:"
+  - async function requireOwnerContext()
+  - "async function listManagedMembers(token: string)"
+  - "async function getManagedMember(token: string, userId: string)"
+  - "async function createProvisionedPerson(input: CreatePersonInput)"
+  - "async function updateProvisionedPerson(userId: string, input: UpdatePersonInput)"
+  - "async function deleteProvisionedPerson(userId: string)"
+  - "async function findClerkUserByEmail(email: string)"
+  - "async function ensurePrimaryEmail( userId: string, nextEmail: string, previousEmail?: string, )"
+  - "async function upsertClerkUser(params:"
+  - class ConvexActionError
+  - async function requireAuthContext()
+  - "async function resolveMembershipId(token: string, userId: string): Promise<string>"
+  - "async function createTask(params:"
+  - "async function updateTaskStatus(params:"
+  - "async function addTaskNote(params:"
+  - "async function markTaskNoChange(params:"
+  - "async function delegateTask(params:"
+  - "async function approveTask(params:"
+  - "async function verifyTask(params:"
+dependencies:
+  internal:
+    - ./adminPeople
+    - ./adminPeopleClerk
+imports:
+  - path: ./adminPeople
+    symbols:
+      - AdminPeopleError
+      - normalizeEmail
+      - resolveConvexTokenForRequest
+  - path: ./adminPeopleClerk
+    symbols:
+      - upsertClerkUser
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports

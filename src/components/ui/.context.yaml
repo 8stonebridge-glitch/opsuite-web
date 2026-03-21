@@ -1,0 +1,43 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.120Z
+fingerprint: b347b3f1
+scope: src/components/ui
+summary: Source directory.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+exports:
+  - function Avatar(
+  - function Badge(
+  - function StatusBadge(
+  - function PriorityBadge(
+  - function Divider(
+  - function EmptyState(
+  - Input
+  - function ProgressBar(
+  - function SearchInput(
+  - interface SelectOption
+dependencies:
+  internal:
+    - ../../providers/ThemeProvider
+    - ../../types
+imports:
+  - path: ../../providers/ThemeProvider
+    symbols:
+      - ThemePreference
+      - useTheme
+  - path: ../../types
+    symbols:
+      - TaskStatus
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - dependencies.internal
+  - imports

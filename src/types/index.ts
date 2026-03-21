@@ -207,7 +207,7 @@ export interface AppNotification {
   title: string;
   body: string;
   timestamp: string;
-  type: 'task' | 'availability' | 'handoff' | 'coverage' | 'review';
+  type: 'task' | 'availability' | 'handoff' | 'coverage' | 'review' | 'system';
   taskId?: string;
   route?: string;
 }

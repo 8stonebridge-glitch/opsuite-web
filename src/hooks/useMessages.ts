@@ -90,8 +90,9 @@ export function useMessages(conversationId: Id<'conversations'>) {
     [conversationId, sendMutation, pendingMessages],
   );
 
-  // Throttled markAsRead to avoid excessive calls on pagination
+  // Throttled markAsRead to avoid excessive calls on pagination — skip when offline
   const markAsRead = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
     if (markAsReadThrottleRef.current) return;
     markAsReadThrottleRef.current = setTimeout(() => {
       markAsReadThrottleRef.current = undefined;

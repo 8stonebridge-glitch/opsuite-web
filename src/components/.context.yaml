@@ -1,0 +1,47 @@
+version: 1
+last_updated: 2026-03-19T15:51:07.145Z
+fingerprint: 9708829c
+scope: src/components
+summary: UI components.
+maintenance: |-
+  If you modify files in this directory, update this .context.yaml to reflect
+  your changes. Update the summary, and any decisions or constraints that changed.
+  Do NOT update the fingerprint manually — run `context rehash` or it will be
+  updated automatically on the next `context status` check.
+  If you only read files in this directory, do not modify this file.
+  Do not include secrets, API keys, passwords, or PII in this file.
+subdirectories:
+  - name: auth/
+    summary: Authentication and authorization.
+  - name: availability/
+    summary: Contains 3 source files
+  - name: check-in/
+    summary: Contains 1 source files
+  - name: inbox/
+    summary: Contains 3 source files
+  - name: layout/
+    summary: Contains 2 source files
+  - name: more/
+    summary: Contains 3 source files
+  - name: overview/
+    summary: Contains 4 source files
+  - name: people/
+    summary: Source directory.
+  - name: performance/
+    summary: Contains 3 source files
+  - name: tasks/
+    summary: Task definitions.
+  - name: ui/
+    summary: Source directory.
+exports:
+  - class AppErrorBoundary
+  - function ConvexDataBridge()
+  - function E2EDataBridge()
+  - function InitialLoaderDismiss()
+derived_fields:
+  - version
+  - last_updated
+  - fingerprint
+  - scope
+  - exports
+  - subdirectories

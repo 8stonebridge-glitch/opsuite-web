@@ -7,12 +7,15 @@ import { useApp } from '@/store/AppContext';
 import { useSession } from '@/providers/SessionProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Home, ClipboardList, MapPin, Users, Settings } from 'lucide-react';
+import { Home, ClipboardList, CheckSquare, MapPin, Users, Settings, MessageSquare, BarChart3 } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/admin/overview', label: 'Overview', icon: Home },
   { href: '/admin/tasks', label: 'Tasks', icon: ClipboardList },
+  { href: '/admin/approvals', label: 'Approvals', icon: CheckSquare },
+  { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
+  { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
   { href: '/admin/sites', label: 'Teams', icon: MapPin },
   { href: '/admin/people', label: 'People', icon: Users },
   { href: '/admin/more', label: 'More', icon: Settings },

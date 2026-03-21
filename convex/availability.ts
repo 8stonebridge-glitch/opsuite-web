@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { requireActiveOrganizationMembership } from "./authHelpers";
+import { createNotification } from "./notifications";
 
 function canManageMember(
   managerMembership: Doc<"memberships">,
@@ -181,6 +182,15 @@ export const approve = mutation({
       approvedAt,
     });
 
+    // Notify requester their availability was approved
+    if (record.requestedByMembershipId !== membership._id) {
+      await createNotification(ctx, {
+        organizationId, membershipId: record.requestedByMembershipId,
+        title: "Availability approved", body: `Your ${record.type} request (${record.startDate} – ${record.endDate}) was approved.`,
+        type: "availability", route: "availability",
+      });
+    }
+
     return await ctx.db.get(record._id);
   },
 });
@@ -216,6 +226,15 @@ export const reject = mutation({
       approvedByMembershipId: membership._id,
       approvedAt,
     });
+
+    // Notify requester their availability was rejected
+    if (record.requestedByMembershipId !== membership._id) {
+      await createNotification(ctx, {
+        organizationId, membershipId: record.requestedByMembershipId,
+        title: "Availability rejected", body: `Your ${record.type} request (${record.startDate} – ${record.endDate}) was rejected.`,
+        type: "availability", route: "availability",
+      });
+    }
 
     return await ctx.db.get(record._id);
   },

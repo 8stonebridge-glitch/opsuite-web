@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
+import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 
 export default function AdminNamePage() {
   const router = useRouter();
@@ -17,7 +18,9 @@ export default function AdminNamePage() {
   };
 
   return (
-    <div className="px-6 pt-12 pb-8 max-w-lg mx-auto">
+    <>
+    <OnboardingProgress currentStep={3} />
+    <div className="px-6 pt-4 pb-8 max-w-lg mx-auto">
       <button onClick={() => router.back()} className="flex items-center gap-1 mb-6 text-caption text-surface-400 dark:text-surface-500 hover:text-surface-600">
         &larr; Back
       </button>
@@ -36,5 +39,6 @@ export default function AdminNamePage() {
         <Button onClick={next} disabled={!name.trim()}>Continue</Button>
       </div>
     </div>
+    </>
   );
 }
