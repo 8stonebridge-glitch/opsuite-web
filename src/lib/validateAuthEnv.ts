@@ -80,6 +80,11 @@ export function validateAuthEnv(): EnvValidationResult {
  * Throws if required auth env vars are missing. Call server-side only.
  */
 export function assertAuthEnv(): void {
+  // Skip during build (next build) — env vars aren't available in CI
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return;
+  }
+
   const result = validateAuthEnv();
 
   for (const warning of result.warnings) {
