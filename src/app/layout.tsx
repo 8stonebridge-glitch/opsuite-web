@@ -3,6 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { Providers } from "./providers";
+import { SkipLink } from "@/components/ui/SkipLink";
+import { assertAuthEnv } from "@/lib/validateAuthEnv";
+
+// FEAT-AUTH-01: Validate auth env vars at server startup — fail fast
+assertAuthEnv();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -70,11 +75,12 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-surface-950 text-surface-900 dark:text-surface-100`}
       >
+        <SkipLink />
         <ClerkProvider
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
-          signInFallbackRedirectUrl="/"
-          signUpFallbackRedirectUrl="/"
+          signInFallbackRedirectUrl="/admin/overview"
+          signUpFallbackRedirectUrl="/onboarding"
           afterSignOutUrl="/sign-in"
         >
           {/* CSS-only loader — visible immediately, no JS dependency.
@@ -92,7 +98,9 @@ export default function RootLayout({
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-surface-200 border-t-emerald-600 dark:border-surface-700 dark:border-t-emerald-400" />
             </div>
           </div>
-          <Providers>{children}</Providers>
+          <main id="main-content">
+            <Providers>{children}</Providers>
+          </main>
         </ClerkProvider>
       </body>
     </html>
