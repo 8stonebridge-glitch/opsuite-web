@@ -46,20 +46,20 @@ export function ApprovalDrawer({
   const [showReasonFor, setShowReasonFor] = useState<'reject' | 'rework' | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Reset reason form when task changes or drawer closes
-  useEffect(() => {
+  const handleClose = useCallback(() => {
     setReason('');
     setShowReasonFor(null);
-  }, [task?.id, isOpen]);
+    onClose();
+  }, [onClose]);
 
   // Escape key handler
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        handleClose();
       }
     },
-    [isOpen, onClose],
+    [isOpen, handleClose],
   );
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export function ApprovalDrawer({
         className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
 
@@ -133,7 +133,7 @@ export function ApprovalDrawer({
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="shrink-0 p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
                 aria-label="Close drawer"
               >
