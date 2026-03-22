@@ -1,0 +1,5 @@
+description: In-app inbox notification drawer with provider and trigger button
+exports:
+  - InboxButton
+  - InboxProvider
+  - InboxSheet

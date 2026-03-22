@@ -248,6 +248,8 @@ export default defineSchema({
     ),
     taskId: v.optional(v.id('tasks')),
     route: v.optional(v.string()),
+    reason: v.optional(v.string()),
+    snoozeUntil: v.optional(v.string()),
     isRead: v.boolean(),
     isDismissed: v.boolean(),
     createdAt: v.string(),
@@ -256,6 +258,21 @@ export default defineSchema({
     .index('by_membership_id', ['membershipId'])
     .index('by_membership_read', ['membershipId', 'isRead'])
     .index('by_membership_dismissed', ['membershipId', 'isDismissed']),
+
+  notificationDeadLetters: defineTable({
+    organizationId: v.id('organizations'),
+    membershipId: v.id('memberships'),
+    title: v.string(),
+    body: v.string(),
+    type: v.union(v.literal("task"), v.literal("availability"), v.literal("handoff"), v.literal("coverage"), v.literal("review"), v.literal("system")),
+    reason: v.optional(v.string()),
+    taskId: v.optional(v.id('tasks')),
+    route: v.optional(v.string()),
+    error: v.string(),
+    attempts: v.number(),
+    lastAttemptAt: v.string(),
+    createdAt: v.string(),
+  }).index('by_organization_id', ['organizationId']).index('by_membership_id', ['membershipId']),
 
   notificationPreferences: defineTable({
     membershipId: v.id('memberships'),
@@ -311,4 +328,11 @@ export default defineSchema({
     .index('by_conversation_id', ['conversationId'])
     .index('by_conversation_created_at', ['conversationId', 'createdAt'])
     .index('by_client_id', ['clientId']),
+
+  activationMilestones: defineTable({
+    membershipId: v.id('memberships'),
+    organizationId: v.id('organizations'),
+    milestone: v.string(),
+    completedAt: v.string(),
+  }).index('by_membership_id', ['membershipId']).index('by_organization_membership', ['organizationId', 'membershipId']),
 });

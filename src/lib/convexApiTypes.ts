@@ -303,6 +303,7 @@ export interface NotificationItem {
   type: NotificationType;
   taskId?: string;
   route?: string;
+  reason?: string;
   isRead: boolean;
 }
 

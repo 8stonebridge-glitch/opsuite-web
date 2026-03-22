@@ -5,28 +5,60 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { OnboardingGuard } from '@/components/auth/OnboardingGuard';
+import type { Role } from '@/types';
 
 const STORAGE_KEY = 'opsuite_onboarding';
 
-const STEP_ROUTES = [
-  '/onboarding/org-name',
-  '/onboarding/industry',
-  '/onboarding/admin-name',
-  '/onboarding/add-sites',
-] as const;
+// ── Role-aware onboarding paths ────────────────────────────────────
 
-/** Determine the furthest completed step based on onboarding state */
-function getResumeStep(onboarding: { orgName: string; industry: unknown; adminName: string }): number {
-  if (!onboarding.orgName) return 0;
-  if (!onboarding.industry) return 1;
-  if (!onboarding.adminName) return 2;
-  return 3;
+const STEP_ROUTES_BY_ROLE: Record<Role, readonly string[]> = {
+  admin: [
+    '/onboarding/org-name',
+    '/onboarding/industry',
+    '/onboarding/admin-name',
+    '/onboarding/add-sites',
+  ],
+  subadmin: [
+    '/onboarding/admin-name',
+    '/onboarding/industry',
+  ],
+  employee: [
+    '/onboarding/admin-name',
+  ],
+} as const;
+
+/** Determine the furthest completed step based on onboarding state and role */
+function getResumeStep(
+  onboarding: { orgName: string; industry: unknown; adminName: string },
+  role: Role,
+): number {
+  const routes = STEP_ROUTES_BY_ROLE[role];
+
+  if (role === 'admin') {
+    if (!onboarding.orgName) return 0;
+    if (!onboarding.industry) return 1;
+    if (!onboarding.adminName) return 2;
+    return 3;
+  }
+
+  if (role === 'subadmin') {
+    if (!onboarding.adminName) return 0;
+    // industry is optional/view-only for subadmins, skip if already past
+    return 1;
+  }
+
+  // employee — single step
+  if (!onboarding.adminName) return 0;
+  return Math.min(0, routes.length - 1);
 }
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   const { state, dispatch } = useApp();
   const pathname = usePathname();
   const router = useRouter();
+
+  const role = state.role;
+  const stepRoutes = STEP_ROUTES_BY_ROLE[role];
 
   // Hydrate onboarding state from localStorage on mount
   useEffect(() => {
@@ -61,10 +93,10 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   // Redirect to the furthest incomplete step if user lands on /onboarding
   useEffect(() => {
     if (pathname === '/onboarding') {
-      const step = getResumeStep(state.onboarding);
-      router.replace(STEP_ROUTES[step]);
+      const step = getResumeStep(state.onboarding, role);
+      router.replace(stepRoutes[step]);
     }
-  }, [pathname, state.onboarding, router]);
+  }, [pathname, state.onboarding, role, stepRoutes, router]);
 
   // Clear localStorage when onboarding completes
   useEffect(() => {
@@ -83,3 +115,6 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     </ProtectedRoute>
   );
 }
+
+/** Exported for use by OnboardingProgress and step pages */
+export { STEP_ROUTES_BY_ROLE };

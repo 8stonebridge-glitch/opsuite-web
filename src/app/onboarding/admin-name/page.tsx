@@ -30,6 +30,7 @@ export default function AdminNamePage() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Sunday Agwaze"
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           onKeyDown={(e) => e.key === 'Enter' && next()}
           className="w-full text-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-card px-5 py-4 text-surface-900 dark:text-surface-100 outline-none focus:border-emerald-500"

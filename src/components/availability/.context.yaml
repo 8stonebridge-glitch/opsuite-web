@@ -1,0 +1,5 @@
+description: Availability and leave-request UI components (history, request cards, leave sheets)
+exports:
+  - AvailabilityHistory
+  - AvailabilityRequestCard
+  - LeaveRequestSheet

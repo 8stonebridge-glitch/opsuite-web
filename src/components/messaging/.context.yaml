@@ -1,0 +1,12 @@
+description: Real-time messaging UI (conversations list, thread view, compose input, presence)
+exports:
+  - ComposeInput
+  - ConversationItem
+  - ConversationList
+  - ConversationSkeleton
+  - MessageBubble
+  - MessageSkeleton
+  - OfflineBanner
+  - PresenceDot
+  - ThreadView
+  - TypingIndicator

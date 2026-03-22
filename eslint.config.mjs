@@ -1,9 +1,15 @@
 import coreWebVitals from 'eslint-config-next/core-web-vitals';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 const eslintConfig = [
   ...coreWebVitals,
   {
-    ignores: ['convex/_generated/**', 'scripts/**'],
+    rules: {
+      ...jsxA11y.flatConfigs.recommended.rules,
+    },
+  },
+  {
+    ignores: ['convex/_generated/**', 'scripts/**', '.aes', '.aes/**'],
   },
   {
     rules: {

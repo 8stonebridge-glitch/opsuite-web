@@ -27,11 +27,13 @@ export default function OrgNamePage() {
         </div>
         <h1 className="text-display tracking-tight text-surface-900 dark:text-surface-100 mb-2">Welcome</h1>
         <p className="text-body text-surface-400 dark:text-surface-500 mb-12">Let&apos;s set up your workspace</p>
-        <label className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-2 block">Organization name</label>
+        <label htmlFor="org-name" className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-2 block">Organization name</label>
         <input
+          id="org-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Skyhomes Properties"
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           onKeyDown={(e) => e.key === 'Enter' && next()}
           className="w-full text-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-card px-5 py-4 text-surface-900 dark:text-surface-100 outline-none focus:border-emerald-500"

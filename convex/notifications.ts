@@ -28,8 +28,10 @@ export const list = query({
       .order("desc")
       .take(cap);
 
+    const now = new Date().toISOString();
     return notifications
       .filter((n) => !n.isDismissed)
+      .filter((n) => !n.snoozeUntil || n.snoozeUntil <= now)
       .map((n) => ({
         id: n._id as string,
         title: n.title,
@@ -38,6 +40,7 @@ export const list = query({
         type: n.type,
         taskId: n.taskId ? (n.taskId as string) : undefined,
         route: n.route,
+        reason: n.reason,
         isRead: n.isRead,
       }));
   },
@@ -96,6 +99,32 @@ export const dismiss = mutation({
     const notification = await ctx.db.get(args.notificationId);
     if (!notification || notification.membershipId !== membership._id) return;
     await ctx.db.patch(args.notificationId, { isDismissed: true });
+  },
+});
+
+export const snooze = mutation({
+  args: {
+    notificationId: v.id("notifications"),
+    duration: v.union(v.literal("1h"), v.literal("1d"), v.literal("1w")),
+  },
+  handler: async (ctx, args) => {
+    const { membership } = await requireActiveOrganizationMembership(ctx);
+    const notification = await ctx.db.get(args.notificationId);
+    if (!notification || notification.membershipId !== membership._id) return;
+
+    const now = new Date();
+    switch (args.duration) {
+      case "1h":
+        now.setHours(now.getHours() + 1);
+        break;
+      case "1d":
+        now.setDate(now.getDate() + 1);
+        break;
+      case "1w":
+        now.setDate(now.getDate() + 7);
+        break;
+    }
+    await ctx.db.patch(args.notificationId, { snoozeUntil: now.toISOString() });
   },
 });
 
@@ -164,6 +193,7 @@ export async function createNotification(
     type: "task" | "availability" | "handoff" | "coverage" | "review" | "system";
     taskId?: Id<"tasks">;
     route?: string;
+    reason?: string;
   },
 ) {
   // Check user's notification preferences — skip if they've opted out of this type
@@ -191,16 +221,36 @@ export async function createNotification(
 
   if (isDuplicate) return null;
 
-  return await ctx.db.insert("notifications", {
-    organizationId: params.organizationId,
-    membershipId: params.membershipId,
-    title: params.title,
-    body: params.body,
-    type: params.type,
-    taskId: params.taskId,
-    route: params.route,
-    isRead: false,
-    isDismissed: false,
-    createdAt: new Date().toISOString(),
-  });
+  try {
+    return await ctx.db.insert("notifications", {
+      organizationId: params.organizationId,
+      membershipId: params.membershipId,
+      title: params.title,
+      body: params.body,
+      type: params.type,
+      taskId: params.taskId,
+      route: params.route,
+      reason: params.reason,
+      isRead: false,
+      isDismissed: false,
+      createdAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    const now = new Date().toISOString();
+    await ctx.db.insert("notificationDeadLetters", {
+      organizationId: params.organizationId,
+      membershipId: params.membershipId,
+      title: params.title,
+      body: params.body,
+      type: params.type,
+      reason: params.reason,
+      taskId: params.taskId,
+      route: params.route,
+      error: error instanceof Error ? error.message : String(error),
+      attempts: 1,
+      lastAttemptAt: now,
+      createdAt: now,
+    });
+    return null;
+  }
 }

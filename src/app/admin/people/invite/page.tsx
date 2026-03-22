@@ -135,10 +135,11 @@ export default function InviteMemberPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
+            <label htmlFor="invite-name" className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
               Name <span className="text-red-400">*</span>
             </label>
             <input
+              id="invite-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -149,10 +150,11 @@ export default function InviteMemberPage() {
 
           {/* Email */}
           <div>
-            <label className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
+            <label htmlFor="invite-email" className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
               Email <span className="text-red-400">*</span>
             </label>
             <input
+              id="invite-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -163,10 +165,11 @@ export default function InviteMemberPage() {
 
           {/* Phone */}
           <div>
-            <label className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
+            <label htmlFor="invite-phone" className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
               Phone
             </label>
             <input
+              id="invite-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -177,10 +180,11 @@ export default function InviteMemberPage() {
 
           {/* Role */}
           <div>
-            <label className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
+            <label htmlFor="invite-role" className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
               Role <span className="text-red-400">*</span>
             </label>
             <select
+              id="invite-role"
               value={role}
               onChange={(e) => setRole(e.target.value as InviteRole)}
               className="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-card px-4 py-3 text-body text-surface-900 dark:text-surface-100 outline-none focus:border-emerald-500"
@@ -193,10 +197,10 @@ export default function InviteMemberPage() {
           {/* Site assignment */}
           {sites.length > 0 && (
             <div>
-              <label className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
+              <span className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block" id="invite-sites-label">
                 Sites
-              </label>
-              <div className="flex flex-wrap gap-2">
+              </span>
+              <div className="flex flex-wrap gap-2" role="group" aria-labelledby="invite-sites-label">
                 {sites.map((site) => {
                   const isSelected = selectedSiteIds.includes(site._id);
                   return (
@@ -221,10 +225,10 @@ export default function InviteMemberPage() {
           {/* Team assignment */}
           {teams.length > 0 && (
             <div>
-              <label className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block">
+              <span className="text-caption font-medium text-surface-500 dark:text-surface-400 mb-1.5 block" id="invite-teams-label">
                 Teams
-              </label>
-              <div className="flex flex-wrap gap-2">
+              </span>
+              <div className="flex flex-wrap gap-2" role="group" aria-labelledby="invite-teams-label">
                 {teams.map((team) => {
                   const isSelected = selectedTeamIds.includes(team._id);
                   return (

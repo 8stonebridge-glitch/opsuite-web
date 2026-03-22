@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { useScopedTasks } from '@/store/selectors';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
@@ -12,7 +13,11 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useMutation } from 'convex/react';
 import { api } from '@/lib/convexApi';
 import { CheckSquare, CheckCircle2, RotateCcw, X, AlertTriangle } from 'lucide-react';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 import type { Task } from '@/types';
+import { ApprovalDrawer } from '@/components/approvals/ApprovalDrawer';
+import { useTaskAudit } from '@/store/selectors';
+import { SuccessToast } from '@/components/ui/SuccessToast';
 
 type Tab = 'pending' | 'submitted';
 
@@ -21,6 +26,7 @@ export default function ApprovalsPage() {
   const tasks = useScopedTasks();
   const color = useIndustryColor();
   const { isDark } = useTheme();
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<Tab>('pending');
   const [rejectModalTask, setRejectModalTask] = useState<Task | null>(null);
@@ -28,6 +34,9 @@ export default function ApprovalsPage() {
   const [reason, setReason] = useState('');
   const [processing, setProcessing] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [optimisticRemoved, setOptimisticRemoved] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState<{ message: string } | null>(null);
 
   const approvePending = useMutation(api.tasks.approvePending);
   const verifyTask = useMutation(api.tasks.verify);
@@ -35,12 +44,12 @@ export default function ApprovalsPage() {
   const bulkApprove = useMutation(api.tasks.bulkApprove);
 
   const pendingTasks = useMemo(
-    () => tasks.filter((t) => t.status === 'Pending Approval'),
-    [tasks],
+    () => tasks.filter((t) => t.status === 'Pending Approval' && !optimisticRemoved.has(t.id)),
+    [tasks, optimisticRemoved],
   );
   const submittedTasks = useMemo(
-    () => tasks.filter((t) => t.status === 'Submitted'),
-    [tasks],
+    () => tasks.filter((t) => t.status === 'Submitted' && !optimisticRemoved.has(t.id)),
+    [tasks, optimisticRemoved],
   );
 
   const currentList = activeTab === 'pending' ? pendingTasks : submittedTasks;
@@ -55,10 +64,19 @@ export default function ApprovalsPage() {
 
   const handleApprove = useCallback(async (task: Task) => {
     markProcessing(task.id, true);
+    // Optimistic: hide from list immediately
+    setOptimisticRemoved((prev) => new Set(prev).add(task.id));
     try {
       await approvePending({ taskId: task.id as never });
+      setToast({ message: 'Task approved' });
     } catch (e) {
       console.error('Approve failed', e);
+      // Rollback: re-add to list
+      setOptimisticRemoved((prev) => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
     } finally {
       markProcessing(task.id, false);
     }
@@ -66,10 +84,19 @@ export default function ApprovalsPage() {
 
   const handleVerify = useCallback(async (task: Task) => {
     markProcessing(task.id, true);
+    // Optimistic: hide from list immediately
+    setOptimisticRemoved((prev) => new Set(prev).add(task.id));
     try {
       await verifyTask({ taskId: task.id as never });
+      setToast({ message: 'Task verified' });
     } catch (e) {
       console.error('Verify failed', e);
+      // Rollback: re-add to list
+      setOptimisticRemoved((prev) => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
     } finally {
       markProcessing(task.id, false);
     }
@@ -146,8 +173,10 @@ export default function ApprovalsPage() {
         </div>
 
         {/* Tabs */}
-        <div className="px-5 lg:px-6 flex gap-6 border-t border-surface-100 dark:border-surface-800">
+        <div className="px-5 lg:px-6 flex gap-6 border-t border-surface-100 dark:border-surface-800" role="tablist" aria-label="Approval tabs">
           <button
+            role="tab"
+            aria-selected={activeTab === 'pending'}
             onClick={() => setActiveTab('pending')}
             className={`py-3 text-caption font-medium border-b-2 transition-colors ${
               activeTab === 'pending'
@@ -164,6 +193,8 @@ export default function ApprovalsPage() {
             )}
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'submitted'}
             onClick={() => setActiveTab('submitted')}
             className={`py-3 text-caption font-medium border-b-2 transition-colors ${
               activeTab === 'submitted'
@@ -190,6 +221,7 @@ export default function ApprovalsPage() {
               <label className="flex items-center gap-2 text-caption text-surface-500 dark:text-surface-400">
                 <input
                   type="checkbox"
+                  aria-label="Select all pending tasks"
                   className="rounded border-surface-300 dark:border-surface-600"
                   checked={selectedIds.size === pendingTasks.length && pendingTasks.length > 0}
                   onChange={() => {
@@ -215,11 +247,16 @@ export default function ApprovalsPage() {
           )}
 
           {/* Task List */}
-          {currentList.length === 0 ? (
+          {state.tasks.length === 0 && tasks.length === 0 ? (
+            <SkeletonCard count={3} />
+          ) : currentList.length === 0 ? (
             <EmptyState
-              icon={<CheckCircle2 className="h-10 w-10 text-surface-300 dark:text-surface-600" strokeWidth={1.5} />}
-              title={activeTab === 'pending' ? 'No pending approvals' : 'No tasks awaiting review'}
-              subtitle={activeTab === 'pending' ? 'Employee-submitted tasks will appear here' : 'Submitted tasks will appear here for verification'}
+              icon={CheckSquare}
+              title={activeTab === 'pending' ? 'No approvals waiting' : 'No tasks awaiting review'}
+              description={activeTab === 'pending'
+                ? 'Once team members submit tasks, they\'ll appear here for review'
+                : 'Submitted tasks will appear here for verification'}
+              action={{ label: 'View tasks', onClick: () => router.push('/admin/tasks') }}
             />
           ) : (
             currentList.map((task) => (
@@ -235,6 +272,7 @@ export default function ApprovalsPage() {
                 onReject={() => { setRejectModalTask(task); setReason(''); }}
                 onVerify={() => handleVerify(task)}
                 onRework={() => { setReworkModalTask(task); setReason(''); }}
+                onSelect={() => setSelectedTask(task)}
               />
             ))
           )}
@@ -268,6 +306,50 @@ export default function ApprovalsPage() {
           confirmColor="#d97706"
         />
       )}
+
+      {/* Detail Drawer */}
+      <DrawerWithAudit
+        task={selectedTask}
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onApprove={(t) => { handleApprove(t); setSelectedTask(null); }}
+        onReject={async (t, r) => {
+          markProcessing(t.id, true);
+          try {
+            await requestRework({ taskId: t.id as never, reason: r });
+          } catch (e) {
+            console.error('Reject failed', e);
+          } finally {
+            markProcessing(t.id, false);
+            setSelectedTask(null);
+          }
+        }}
+        onVerify={(t) => { handleVerify(t); setSelectedTask(null); }}
+        onRework={async (t, r) => {
+          markProcessing(t.id, true);
+          try {
+            await requestRework({ taskId: t.id as never, reason: r });
+          } catch (e) {
+            console.error('Rework failed', e);
+          } finally {
+            markProcessing(t.id, false);
+            setSelectedTask(null);
+          }
+        }}
+        isProcessing={selectedTask ? processing.has(selectedTask.id) : false}
+      />
+
+      {/* Undo Toast */}
+      {toast && (
+        <SuccessToast
+          message={toast.message}
+          undoAction={() => {
+            // UI-only undo — no reverse mutation
+          }}
+          undoTimeoutMs={5000}
+          onDismiss={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
@@ -285,11 +367,12 @@ interface ApprovalCardProps {
   onReject: () => void;
   onVerify: () => void;
   onRework: () => void;
+  onSelect: () => void;
 }
 
 function ApprovalCard({
   task, tab, isDark, isProcessing, isSelected,
-  onToggleSelect, onApprove, onReject, onVerify, onRework,
+  onToggleSelect, onApprove, onReject, onVerify, onRework, onSelect,
 }: ApprovalCardProps) {
   const due = dueLabel(task.due, task.status);
 
@@ -301,6 +384,7 @@ function ApprovalCard({
           {tab === 'pending' && (
             <input
               type="checkbox"
+              aria-label={`Select task: ${task.title}`}
               className="mt-1 rounded border-surface-300 dark:border-surface-600 shrink-0"
               checked={isSelected}
               onChange={onToggleSelect}
@@ -310,9 +394,12 @@ function ApprovalCard({
           <div className="flex-1 min-w-0">
             {/* Title + badges */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-caption font-medium text-surface-900 dark:text-surface-100 truncate">
+              <button
+                onClick={onSelect}
+                className="text-caption font-medium text-surface-900 dark:text-surface-100 truncate hover:underline text-left"
+              >
                 {task.title}
-              </span>
+              </button>
               <StatusBadge status={task.status} />
               <PriorityBadge priority={task.priority} />
             </div>
@@ -352,6 +439,7 @@ function ApprovalCard({
                   <button
                     onClick={onApprove}
                     disabled={isProcessing}
+                    aria-label={`Approve task: ${task.title}`}
                     className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors disabled:opacity-50"
                   >
                     <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -362,6 +450,7 @@ function ApprovalCard({
                   <button
                     onClick={onReject}
                     disabled={isProcessing}
+                    aria-label={`Reject task: ${task.title}`}
                     className="px-3 py-1.5 bg-red-50 dark:bg-red-950 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 transition-colors disabled:opacity-50"
                   >
                     <span className="text-[11px] font-semibold text-red-600 dark:text-red-400 flex items-center gap-1">
@@ -375,6 +464,7 @@ function ApprovalCard({
                   <button
                     onClick={onVerify}
                     disabled={isProcessing}
+                    aria-label={`Verify task: ${task.title}`}
                     className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors disabled:opacity-50"
                   >
                     <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -385,6 +475,7 @@ function ApprovalCard({
                   <button
                     onClick={onRework}
                     disabled={isProcessing}
+                    aria-label={`Request rework for task: ${task.title}`}
                     className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors disabled:opacity-50"
                   >
                     <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
@@ -418,7 +509,7 @@ interface ReasonModalProps {
 function ReasonModal({ title, description, reason, onReasonChange, onConfirm, onCancel, confirmLabel, confirmColor }: ReasonModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white dark:bg-surface-900 rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
+      <div role="dialog" aria-modal="true" aria-label={title} className="bg-white dark:bg-surface-900 rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle className="size-5 text-amber-500" />
           <h2 className="text-body font-semibold text-surface-900 dark:text-surface-100">{title}</h2>
@@ -449,5 +540,36 @@ function ReasonModal({ title, description, reason, onReasonChange, onConfirm, on
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── DrawerWithAudit ── */
+
+interface DrawerWithAuditProps {
+  task: Task | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onApprove: (task: Task) => void;
+  onReject: (task: Task, reason: string) => void;
+  onVerify: (task: Task) => void;
+  onRework: (task: Task, reason: string) => void;
+  isProcessing: boolean;
+}
+
+function DrawerWithAudit(props: DrawerWithAuditProps) {
+  const auditEntries = useTaskAudit(props.task?.id ?? '');
+
+  return (
+    <ApprovalDrawer
+      task={props.task}
+      auditEntries={auditEntries}
+      isOpen={props.isOpen}
+      onClose={props.onClose}
+      onApprove={props.onApprove}
+      onReject={props.onReject}
+      onVerify={props.onVerify}
+      onRework={props.onRework}
+      isProcessing={props.isProcessing}
+    />
   );
 }

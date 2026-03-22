@@ -39,7 +39,7 @@ export function CreateSiteModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} aria-label="Close modal" />
       <div className="relative bg-white dark:bg-surface-950 rounded-t-3xl md:rounded-card px-5 pt-5 pb-10 w-full md:max-w-lg">
         <ModalHeader onClose={onClose} />
         <SiteFormFields

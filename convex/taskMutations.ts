@@ -84,6 +84,15 @@ export const create = mutation({
       });
     }
 
+    // Record activation milestone if this is the user's first task
+    const existingTasks = await ctx.db.query("tasks").withIndex("by_organization_id", (q) => q.eq("organizationId", organizationId)).take(2);
+    if (existingTasks.length <= 1) {
+      const existing = await ctx.db.query("activationMilestones").withIndex("by_membership_id", (q) => q.eq("membershipId", membership._id)).collect();
+      if (!existing.some(m => m.milestone === "first_task_created")) {
+        await ctx.db.insert("activationMilestones", { membershipId: membership._id, organizationId, milestone: "first_task_created", completedAt: new Date().toISOString() });
+      }
+    }
+
     return await ctx.db.get(taskId);
   },
 });

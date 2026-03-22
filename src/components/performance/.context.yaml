@@ -1,0 +1,5 @@
+description: Employee and team performance scoring components (at-risk indicators, score badges)
+exports:
+  - AtRiskSection
+  - PerformanceCard
+  - ScoreBadge

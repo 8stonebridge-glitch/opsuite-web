@@ -11,12 +11,14 @@ import type { Id } from '../../lib/convexApiTypes';
 interface InboxContextValue {
   notifications: NotificationItem[];
   unreadCount: number;
+  isLoading: boolean;
   showInbox: boolean;
   openInbox: () => void;
   closeInbox: () => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
   dismiss: (id: string) => void;
+  snooze: (id: string, duration: '1h' | '1d' | '1w') => void;
   isRead: (id: string) => boolean;
 }
 
@@ -35,6 +37,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
   const markReadMutation = useMutation(api.notifications.markRead);
   const markAllReadMutation = useMutation(api.notifications.markAllRead);
   const dismissMutation = useMutation(api.notifications.dismiss);
+  const snoozeMutation = useMutation(api.notifications.snooze);
 
   const notifications = useMemo<NotificationItem[]>(
     () => notificationsData ?? [],
@@ -57,6 +60,13 @@ export function InboxProvider({ children }: { children: ReactNode }) {
     [dismissMutation],
   );
 
+  const snooze = useCallback(
+    (id: string, duration: '1h' | '1d' | '1w') => {
+      void snoozeMutation({ notificationId: id as Id<'notifications'>, duration });
+    },
+    [snoozeMutation],
+  );
+
   const markAllRead = useCallback(() => {
     void markAllReadMutation({});
   }, [markAllReadMutation]);
@@ -72,9 +82,11 @@ export function InboxProvider({ children }: { children: ReactNode }) {
   const openInbox = useCallback(() => setShowInbox(true), []);
   const closeInbox = useCallback(() => setShowInbox(false), []);
 
+  const isLoading = notificationsData === undefined;
+
   const value = useMemo<InboxContextValue>(
-    () => ({ notifications, unreadCount, showInbox, openInbox, closeInbox, markRead, markAllRead, dismiss, isRead }),
-    [notifications, unreadCount, showInbox, openInbox, closeInbox, markRead, markAllRead, dismiss, isRead],
+    () => ({ notifications, unreadCount, isLoading, showInbox, openInbox, closeInbox, markRead, markAllRead, dismiss, snooze, isRead }),
+    [notifications, unreadCount, isLoading, showInbox, openInbox, closeInbox, markRead, markAllRead, dismiss, snooze, isRead],
   );
 
   return <InboxContext.Provider value={value}>{children}</InboxContext.Provider>;

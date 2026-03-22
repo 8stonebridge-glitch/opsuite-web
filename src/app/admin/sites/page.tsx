@@ -87,7 +87,7 @@ export default function SitesScreen() {
       {/* Create Site Modal */}
       {showCreateSite && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-          <div className="fixed inset-0 bg-black/30" onClick={() => setShowCreateSite(false)} />
+          <div className="fixed inset-0 bg-black/30" onClick={() => setShowCreateSite(false)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Escape') setShowCreateSite(false); }} aria-label="Close modal" />
           <div className="relative bg-white dark:bg-surface-950 rounded-t-3xl md:rounded-3xl px-5 pt-5 pb-10 w-full md:max-w-lg">
             <div className="flex items-center justify-between mb-5">
               <p className="text-heading text-surface-900 dark:text-surface-100">Add Team</p>

@@ -1,0 +1,4 @@
+description: Onboarding flow UI (guided empty states, progress indicators)
+exports:
+  - GuidedEmptyState
+  - OnboardingProgress

@@ -1,5 +1,4 @@
-import type { Task, Team, AuditEntry, AvailabilityRecord } from '../types';
-import type { FilterValue } from '../components/tasks/TaskFilters';
+import type { Task, Team, AuditEntry, AvailabilityRecord, FilterValue } from '../types';
 import { isOverdue } from './date';
 import { isStalledTask } from './task-helpers';
 

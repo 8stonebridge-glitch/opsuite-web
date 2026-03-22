@@ -148,6 +148,7 @@ interface ConvexApi {
     markRead: FunctionReference<'mutation', 'public', { notificationId: Id<'notifications'> }, void>;
     markAllRead: FunctionReference<'mutation', 'public', Record<string, never>, void>;
     dismiss: FunctionReference<'mutation', 'public', { notificationId: Id<'notifications'> }, void>;
+    snooze: FunctionReference<'mutation', 'public', { notificationId: Id<'notifications'>; duration: '1h' | '1d' | '1w' }, void>;
     getPreferences: FunctionReference<'query', 'public', Record<string, never>, NotificationPrefs>;
     updatePreferences: FunctionReference<'mutation', 'public', { task: boolean; availability: boolean; handoff: boolean; coverage: boolean; review: boolean; system: boolean }, void>;
   };

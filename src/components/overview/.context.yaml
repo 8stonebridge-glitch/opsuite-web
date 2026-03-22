@@ -1,0 +1,6 @@
+description: Dashboard overview components (health cards, KPI rows, task previews)
+exports:
+  - HealthCard
+  - KpiRow
+  - OverviewHelpers
+  - TaskPreviewSection

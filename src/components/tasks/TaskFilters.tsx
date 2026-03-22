@@ -1,6 +1,7 @@
 'use client';
 
-export type FilterValue = 'active' | 'review' | 'done';
+import type { FilterValue } from '../../types';
+export type { FilterValue };
 
 interface TaskFiltersProps {
   value: FilterValue;

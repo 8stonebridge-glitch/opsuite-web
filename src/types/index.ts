@@ -3,6 +3,8 @@ export type Role = 'admin' | 'subadmin' | 'employee';
 /** Organization management mode: 'managed' has subadmin leads, 'direct' is admin→employees */
 export type OrgMode = 'managed' | 'direct';
 
+export type FilterValue = 'active' | 'review' | 'done';
+
 export type TaskStatus =
   | 'Open'
   | 'In Progress'

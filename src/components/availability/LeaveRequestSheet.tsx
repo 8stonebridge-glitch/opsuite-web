@@ -59,7 +59,7 @@ export function LeaveRequestSheet({ visible, onClose }: LeaveRequestSheetProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
-      <div className="flex-1 bg-black/30 dark:bg-black/50" onClick={onClose} />
+      <div className="flex-1 bg-black/30 dark:bg-black/50" onClick={onClose} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') onClose(); }} aria-label="Close sheet" />
       <div className="bg-white dark:bg-surface-950 rounded-t-3xl px-5 pt-5 pb-10">
         <div className="flex items-center justify-between mb-5">
           <span className="text-heading text-surface-900 dark:text-surface-100">Request Leave</span>
