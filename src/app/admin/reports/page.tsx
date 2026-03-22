@@ -1,17 +1,30 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const RechartsLineChart = dynamic(
+  () => import('recharts').then((mod) => ({ default: mod.LineChart })),
+  { ssr: false },
+);
+const RechartsBarChart = dynamic(
+  () => import('recharts').then((mod) => ({ default: mod.BarChart })),
+  { ssr: false },
+);
+const RechartsResponsiveContainer = dynamic(
+  () => import('recharts').then((mod) => ({ default: mod.ResponsiveContainer })),
+  { ssr: false },
+);
+
+// These are used as children of the dynamic charts, imported statically
 import {
-  LineChart,
   Line,
-  BarChart,
   Bar,
   Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
 import { useApp } from '@/store/AppContext';
 import {
@@ -350,8 +363,8 @@ export default function ReportsPage() {
             </div>
             <Card>
               <CardContent className="py-4">
-                <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <RechartsResponsiveContainer width="100%" height={280}>
+                  <RechartsLineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis
                       dataKey="week"
@@ -393,8 +406,8 @@ export default function ReportsPage() {
                       dot={{ r: 3 }}
                       name="Overdue"
                     />
-                  </LineChart>
-                </ResponsiveContainer>
+                  </RechartsLineChart>
+                </RechartsResponsiveContainer>
               </CardContent>
             </Card>
           </section>
@@ -406,8 +419,8 @@ export default function ReportsPage() {
             </div>
             <Card>
               <CardContent className="py-4">
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart
+                <RechartsResponsiveContainer width="100%" height={280}>
+                  <RechartsBarChart
                     data={bottleneckData}
                     layout="vertical"
                     margin={{ top: 5, right: 80, left: 10, bottom: 5 }}
@@ -452,8 +465,8 @@ export default function ReportsPage() {
                         <Cell key={idx} fill={entry.fill} />
                       ))}
                     </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                  </RechartsBarChart>
+                </RechartsResponsiveContainer>
               </CardContent>
             </Card>
           </section>
