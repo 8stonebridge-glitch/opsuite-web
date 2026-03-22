@@ -1,0 +1,370 @@
+{
+  "title": "OpSuite Knowledge Graph Explorer",
+  "version": "2.4",
+  "settings": {
+    "pagenumber": 0,
+    "editable": true,
+    "fullscreenEnabled": true,
+    "parameters": {},
+    "disableRowLimiting": false,
+    "globalParameters": {}
+  },
+  "pages": [
+    {
+      "title": "Overview",
+      "reports": [
+        {
+          "title": "Graph Summary",
+          "query": "MATCH (n) RETURN labels(n)[0] AS Label, count(n) AS Count ORDER BY Count DESC LIMIT 20",
+          "width": 4,
+          "height": 3,
+          "x": 0,
+          "y": 0,
+          "type": "bar",
+          "selection": { "x": "Label", "value": ["Count"] },
+          "settings": { "colors": "category10", "legend": false, "marginBottom": 80 }
+        },
+        {
+          "title": "Relationship Types",
+          "query": "MATCH ()-[r]->() RETURN type(r) AS Relationship, count(r) AS Count ORDER BY Count DESC LIMIT 15",
+          "width": 4,
+          "height": 3,
+          "x": 4,
+          "y": 0,
+          "type": "bar",
+          "selection": { "x": "Relationship", "value": ["Count"] },
+          "settings": { "colors": "category10", "legend": false, "marginBottom": 80 }
+        },
+        {
+          "title": "Total Counts",
+          "query": "MATCH (n) WITH count(n) AS nodes MATCH ()-[r]->() WITH nodes, count(r) AS rels MATCH (n) WITH nodes, rels, size(collect(DISTINCT labels(n)[0])) AS labels RETURN nodes AS Nodes, rels AS Relationships, labels AS Labels",
+          "width": 4,
+          "height": 3,
+          "x": 8,
+          "y": 0,
+          "type": "table",
+          "selection": {},
+          "settings": {}
+        },
+        {
+          "title": "Full Graph Explorer (click to expand)",
+          "query": "MATCH (n)-[r]-(m) RETURN n, r, m LIMIT 300",
+          "width": 12,
+          "height": 5,
+          "x": 0,
+          "y": 3,
+          "type": "graph",
+          "selection": {
+            "Error": "id",
+            "Fix": "id",
+            "Rule": "name",
+            "FeatureSpec": "name",
+            "FeatureDomain": "name",
+            "Knowledge": "topic",
+            "Stack": "name",
+            "AppArchetype": "name",
+            "FlowAntiPattern": "name",
+            "FlowPattern": "name",
+            "Project": "name",
+            "User": "name",
+            "CustomTest": "name",
+            "Decision": "name",
+            "FeatureType": "name"
+          },
+          "settings": {
+            "nodePositions": {},
+            "frozen": false,
+            "drilldownLink": "",
+            "hideSelections": false,
+            "iconStyle": "fill",
+            "relationshipParticles": false
+          }
+        }
+      ]
+    },
+    {
+      "title": "Error History",
+      "reports": [
+        {
+          "title": "All 20 OpSuite Errors → Fixes → AntiPatterns",
+          "query": "MATCH (e:Error)-[:FIXED_BY]->(f:Fix) WHERE e.id STARTS WITH 'ERR-OPSUITE-' OPTIONAL MATCH (e)-[:VIOLATES]->(ap:FlowAntiPattern) OPTIONAL MATCH (e)-[:IN_DOMAIN]->(fd:FeatureDomain) OPTIONAL MATCH (e)-[:FOR_STACK]->(s:Stack) RETURN e, f, ap, fd, s",
+          "width": 12,
+          "height": 5,
+          "x": 0,
+          "y": 0,
+          "type": "graph",
+          "selection": {
+            "Error": "id",
+            "Fix": "id",
+            "FlowAntiPattern": "name",
+            "FeatureDomain": "name",
+            "Stack": "name"
+          },
+          "settings": { "nodePositions": {}, "frozen": false }
+        },
+        {
+          "title": "Error Timeline",
+          "query": "MATCH (e:Error) WHERE e.id STARTS WITH 'ERR-OPSUITE-' RETURN e.id AS Error, e.severity AS Severity, e.category AS Category, e.detectedAt AS Date, e.file AS File, substring(e.message, 0, 80) AS Message ORDER BY e.detectedAt, e.id",
+          "width": 8,
+          "height": 4,
+          "x": 0,
+          "y": 5,
+          "type": "table",
+          "selection": {},
+          "settings": { "allowDownload": true }
+        },
+        {
+          "title": "Errors by Category",
+          "query": "MATCH (e:Error) WHERE e.id STARTS WITH 'ERR-OPSUITE-' RETURN e.category AS Category, count(e) AS Count ORDER BY Count DESC",
+          "width": 4,
+          "height": 4,
+          "x": 8,
+          "y": 5,
+          "type": "pie",
+          "selection": { "index": "Category", "value": "Count", "key": "Category" },
+          "settings": {}
+        }
+      ]
+    },
+    {
+      "title": "Feature Domains",
+      "reports": [
+        {
+          "title": "Domain → Specs → Rules Network",
+          "query": "MATCH (fd:FeatureDomain)<-[:IN_DOMAIN]-(n) RETURN fd, n LIMIT 500",
+          "width": 12,
+          "height": 5,
+          "x": 0,
+          "y": 0,
+          "type": "graph",
+          "selection": {
+            "FeatureDomain": "name",
+            "FeatureSpec": "name",
+            "Rule": "name",
+            "Error": "id"
+          },
+          "settings": { "nodePositions": {}, "frozen": false }
+        },
+        {
+          "title": "Specs per Domain",
+          "query": "MATCH (fs:FeatureSpec)-[:IN_DOMAIN]->(fd:FeatureDomain) RETURN fd.name AS Domain, count(fs) AS Specs ORDER BY Specs DESC",
+          "width": 6,
+          "height": 4,
+          "x": 0,
+          "y": 5,
+          "type": "bar",
+          "selection": { "x": "Domain", "value": ["Specs"] },
+          "settings": { "colors": "category10", "marginBottom": 80 }
+        },
+        {
+          "title": "Rules per Domain (wired via IN_DOMAIN)",
+          "query": "MATCH (r:Rule)-[:IN_DOMAIN]->(fd:FeatureDomain) RETURN fd.name AS Domain, count(r) AS Rules ORDER BY Rules DESC",
+          "width": 6,
+          "height": 4,
+          "x": 6,
+          "y": 5,
+          "type": "bar",
+          "selection": { "x": "Domain", "value": ["Rules"] },
+          "settings": { "colors": "set2", "marginBottom": 80 }
+        }
+      ]
+    },
+    {
+      "title": "Rules & Security",
+      "reports": [
+        {
+          "title": "All Rules by Enforcement Level",
+          "query": "MATCH (r:Rule) RETURN r.enforcement AS Enforcement, count(r) AS Count ORDER BY Count DESC",
+          "width": 4,
+          "height": 3,
+          "x": 0,
+          "y": 0,
+          "type": "pie",
+          "selection": { "index": "Enforcement", "value": "Count", "key": "Enforcement" },
+          "settings": {}
+        },
+        {
+          "title": "Rules by Category",
+          "query": "MATCH (r:Rule) RETURN r.category AS Category, count(r) AS Count ORDER BY Count DESC LIMIT 15",
+          "width": 4,
+          "height": 3,
+          "x": 4,
+          "y": 0,
+          "type": "bar",
+          "selection": { "x": "Category", "value": ["Count"] },
+          "settings": { "marginBottom": 80 }
+        },
+        {
+          "title": "BLOCK Rules (critical)",
+          "query": "MATCH (r:Rule) WHERE r.enforcement = 'BLOCK' RETURN r.name AS Rule, r.category AS Category, r.description AS Description, r.source AS Source ORDER BY r.category, r.name",
+          "width": 4,
+          "height": 3,
+          "x": 8,
+          "y": 0,
+          "type": "table",
+          "selection": {},
+          "settings": { "allowDownload": true }
+        },
+        {
+          "title": "Security Tests Network",
+          "query": "MATCH (ct:CustomTest) OPTIONAL MATCH (ct)-[r]-(n) RETURN ct, r, n",
+          "width": 12,
+          "height": 4,
+          "x": 0,
+          "y": 3,
+          "type": "graph",
+          "selection": { "CustomTest": "name", "Rule": "name", "FeatureDomain": "name", "Stack": "name" },
+          "settings": {}
+        }
+      ]
+    },
+    {
+      "title": "Flow Patterns",
+      "reports": [
+        {
+          "title": "Flow Patterns → Stages → Transitions",
+          "query": "MATCH (fp:FlowPattern)-[:HAS_STAGE]->(fs:FlowStage) OPTIONAL MATCH (fs)-[:TRANSITIONS_TO]->(fs2:FlowStage) RETURN fp, fs, fs2 LIMIT 500",
+          "width": 12,
+          "height": 5,
+          "x": 0,
+          "y": 0,
+          "type": "graph",
+          "selection": { "FlowPattern": "name", "FlowStage": "name" },
+          "settings": { "nodePositions": {}, "frozen": false, "layout": "tree" }
+        },
+        {
+          "title": "Anti-Patterns (all)",
+          "query": "MATCH (ap:FlowAntiPattern) RETURN ap.name AS AntiPattern, ap.severity AS Severity, ap.category AS Category, substring(ap.description, 0, 100) AS Description ORDER BY ap.severity DESC, ap.name",
+          "width": 12,
+          "height": 4,
+          "x": 0,
+          "y": 5,
+          "type": "table",
+          "selection": {},
+          "settings": { "allowDownload": true }
+        }
+      ]
+    },
+    {
+      "title": "Architecture",
+      "reports": [
+        {
+          "title": "AppArchetypes Hub (everything connected to archetypes)",
+          "query": "MATCH (a:AppArchetype)<-[r:FOR_ARCHETYPE]-(n) WITH a, labels(n)[0] AS nodeType, count(n) AS count RETURN a.name AS Archetype, nodeType AS ConnectedType, count ORDER BY a.name, count DESC",
+          "width": 6,
+          "height": 3,
+          "x": 0,
+          "y": 0,
+          "type": "table",
+          "selection": {},
+          "settings": {}
+        },
+        {
+          "title": "Stack Usage",
+          "query": "MATCH (s:Stack)<-[r]-(n) RETURN s.name AS Stack, count(n) AS Connections ORDER BY Connections DESC LIMIT 20",
+          "width": 6,
+          "height": 3,
+          "x": 6,
+          "y": 0,
+          "type": "bar",
+          "selection": { "x": "Stack", "value": ["Connections"] },
+          "settings": { "marginBottom": 80 }
+        },
+        {
+          "title": "FeatureType → Required Domains Map",
+          "query": "MATCH (ft:FeatureType)-[:REQUIRES_DOMAIN]->(fd:FeatureDomain) RETURN ft, fd",
+          "width": 12,
+          "height": 5,
+          "x": 0,
+          "y": 3,
+          "type": "graph",
+          "selection": { "FeatureType": "name", "FeatureDomain": "name" },
+          "settings": { "nodePositions": {}, "frozen": false }
+        }
+      ]
+    },
+    {
+      "title": "Knowledge Base",
+      "reports": [
+        {
+          "title": "Knowledge by Category",
+          "query": "MATCH (k:Knowledge) RETURN k.category AS Category, count(k) AS Count, avg(k.confidence) AS AvgConfidence ORDER BY Count DESC LIMIT 15",
+          "width": 6,
+          "height": 3,
+          "x": 0,
+          "y": 0,
+          "type": "bar",
+          "selection": { "x": "Category", "value": ["Count"] },
+          "settings": { "marginBottom": 80 }
+        },
+        {
+          "title": "Knowledge Sources (Perplexity Findings)",
+          "query": "MATCH (pf:PerplexityFinding) RETURN pf.category AS Category, count(pf) AS Findings ORDER BY Findings DESC LIMIT 10",
+          "width": 6,
+          "height": 3,
+          "x": 6,
+          "y": 0,
+          "type": "pie",
+          "selection": { "index": "Category", "value": "Findings", "key": "Category" },
+          "settings": {}
+        },
+        {
+          "title": "Knowledge → INFORMS Network (sample)",
+          "query": "MATCH (k:Knowledge)-[:INFORMS]->(target) RETURN k, target LIMIT 200",
+          "width": 12,
+          "height": 5,
+          "x": 0,
+          "y": 3,
+          "type": "graph",
+          "selection": { "Knowledge": "topic", "FeatureSpec": "name", "Rule": "name", "FlowAntiPattern": "name" },
+          "settings": {}
+        }
+      ]
+    },
+    {
+      "title": "Sunday's View",
+      "reports": [
+        {
+          "title": "Your Error History (personal graph)",
+          "query": "MATCH (u:User {name: 'sunday'})-[r]-(n) OPTIONAL MATCH (n)-[r2]-(m) WHERE NOT m:User RETURN u, r, n, r2, m LIMIT 300",
+          "width": 12,
+          "height": 5,
+          "x": 0,
+          "y": 0,
+          "type": "graph",
+          "selection": {
+            "User": "name",
+            "Error": "id",
+            "Fix": "id",
+            "ErrorTimeline": "id",
+            "Project": "name",
+            "FlowAntiPattern": "name"
+          },
+          "settings": { "nodePositions": {}, "frozen": false }
+        },
+        {
+          "title": "Your Errors by Severity",
+          "query": "MATCH (u:User {name: 'sunday'})-[:ENCOUNTERED]->(e:Error) RETURN e.severity AS Severity, count(e) AS Count",
+          "width": 4,
+          "height": 3,
+          "x": 0,
+          "y": 5,
+          "type": "pie",
+          "selection": { "index": "Severity", "value": "Count", "key": "Severity" },
+          "settings": {}
+        },
+        {
+          "title": "Your Fix Timeline",
+          "query": "MATCH (u:User {name: 'sunday'})-[:APPLIED_FIX]->(f:Fix) RETURN f.id AS Fix, f.date AS Date, substring(f.action, 0, 100) AS Action ORDER BY f.date",
+          "width": 8,
+          "height": 3,
+          "x": 4,
+          "y": 5,
+          "type": "table",
+          "selection": {},
+          "settings": { "allowDownload": true }
+        }
+      ]
+    }
+  ]
+}

@@ -37,6 +37,7 @@ import type {
   MessageListResult,
   PresenceEntry,
   NotificationItem,
+  NotificationPrefs,
   TaskAuditDoc,
   DashboardMetrics,
 } from './convexApiTypes';
@@ -147,6 +148,8 @@ interface ConvexApi {
     markRead: FunctionReference<'mutation', 'public', { notificationId: Id<'notifications'> }, void>;
     markAllRead: FunctionReference<'mutation', 'public', Record<string, never>, void>;
     dismiss: FunctionReference<'mutation', 'public', { notificationId: Id<'notifications'> }, void>;
+    getPreferences: FunctionReference<'query', 'public', Record<string, never>, NotificationPrefs>;
+    updatePreferences: FunctionReference<'mutation', 'public', { task: boolean; availability: boolean; handoff: boolean; coverage: boolean; review: boolean; system: boolean }, void>;
   };
 }
 

@@ -10,15 +10,23 @@
 
 import type * as authHelpers from "../authHelpers.js";
 import type * as availability from "../availability.js";
+import type * as conversations from "../conversations.js";
+import type * as cronHandlers from "../cronHandlers.js";
+import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
 import type * as handoffs from "../handoffs.js";
 import type * as http from "../http.js";
 import type * as membershipHelpers from "../membershipHelpers.js";
 import type * as membershipQueries from "../membershipQueries.js";
 import type * as memberships from "../memberships.js";
+import type * as messages from "../messages.js";
+import type * as metrics from "../metrics.js";
+import type * as notifications from "../notifications.js";
 import type * as orgSettings from "../orgSettings.js";
 import type * as organizations from "../organizations.js";
+import type * as presence from "../presence.js";
 import type * as sites from "../sites.js";
+import type * as taskAudits from "../taskAudits.js";
 import type * as taskHelpers from "../taskHelpers.js";
 import type * as taskHydration from "../taskHydration.js";
 import type * as taskMutations from "../taskMutations.js";
@@ -26,11 +34,6 @@ import type * as tasks from "../tasks.js";
 import type * as teams from "../teams.js";
 import type * as userHelpers from "../userHelpers.js";
 import type * as users from "../users.js";
-import type * as cronHandlers from "../cronHandlers.js";
-import type * as crons from "../crons.js";
-import type * as taskAudits from "../taskAudits.js";
-import type * as metrics from "../metrics.js";
-import type * as notifications from "../notifications.js";
 
 import type {
   ApiFromModules,
@@ -41,15 +44,23 @@ import type {
 declare const fullApi: ApiFromModules<{
   authHelpers: typeof authHelpers;
   availability: typeof availability;
+  conversations: typeof conversations;
+  cronHandlers: typeof cronHandlers;
+  crons: typeof crons;
   emails: typeof emails;
   handoffs: typeof handoffs;
   http: typeof http;
   membershipHelpers: typeof membershipHelpers;
   membershipQueries: typeof membershipQueries;
   memberships: typeof memberships;
+  messages: typeof messages;
+  metrics: typeof metrics;
+  notifications: typeof notifications;
   orgSettings: typeof orgSettings;
   organizations: typeof organizations;
+  presence: typeof presence;
   sites: typeof sites;
+  taskAudits: typeof taskAudits;
   taskHelpers: typeof taskHelpers;
   taskHydration: typeof taskHydration;
   taskMutations: typeof taskMutations;
@@ -57,11 +68,6 @@ declare const fullApi: ApiFromModules<{
   teams: typeof teams;
   userHelpers: typeof userHelpers;
   users: typeof users;
-  cronHandlers: typeof cronHandlers;
-  crons: typeof crons;
-  taskAudits: typeof taskAudits;
-  metrics: typeof metrics;
-  notifications: typeof notifications;
 }>;
 
 /**

@@ -306,6 +306,15 @@ export interface NotificationItem {
   isRead: boolean;
 }
 
+export interface NotificationPrefs {
+  task: boolean;
+  availability: boolean;
+  handoff: boolean;
+  coverage: boolean;
+  review: boolean;
+  system: boolean;
+}
+
 /** Raw task audit document */
 export interface TaskAuditDoc {
   _id: Id<'taskAudits'>;

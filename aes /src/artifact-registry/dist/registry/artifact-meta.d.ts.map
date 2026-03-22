@@ -1,0 +1,1 @@
+{"version":3,"file":"artifact-meta.d.ts","sourceRoot":"","sources":["../../src/registry/artifact-meta.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,UAAU,CAAC;AAE7C,MAAM,WAAW,YAAY;IAC3B,kDAAkD;IAClD,MAAM,EAAE,MAAM,CAAC;IACf,4EAA4E;IAC5E,OAAO,EAAE,MAAM,CAAC;CACjB;AAED,eAAO,MAAM,aAAa,EAAE,MAAM,CAAC,YAAY,EAAE,YAAY,CA4B5D,CAAC"}

@@ -11,6 +11,7 @@ import {
 import { KpiRow } from '@/components/overview/KpiRow';
 import { AtRiskSection } from '@/components/performance/AtRiskSection';
 import { ExportButton } from '@/components/reports/ExportButton';
+import { FreshnessLabel } from '@/components/reports/FreshnessLabel';
 import { Card, CardContent } from '@/components/ui/Card';
 import {
   Table,
@@ -164,6 +165,9 @@ export default function ReportsPage() {
             </h1>
           </div>
           <ExportButton />
+        </div>
+        <div className="px-5 lg:px-6 pb-2">
+          <FreshnessLabel lastUpdated={new Date().toISOString()} isRealtime />
         </div>
       </div>
 

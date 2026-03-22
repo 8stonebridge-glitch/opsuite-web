@@ -18,6 +18,7 @@ import {
   SignOutButton,
 } from '@/components/more/MoreSections';
 import { CreateSiteModal } from '@/components/more/CreateSiteModal';
+import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import { Pause, RefreshCw } from 'lucide-react';
 import type { OrgMode } from '@/types';
 
@@ -123,6 +124,7 @@ function MoreScreenContent({
         onOrgModeChange={handleOrgModeChange}
         onAddSite={onAddSite}
       />
+      <NotificationPreferences />
       <AppSettingsSection />
       <AppInfoCard />
       <SignOutButton onSignOut={onSignOut} />

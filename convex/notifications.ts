@@ -99,6 +99,59 @@ export const dismiss = mutation({
   },
 });
 
+// ── Notification Preferences ─────────────────────────────────────────
+
+const NOTIFICATION_TYPES = ["task", "availability", "handoff", "coverage", "review", "system"] as const;
+type NotificationType = typeof NOTIFICATION_TYPES[number];
+
+const DEFAULT_PREFS: Record<NotificationType, boolean> = {
+  task: true, availability: true, handoff: true,
+  coverage: true, review: true, system: true,
+};
+
+export const getPreferences = query({
+  args: {},
+  handler: async (ctx) => {
+    const { membership } = await requireActiveOrganizationMembership(ctx);
+    const prefs = await ctx.db
+      .query("notificationPreferences")
+      .withIndex("by_membership_id", (q) => q.eq("membershipId", membership._id))
+      .first();
+    if (!prefs) return DEFAULT_PREFS;
+    return {
+      task: prefs.task, availability: prefs.availability,
+      handoff: prefs.handoff, coverage: prefs.coverage,
+      review: prefs.review, system: prefs.system,
+    };
+  },
+});
+
+export const updatePreferences = mutation({
+  args: {
+    task: v.boolean(),
+    availability: v.boolean(),
+    handoff: v.boolean(),
+    coverage: v.boolean(),
+    review: v.boolean(),
+    system: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { membership } = await requireActiveOrganizationMembership(ctx);
+    const existing = await ctx.db
+      .query("notificationPreferences")
+      .withIndex("by_membership_id", (q) => q.eq("membershipId", membership._id))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, args);
+    } else {
+      await ctx.db.insert("notificationPreferences", {
+        membershipId: membership._id,
+        ...args,
+      });
+    }
+  },
+});
+
 // ── Internal helper — used by other mutations to emit notifications ──
 
 export async function createNotification(
@@ -113,6 +166,13 @@ export async function createNotification(
     route?: string;
   },
 ) {
+  // Check user's notification preferences — skip if they've opted out of this type
+  const prefs = await ctx.db
+    .query("notificationPreferences")
+    .withIndex("by_membership_id", (q) => q.eq("membershipId", params.membershipId))
+    .first();
+  if (prefs && !prefs[params.type]) return null;
+
   // Deduplication: don't create an identical notification within 60s
   const recent = await ctx.db
     .query("notifications")

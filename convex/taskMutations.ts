@@ -208,6 +208,7 @@ export const approvePending = mutation({
     const { organizationId, membership, task, user } = await getVisibleTask(ctx, args.taskId);
     if (membership.role === "employee") throw new Error("Employees cannot approve tasks");
     if (task.status !== "Pending Approval") throw new Error("Only pending-approval tasks can be approved");
+    if (task.createdByMembershipId === membership._id) throw new Error("You cannot approve your own task");
 
     const now = new Date().toISOString();
     await ctx.db.patch(task._id, { status: "Open", lastActivityAt: now, updatedAt: now });
@@ -235,6 +236,7 @@ export const verify = mutation({
     const { organizationId, membership, task, user } = await getVisibleTask(ctx, args.taskId);
     if (membership.role === "employee") throw new Error("Employees cannot verify tasks");
     if (task.status !== "Submitted") throw new Error("Only completed tasks can be verified");
+    if (task.assignedToMembershipId === membership._id) throw new Error("You cannot verify your own task");
 
     const now = new Date().toISOString();
     const completedLate = task.dueDate && task.completedAt && task.completedAt > task.dueDate;
@@ -313,6 +315,7 @@ export const bulkApprove = mutation({
       const task = await ctx.db.get(taskId);
       if (!task || task.organizationId !== organizationId) continue;
       if (task.status !== "Pending Approval") continue;
+      if (task.createdByMembershipId === membership._id) continue; // skip self-created tasks
 
       await ctx.db.patch(task._id, { status: "Open", lastActivityAt: now, updatedAt: now });
       await insertTaskAudit(ctx, {

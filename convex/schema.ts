@@ -257,6 +257,17 @@ export default defineSchema({
     .index('by_membership_read', ['membershipId', 'isRead'])
     .index('by_membership_dismissed', ['membershipId', 'isDismissed']),
 
+  notificationPreferences: defineTable({
+    membershipId: v.id('memberships'),
+    task: v.boolean(),
+    availability: v.boolean(),
+    handoff: v.boolean(),
+    coverage: v.boolean(),
+    review: v.boolean(),
+    system: v.boolean(),
+  })
+    .index('by_membership_id', ['membershipId']),
+
   conversations: defineTable({
     organizationId: v.id('organizations'),
     participantIds: v.array(v.id('memberships')),

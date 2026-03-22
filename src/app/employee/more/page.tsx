@@ -18,6 +18,7 @@ const LeaveRequestSheet = dynamic(
   { ssr: false }
 );
 import { AvailabilityHistory } from '@/components/availability/AvailabilityHistory';
+import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 
 export default function EmployeeMoreScreen() {
   const { state, dispatch } = useApp();
@@ -136,6 +137,8 @@ export default function EmployeeMoreScreen() {
           <Card>
             <ThemeSwitcher />
           </Card>
+
+          <NotificationPreferences />
 
           <Card>
             <SettingRow icon="ℹ️" label="Version" value="1.0.0" last />

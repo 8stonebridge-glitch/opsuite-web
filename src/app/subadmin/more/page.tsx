@@ -8,6 +8,7 @@ import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { Card } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 
 export default function SubAdminMoreScreen() {
   const { state, dispatch } = useApp();
@@ -54,6 +55,8 @@ export default function SubAdminMoreScreen() {
           <Card>
             <ThemeSwitcher />
           </Card>
+
+          <NotificationPreferences />
 
           <Card>
             <SettingRow icon="ℹ️" label="Version" value="1.0.0" last />
