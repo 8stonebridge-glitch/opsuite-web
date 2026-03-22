@@ -116,5 +116,3 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   );
 }
 
-/** Exported for use by OnboardingProgress and step pages */
-export { STEP_ROUTES_BY_ROLE };
