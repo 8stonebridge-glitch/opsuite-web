@@ -154,6 +154,12 @@ Only truly trivial non-behavioral work may skip this reduced path:
 - formatting-only changes
 - purely mechanical renames or refactors that do not change behavior
 
+When spawning build agents (Agent tool):
+- prepend the contents of `.aes/agent-preamble.md` to every agent prompt
+- after every agent completes, follow `.aes/post-agent-verification.md`
+- do not trust agent self-reported "zero errors" — verify independently
+- do not push until all verification checks pass
+
 If the task is app-level rather than feature-level:
 - treat the whole app as the planning target
 - derive the internal feature breakdown automatically when possible
