@@ -5,7 +5,13 @@ import { requireActiveOrganizationMembership } from "./authHelpers";
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const { organizationId, membership } = await requireActiveOrganizationMembership(ctx);
+    let organizationId, membership;
+    try {
+      ({ organizationId, membership } = await requireActiveOrganizationMembership(ctx));
+    } catch {
+      // User not authenticated or no active org — return empty list instead of crashing
+      return [];
+    }
 
     // Get conversation participations for this user — capped at 100 to avoid
     // unbounded reads as the user's conversation count grows over time.
