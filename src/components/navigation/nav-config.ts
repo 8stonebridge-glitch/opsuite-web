@@ -40,7 +40,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'admin-sites',     href: '/admin/sites',     label: 'Teams',     icon: MapPin,        roles: ['owner_admin'], mobileTab: 'Team' },
   { id: 'admin-people',    href: '/admin/people',    label: 'People',    icon: Users,         roles: ['owner_admin'], mobileTab: 'Team' },
   { id: 'admin-reports',   href: '/admin/reports',   label: 'Reports',   icon: BarChart3,     roles: ['owner_admin'], mobileTab: 'More' },
-  { id: 'admin-more',      href: '/admin/more',      label: 'Settings',  icon: Settings,      roles: ['owner_admin'], mobileTab: 'More' },
+  { id: 'admin-more',      href: '/admin/more',      label: 'More',      icon: Settings,      roles: ['owner_admin'] },
 
   // ── Subadmin ──
   { id: 'sub-overview',  href: '/subadmin/overview',  label: 'Overview',   icon: Home,          roles: ['subadmin'] },
@@ -48,7 +48,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'sub-checkins',  href: '/subadmin/check-ins', label: 'Check-ins',  icon: Bell,          roles: ['subadmin'] },
   { id: 'sub-messages',  href: '/subadmin/messages',  label: 'Messages',   icon: MessageSquare, roles: ['subadmin'] },
   { id: 'sub-people',    href: '/subadmin/people',    label: 'Team',       icon: Users,         roles: ['subadmin'], mobileTab: 'More' },
-  { id: 'sub-more',      href: '/subadmin/more',      label: 'Settings',   icon: Settings,      roles: ['subadmin'], mobileTab: 'More' },
+  { id: 'sub-more',      href: '/subadmin/more',      label: 'More',       icon: Settings,      roles: ['subadmin'] },
 
   // ── Employee ──
   { id: 'emp-myday',    href: '/employee/my-day',    label: 'My Day',   icon: Sun,           roles: ['employee'] },
