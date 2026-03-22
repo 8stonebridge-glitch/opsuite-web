@@ -1,30 +1,14 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireActiveOrganizationMembership } from "./authHelpers";
+import { requireActiveOrganizationMembership, getActiveOrganizationMembership } from "./authHelpers";
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    // Guard: return empty if user is not authenticated yet
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
+    const access = await getActiveOrganizationMembership(ctx);
+    if (!access) return [];
 
-    // Guard: return empty if user has no active org
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject))
-      .first();
-    if (!user || !user.activeOrganizationId) return [];
-
-    const membership = await ctx.db
-      .query("memberships")
-      .withIndex("by_organization_user", (q) =>
-        q.eq("organizationId", user.activeOrganizationId!).eq("userId", user._id),
-      )
-      .first();
-    if (!membership) return [];
-
-    const organizationId = user.activeOrganizationId;
+    const { organizationId, membership } = access;
 
     // Get conversation participations for this user — capped at 100 to avoid
     // unbounded reads as the user's conversation count grows over time.

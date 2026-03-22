@@ -61,6 +61,42 @@ export async function requireActiveOrganizationMembership(ctx: AuthCtx) {
   };
 }
 
+/**
+ * Safe version of requireActiveOrganizationMembership for queries called
+ * from the client via useQuery. Returns null instead of throwing when
+ * auth is not ready, user has no org, or membership is missing.
+ * Use this in any query that renders on page load.
+ */
+export async function getActiveOrganizationMembership(ctx: AuthCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject))
+    .first();
+  if (!user || !user.activeOrganizationId) return null;
+
+  const membership = await ctx.db
+    .query("memberships")
+    .withIndex("by_organization_user", (q) =>
+      q.eq("organizationId", user.activeOrganizationId as Id<"organizations">).eq("userId", user._id),
+    )
+    .first();
+  if (!membership || membership.status !== "active") return null;
+
+  const organization = await ctx.db.get(user.activeOrganizationId);
+  if (!organization) return null;
+
+  return {
+    identity,
+    user,
+    organization,
+    membership,
+    organizationId: organization._id as Id<"organizations">,
+  };
+}
+
 export async function requireOwnerMembership(ctx: AuthCtx) {
   const access = await requireActiveOrganizationMembership(ctx);
   if (access.membership.role !== "owner_admin") {

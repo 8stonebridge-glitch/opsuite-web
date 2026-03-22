@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { query, type QueryCtx } from "./_generated/server";
-import { requireActiveOrganizationMembership, requireOwnerMembership } from "./authHelpers";
+import { requireActiveOrganizationMembership, requireOwnerMembership, getActiveOrganizationMembership } from "./authHelpers";
 
 async function getVisibleMemberships(
   ctx: QueryCtx,
@@ -34,25 +34,10 @@ async function getVisibleMemberships(
 export const listForActiveOrganization = query({
   args: {},
   handler: async (ctx) => {
-    // Guard: return empty if user is not authenticated or has no active org
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
+    const access = await getActiveOrganizationMembership(ctx);
+    if (!access) return [];
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject))
-      .first();
-    if (!user || !user.activeOrganizationId) return [];
-
-    const membership = await ctx.db
-      .query("memberships")
-      .withIndex("by_organization_user", (q) =>
-        q.eq("organizationId", user.activeOrganizationId!).eq("userId", user._id),
-      )
-      .first();
-    if (!membership) return [];
-
-    const organizationId = user.activeOrganizationId;
+    const { organizationId, membership } = access;
 
     const visibleMemberships = await getVisibleMemberships(ctx, organizationId, membership);
 
