@@ -8,13 +8,14 @@ import { useIndustryColor, useDashboardCounters } from '@/store/selectors';
 import { useApp } from '@/store/AppContext';
 import { useTheme } from '@/providers/ThemeProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Home, ClipboardList, Bell, Users, Settings } from 'lucide-react';
+import { Home, ClipboardList, Bell, MessageSquare, Users, Settings } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/subadmin/overview', label: 'Overview', icon: Home },
   { href: '/subadmin/tasks', label: 'Tasks', icon: ClipboardList },
   { href: '/subadmin/check-ins', label: 'Check-ins', icon: Bell },
+  { href: '/subadmin/messages', label: 'Messages', icon: MessageSquare },
   { href: '/subadmin/people', label: 'Team', icon: Users },
   { href: '/subadmin/more', label: 'More', icon: Settings },
 ];

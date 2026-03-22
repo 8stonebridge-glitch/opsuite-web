@@ -8,13 +8,14 @@ import { useIndustryColor } from '@/store/selectors';
 import { useApp } from '@/store/AppContext';
 import { useTheme } from '@/providers/ThemeProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Sun, ClipboardList, Hand, Settings } from 'lucide-react';
+import { Sun, ClipboardList, Hand, MessageSquare, Settings } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/employee/my-day', label: 'My Day', icon: Sun },
   { href: '/employee/tasks', label: 'Tasks', icon: ClipboardList },
   { href: '/employee/check-in', label: 'Handoff', icon: Hand },
+  { href: '/employee/messages', label: 'Messages', icon: MessageSquare },
   { href: '/employee/more', label: 'More', icon: Settings },
 ];
 
