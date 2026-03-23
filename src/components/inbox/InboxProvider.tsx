@@ -102,6 +102,10 @@ const FALLBACK: InboxContextValue = {
   markAllRead: async () => {},
   dismiss: async () => {},
   snooze: async () => {},
+  showInbox: false,
+  openInbox: () => {},
+  closeInbox: () => {},
+  isRead: () => true,
 };
 
 export function useInbox(): InboxContextValue {
