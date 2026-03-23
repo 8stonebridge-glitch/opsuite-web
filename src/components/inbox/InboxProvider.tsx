@@ -94,8 +94,19 @@ export function InboxProvider({ children }: { children: ReactNode }) {
 
 // ── Hook ─────────────────────────────────────────────────────────────
 
+const FALLBACK: InboxContextValue = {
+  notifications: [],
+  unreadCount: 0,
+  isLoading: true,
+  markRead: async () => {},
+  markAllRead: async () => {},
+  dismiss: async () => {},
+  snooze: async () => {},
+};
+
 export function useInbox(): InboxContextValue {
   const ctx = useContext(InboxContext);
-  if (!ctx) throw new Error('useInbox must be used within InboxProvider');
+  // Return safe fallback during SSR/prerender instead of throwing
+  if (!ctx) return FALLBACK;
   return ctx;
 }
