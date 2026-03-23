@@ -25,6 +25,7 @@ import {
 import { Navbar, NavbarSpacer, NavbarSection } from '@/components/catalyst/navbar'
 import { useApp } from '@/store/AppContext'
 import { InboxButton } from '@/components/inbox/InboxButton'
+import { InboxProvider } from '@/components/inbox/InboxProvider'
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/subadmin/overview',  icon: Home },
@@ -104,7 +105,7 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
         </Sidebar>
       }
     >
-      {children}
+      <InboxProvider>{children}</InboxProvider>
     </SidebarLayout>
   )
 }

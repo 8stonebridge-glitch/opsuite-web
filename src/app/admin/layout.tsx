@@ -8,6 +8,7 @@ import { useHydrated } from '@/hooks/useHydrated';
 import { useIndustryColor, useDashboardCounters } from '@/store/selectors';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { InboxButton } from '@/components/inbox/InboxButton';
+import { InboxProvider } from '@/components/inbox/InboxProvider';
 import { getSidebarItems, isPathActive } from '@/components/navigation/nav-config';
 import { SignOutButton } from '@clerk/nextjs';
 
@@ -137,7 +138,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Sidebar>
         }
       >
-        {children}
+        <InboxProvider>{children}</InboxProvider>
       </SidebarLayout>
     </ProtectedRoute>
   );
