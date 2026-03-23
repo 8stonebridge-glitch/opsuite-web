@@ -108,6 +108,7 @@ function SignInFormStep(flow: ReturnType<typeof useSignInFlow>) {
             value={flow.resetCode}
             onChange={(e) => flow.setResetCode(e.target.value)}
             placeholder="Enter the code from your email"
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             required
             className="w-full px-4 py-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-caption text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"

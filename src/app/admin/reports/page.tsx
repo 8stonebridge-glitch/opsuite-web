@@ -206,7 +206,6 @@ export default function ReportsPage() {
       overdue: mockDelta(),
       rework: mockDelta(),
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -440,13 +439,11 @@ export default function ReportsPage() {
                         fontSize: '12px',
                         border: '1px solid #e5e7eb',
                       }}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       formatter={(value: any, _name: any, props: any) => [
                         `${value} tasks (avg ${props?.payload?.avgAge ?? 0}d)`,
                         'Count',
                       ]}
                     />
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     <Bar dataKey="count" radius={[0, 4, 4, 0]} label={(props: any) => {
                       const { x, y, width, height, value, index } = props;
                       return (
