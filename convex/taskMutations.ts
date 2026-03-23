@@ -31,6 +31,15 @@ export const create = mutation({
     const { organizationId, membership } = await requireActiveOrganizationMembership(ctx);
     const isEmployeeSubmission = membership.role === "employee";
 
+    // Employees can only create tasks assigned to themselves — never to others
+    if (isEmployeeSubmission && args.assignedToMembershipId && args.assignedToMembershipId !== membership._id) {
+      throw new Error("Employees can only raise tasks for themselves, not assign to others.");
+    }
+    // Force employee tasks to be self-assigned
+    if (isEmployeeSubmission && !args.assignedToMembershipId) {
+      args = { ...args, assignedToMembershipId: membership._id };
+    }
+
     await validateSiteAndTeam(ctx, args, organizationId);
     await validateAccountableLead(ctx, args.accountableLeadMembershipId, organizationId, membership);
     validateEmployeeAssignment(args.assignedToMembershipId, membership, isEmployeeSubmission);

@@ -19,7 +19,12 @@ const notificationType = v.union(
 export const list = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const { membership } = await requireActiveOrganizationMembership(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db.query("users").withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject)).first();
+    if (!user) return [];
+    const membership = await ctx.db.query("memberships").withIndex("by_user_id", (q) => q.eq("userId", user._id)).filter((q) => q.eq(q.field("status"), "active")).first();
+    if (!membership) return [];
     const cap = Math.min(args.limit ?? 50, 100);
 
     const notifications = await ctx.db
@@ -49,7 +54,12 @@ export const list = query({
 export const unreadCount = query({
   args: {},
   handler: async (ctx) => {
-    const { membership } = await requireActiveOrganizationMembership(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return 0;
+    const user = await ctx.db.query("users").withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject)).first();
+    if (!user) return 0;
+    const membership = await ctx.db.query("memberships").withIndex("by_user_id", (q) => q.eq("userId", user._id)).filter((q) => q.eq(q.field("status"), "active")).first();
+    if (!membership) return 0;
 
     const unread = await ctx.db
       .query("notifications")
@@ -141,7 +151,12 @@ const DEFAULT_PREFS: Record<NotificationType, boolean> = {
 export const getPreferences = query({
   args: {},
   handler: async (ctx) => {
-    const { membership } = await requireActiveOrganizationMembership(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return DEFAULT_PREFS;
+    const user = await ctx.db.query("users").withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject)).first();
+    if (!user) return DEFAULT_PREFS;
+    const membership = await ctx.db.query("memberships").withIndex("by_user_id", (q) => q.eq("userId", user._id)).filter((q) => q.eq(q.field("status"), "active")).first();
+    if (!membership) return DEFAULT_PREFS;
     const prefs = await ctx.db
       .query("notificationPreferences")
       .withIndex("by_membership_id", (q) => q.eq("membershipId", membership._id))
