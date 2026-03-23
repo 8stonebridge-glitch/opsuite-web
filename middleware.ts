@@ -52,19 +52,32 @@ export default clerkMiddleware(
     if (needsRoleCheck || pathname === '/') {
       const { userId, getToken } = await auth();
 
-      // Server-side redirect: send "/" to the correct dashboard instantly.
+      const token = await getToken({ template: 'convex' });
+
+      // Server-side redirect: send "/" to the correct role dashboard instantly.
       if (pathname === '/') {
-        if (userId) {
-          // Role is unknown here without a Convex query.
-          // Default to /admin/overview — useRoleRouter corrects on the client.
+        if (userId && token) {
+          try {
+            const active = await fetchQuery(api.organizations.active, {}, { token });
+            const role = active?.membership?.role;
+            const dashboard = role ? (ROLE_DASHBOARDS[role] || '/onboarding') : '/onboarding';
+            const url = request.nextUrl.clone();
+            url.pathname = dashboard;
+            return NextResponse.redirect(url);
+          } catch {
+            // Convex unavailable — send to onboarding as safe default
+            const url = request.nextUrl.clone();
+            url.pathname = '/onboarding';
+            return NextResponse.redirect(url);
+          }
+        }
+        if (userId && !token) {
           const url = request.nextUrl.clone();
-          url.pathname = '/admin/overview';
+          url.pathname = '/onboarding';
           return NextResponse.redirect(url);
         }
         return; // Unauthenticated — auth.protect() already redirected above.
       }
-
-      const token = await getToken({ template: 'convex' });
 
       if (!token) {
         // No Convex token — user may not have completed onboarding yet.
@@ -99,8 +112,10 @@ export default clerkMiddleware(
           return NextResponse.redirect(url);
         }
       } catch {
-        // If Convex query fails (e.g. network issue), fall through and let
-        // client-side guards handle it. Don't block the user.
+        // Convex query failed (network, cold start, etc.) — let client-side
+        // guards handle it rather than redirecting to onboarding (which would
+        // loop for users who already have an org). The AppShell role guard
+        // and useRoleRouter will redirect if the role doesn't match.
       }
     }
   },

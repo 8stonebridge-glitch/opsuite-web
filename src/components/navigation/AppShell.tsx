@@ -20,16 +20,21 @@ export function AppShell({ appRole, children }: AppShellProps) {
   const router = useRouter();
   const isMounted = useHydrated();
 
-  // Client-side role guard for UX — prevents UI flash for wrong-role users.
-  // Security enforcement happens server-side in Convex via requireCurrentUser + role checks.
+  // state.role uses 'admin' not 'owner_admin'
+  const expectedRole = appRole === 'owner_admin' ? 'admin' : appRole;
+  const roleMismatch = isMounted && state.onboardingComplete && state.role !== expectedRole;
+
+  // Client-side role guard — redirect wrong-role users to root for re-routing.
   useEffect(() => {
-    if (!isMounted || !state.onboardingComplete) return;
-    // state.role uses 'admin' not 'owner_admin'
-    const expectedRole = appRole === 'owner_admin' ? 'admin' : appRole;
-    if (state.role !== expectedRole) {
+    if (roleMismatch) {
       router.push('/');
     }
-  }, [isMounted, state.onboardingComplete, state.role, appRole, router]);
+  }, [roleMismatch, router]);
+
+  // Block rendering entirely when role doesn't match — prevents UI flash.
+  if (roleMismatch) {
+    return null;
+  }
 
   return (
     <ProtectedRoute>

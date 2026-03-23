@@ -149,16 +149,16 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const { user } = await requireCurrentUser(ctx);
 
-    // PERSIST-GUARD: Prevent duplicate org creation.
-    // If the user already owns an organization, return the existing one
-    // instead of creating a duplicate.
+    // PERSIST-GUARD: Prevent org creation for users who already belong to one.
+    // Any active membership (owner, subadmin, or employee) blocks creation —
+    // provisioned employees must not accidentally become owners.
     const existingMembership = await ctx.db
       .query("memberships")
       .withIndex("by_user_id", (q) => q.eq("userId", user._id))
-      .filter((q) => q.eq(q.field("role"), "owner_admin"))
+      .filter((q) => q.eq(q.field("status"), "active"))
       .first();
 
-    if (existingMembership && existingMembership.status === "active") {
+    if (existingMembership) {
       const existingOrg = await ctx.db.get(existingMembership.organizationId);
       if (existingOrg) {
         // Ensure activeOrganizationId is set (may have been cleared)

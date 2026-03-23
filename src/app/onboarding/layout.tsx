@@ -94,7 +94,8 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   useEffect(() => {
     if (pathname === '/onboarding') {
       const step = getResumeStep(state.onboarding, role);
-      router.replace(stepRoutes[step]);
+      const target = stepRoutes[step] ?? stepRoutes[0] ?? '/onboarding/org-name';
+      router.replace(target);
     }
   }, [pathname, state.onboarding, role, stepRoutes, router]);
 

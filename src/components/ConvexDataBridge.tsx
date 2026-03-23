@@ -147,13 +147,13 @@ export function ConvexDataBridge() {
       });
     }
 
-    // Map the user's role from membership
+    // Map the user's role from membership — never default to admin
     const roleMap: Record<string, Role> = {
       owner_admin: 'admin',
       subadmin: 'subadmin',
       employee: 'employee',
     };
-    const role = roleMap[membership.role] || 'admin';
+    const role = roleMap[membership.role] ?? 'employee';
     dispatch({
       type: 'SWITCH_USER',
       role,
