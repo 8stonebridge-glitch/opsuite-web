@@ -46,6 +46,27 @@ export async function createOrganizationForOwner(
     mode: "managed" | "direct";
   },
 ) {
+  // Guard: if user already has an active membership, skip org creation
+  // This prevents provisioned employees from accidentally becoming owners
+  const existingMembership = await ctx.db
+    .query("memberships")
+    .withIndex("by_user_id", (q) => q.eq("userId", args.ownerUserId))
+    .filter((q) => q.eq(q.field("status"), "active"))
+    .first();
+
+  if (existingMembership) {
+    // User already belongs to an org — set it as active and return
+    await ctx.db.patch(args.ownerUserId, {
+      activeOrganizationId: existingMembership.organizationId,
+      updatedAt: new Date().toISOString(),
+    });
+    return {
+      organizationId: existingMembership.organizationId,
+      membershipId: existingMembership._id,
+      skipped: true,
+    };
+  }
+
   const now = new Date().toISOString();
   const slug = await uniqueOrganizationSlug(ctx, slugifyOrganizationName(args.name));
 
