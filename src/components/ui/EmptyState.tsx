@@ -16,7 +16,9 @@ interface EmptyStateProps {
 }
 
 function isLucideIcon(icon: unknown): icon is LucideIcon {
-  return typeof icon === 'function';
+  // Lucide icons can be plain functions or forwardRef objects ($$typeof + render)
+  return typeof icon === 'function' ||
+    (typeof icon === 'object' && icon !== null && '$$typeof' in icon && 'render' in icon);
 }
 
 export function EmptyState({

@@ -231,7 +231,9 @@ export default function useSignInFlow() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'email' | 'password'>('email');
+  const [step, setStep] = useState<'email' | 'password' | 'forgot' | 'reset'>('email');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
 
   // Only redirect here for users who were already signed in when the page loaded.
   // After an active sign-in, finalizeSignIn sets didFinalize so this is skipped.
@@ -252,6 +254,41 @@ export default function useSignInFlow() {
       ? clientTrustFactor.safeIdentifier
       : email;
 
+  const handleForgotPassword = useCallback(async () => {
+    if (!signIn) return;
+    setError('');
+    setLoading(true);
+    try {
+      await signIn.create({
+        identifier: email.trim(),
+        strategy: 'reset_password' as any,
+      });
+      setStep('forgot');
+    } catch (err: any) {
+      setError(err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || 'Could not send reset code');
+    } finally {
+      setLoading(false);
+    }
+  }, [signIn, email, setError, setLoading, setStep]);
+
+  const handleResetPassword = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signIn || !resetCode.trim() || !newPassword) return;
+    setError('');
+    setLoading(true);
+    try {
+      await (signIn as any).reset({
+        code: resetCode.trim(),
+        password: newPassword,
+      });
+      await finalizeSignIn();
+    } catch (err: any) {
+      setError(err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || 'Could not reset password');
+    } finally {
+      setLoading(false);
+    }
+  }, [signIn, resetCode, newPassword, setError, setLoading, finalizeSignIn]);
+
   return {
     isLoaded: fetchStatus === 'idle' && isLoaded,
     email, setEmail,
@@ -261,11 +298,15 @@ export default function useSignInFlow() {
     error, setError,
     loading,
     step, setStep,
+    resetCode, setResetCode,
+    newPassword, setNewPassword,
     needsClientTrust: signIn?.status === 'needs_client_trust',
     verificationTarget: verificationTarget as string,
     handleGoogle: useGoogleSSO(signIn, setError),
     handleEmailSubmit: useEmailSubmit(signIn, email, setError, setLoading, setStep),
     handlePasswordSubmit: usePasswordSubmit(signIn, password, setError, setLoading, setVerificationCode, finalizeSignIn),
     handleClientTrustVerify: useClientTrustVerify(signIn, verificationCode, setError, setLoading, finalizeSignIn),
+    handleForgotPassword,
+    handleResetPassword,
   };
 }

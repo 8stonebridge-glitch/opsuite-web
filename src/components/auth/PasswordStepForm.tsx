@@ -13,7 +13,8 @@ export default function PasswordStepForm({
   loading,
   onBack,
   onSubmit,
-}: PasswordStepFormProps) {
+  onForgotPassword,
+}: PasswordStepFormProps & { onForgotPassword?: () => void }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <button
@@ -50,6 +51,18 @@ export default function PasswordStepForm({
           </button>
         </div>
       </div>
+
+      {onForgotPassword && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="text-[13px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
+          >
+            Forgot password?
+          </button>
+        </div>
+      )}
 
       {error && (
         <p className="text-caption text-red-500 dark:text-red-400">{error}</p>
