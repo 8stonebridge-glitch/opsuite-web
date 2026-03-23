@@ -224,8 +224,8 @@ export default function ReportsPage() {
     return map;
   }, [tasks]);
 
-  // Bottleneck funnel data
-  const bottleneckData = useMemo(() => {
+  // Bottleneck funnel data — computed fresh each render (uses current time for age calc)
+  const bottleneckData = (() => {
     const now = Date.now();
     const stages: TaskStatus[] = ['Pending Approval', 'Open', 'In Progress', 'Submitted', 'Verified'];
     return stages.map((status) => {
@@ -238,7 +238,7 @@ export default function ReportsPage() {
       const avgAge = count > 0 ? Math.round((totalAgeDays / count) * 10) / 10 : 0;
       return { status, count, avgAge, fill: STATUS_COLORS[status] };
     });
-  }, [tasks]);
+  })();
 
   // Team performance
   const teamRows = useMemo(() => {
