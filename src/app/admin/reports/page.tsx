@@ -224,7 +224,8 @@ export default function ReportsPage() {
     return map;
   }, [tasks]);
 
-  // Bottleneck funnel data — computed fresh each render (uses current time for age calc)
+  // Bottleneck funnel data — uses current time for age calc
+  // eslint-disable-next-line react-hooks/purity
   const bottleneckData = (() => {
     const now = Date.now();
     const stages: TaskStatus[] = ['Pending Approval', 'Open', 'In Progress', 'Submitted', 'Verified'];
