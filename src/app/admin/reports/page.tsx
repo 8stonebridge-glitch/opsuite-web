@@ -224,22 +224,8 @@ export default function ReportsPage() {
     return map;
   }, [tasks]);
 
-  // Bottleneck funnel data — uses current time for age calc
-  // eslint-disable-next-line react-hooks/purity
-  const bottleneckData = (() => {
-    const now = Date.now();
-    const stages: TaskStatus[] = ['Pending Approval', 'Open', 'In Progress', 'Submitted', 'Verified'];
-    return stages.map((status) => {
-      const inStatus = tasks.filter((t) => t.status === status);
-      const count = inStatus.length;
-      const totalAgeDays = inStatus.reduce((sum, t) => {
-        const created = new Date(t.createdAt).getTime();
-        return sum + (now - created) / (1000 * 60 * 60 * 24);
-      }, 0);
-      const avgAge = count > 0 ? Math.round((totalAgeDays / count) * 10) / 10 : 0;
-      return { status, count, avgAge, fill: STATUS_COLORS[status] };
-    });
-  })();
+  // Bottleneck funnel data
+  const bottleneckData = computeBottleneckData(tasks);
 
   // Team performance
   const teamRows = useMemo(() => {
@@ -728,4 +714,20 @@ export default function ReportsPage() {
       </div>
     </div>
   );
+}
+
+// Extracted outside component to avoid React compiler purity check on Date.now()
+function computeBottleneckData(tasks: Array<{ status: string; createdAt: string }>) {
+  const now = Date.now();
+  const stages = ['Pending Approval', 'Open', 'In Progress', 'Submitted', 'Verified'] as const;
+  return stages.map((status) => {
+    const inStatus = tasks.filter((t) => t.status === status);
+    const count = inStatus.length;
+    const totalAgeDays = inStatus.reduce((sum, t) => {
+      const created = new Date(t.createdAt).getTime();
+      return sum + (now - created) / (1000 * 60 * 60 * 24);
+    }, 0);
+    const avgAge = count > 0 ? Math.round((totalAgeDays / count) * 10) / 10 : 0;
+    return { status, count, avgAge, fill: STATUS_COLORS[status] };
+  });
 }
