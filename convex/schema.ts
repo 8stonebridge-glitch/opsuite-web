@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { authTables } from "@convex-dev/auth/server";
 
 const role = v.union(
   v.literal('owner_admin'),
@@ -56,6 +57,8 @@ const messageStatus = v.union(
 );
 
 export default defineSchema({
+  ...authTables,
+
   users: defineTable({
     authUserId: v.string(),
     email: v.string(),

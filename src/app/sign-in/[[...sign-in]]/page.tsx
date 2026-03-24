@@ -6,7 +6,6 @@ import SignInBrandingPanel from '@/components/auth/SignInBrandingPanel';
 import GoogleSSOButton from '@/components/auth/GoogleSSOButton';
 import EmailStepForm from '@/components/auth/EmailStepForm';
 import PasswordStepForm from '@/components/auth/PasswordStepForm';
-import VerificationStepForm from '@/components/auth/VerificationStepForm';
 import useSignInFlow from '@/components/auth/useSignInFlow';
 
 function MobileLogo() {
@@ -60,8 +59,6 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* Clerk bot protection CAPTCHA — required when Smart CAPTCHA is enabled */}
-        <div id="clerk-captcha" className="mt-4" />
 
         <p className="mt-10 text-micro text-surface-400 dark:text-surface-600 text-center max-w-xs">
           By continuing, you agree to OpSuite&apos;s Terms of Service and Privacy Policy.
@@ -84,79 +81,7 @@ function SignInFormStep(flow: ReturnType<typeof useSignInFlow>) {
     );
   }
 
-  if (flow.step === 'forgot') {
-    return (
-      <form onSubmit={flow.handleResetPassword} className="space-y-4">
-        <button
-          type="button"
-          onClick={() => { flow.setStep('password'); flow.setError(''); }}
-          className="text-caption text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 mb-1 flex items-center gap-1"
-        >
-          &larr; Back to sign in
-        </button>
-        <h3 className="text-body font-semibold text-surface-900 dark:text-surface-100">Reset your password</h3>
-        <p className="text-caption text-surface-500 dark:text-surface-400">
-          We sent a code to <strong>{flow.email}</strong>
-        </p>
-        <div>
-          <label htmlFor="reset-code" className="block text-caption font-medium text-surface-700 dark:text-surface-300 mb-1.5">
-            Reset code
-          </label>
-          <input
-            id="reset-code"
-            type="text"
-            value={flow.resetCode}
-            onChange={(e) => flow.setResetCode(e.target.value)}
-            placeholder="Enter the code from your email"
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-            required
-            className="w-full px-4 py-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-caption text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-          />
-        </div>
-        <div>
-          <label htmlFor="new-password" className="block text-caption font-medium text-surface-700 dark:text-surface-300 mb-1.5">
-            New password
-          </label>
-          <input
-            id="new-password"
-            type="password"
-            value={flow.newPassword}
-            onChange={(e) => flow.setNewPassword(e.target.value)}
-            placeholder="Enter your new password"
-            required
-            minLength={8}
-            className="w-full px-4 py-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-caption text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-          />
-        </div>
-        {flow.error && (
-          <p className="text-caption text-red-500 dark:text-red-400">{flow.error}</p>
-        )}
-        <button
-          type="submit"
-          disabled={flow.loading || !flow.resetCode || !flow.newPassword}
-          className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-caption font-semibold transition-colors"
-        >
-          {flow.loading ? 'Resetting...' : 'Reset password'}
-        </button>
-      </form>
-    );
-  }
-
-  if (flow.needsClientTrust) {
-    return (
-      <VerificationStepForm
-        verificationTarget={flow.verificationTarget}
-        verificationCode={flow.verificationCode}
-        setVerificationCode={flow.setVerificationCode}
-        error={flow.error}
-        loading={flow.loading}
-        onBack={() => { flow.setStep('password'); flow.setVerificationCode(''); flow.setError(''); }}
-        onSubmit={flow.handleClientTrustVerify}
-      />
-    );
-  }
-
+  // Password step (Convex Auth — no forgot password or client trust verification)
   return (
     <PasswordStepForm
       email={flow.email}
@@ -168,7 +93,6 @@ function SignInFormStep(flow: ReturnType<typeof useSignInFlow>) {
       loading={flow.loading}
       onBack={() => { flow.setStep('email'); flow.setPassword(''); flow.setError(''); }}
       onSubmit={flow.handlePasswordSubmit}
-      onForgotPassword={flow.handleForgotPassword}
     />
   );
 }

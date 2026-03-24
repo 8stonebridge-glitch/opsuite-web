@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useConvexAuth } from 'convex/react';
 import { useApp } from '@/store/AppContext';
 
 export interface SessionUser {
@@ -14,7 +14,7 @@ export interface SessionUser {
 export type SessionRole = 'admin' | 'subadmin' | 'employee' | null;
 
 export interface SessionContext {
-  /** The authenticated Clerk user, or null if not signed in */
+  /** The authenticated user, or null if not signed in */
   user: SessionUser | null;
   /** True while the initial bootstrap fetch is in progress */
   isLoading: boolean;
@@ -35,24 +35,28 @@ const SessionCtx = createContext<SessionContext>({
 });
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const { isAuthenticated, isLoading: isConvexLoading } = useConvexAuth();
   const { state } = useApp();
   const isPlaywrightTest = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
   type FallbackState = { status: 'idle' | 'loading' | 'done'; user: SessionUser | null };
   const [fallback, setFallback] = useState<FallbackState>({ status: 'idle', user: null });
 
+  const isLoaded = !isConvexLoading;
+
   const sessionUser = useMemo<SessionUser | null>(() => {
-    if (!isLoaded || !isSignedIn || !clerkUser) return null;
+    if (!isLoaded || !isAuthenticated) return null;
+    // With Convex Auth, detailed user info comes from ConvexDataBridge / app state,
+    // not from the auth provider directly. Provide a placeholder until data loads.
     return {
-      id: clerkUser.id,
-      email: clerkUser.emailAddresses[0]?.emailAddress || '',
-      name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.emailAddresses[0]?.emailAddress || 'User',
-      imageUrl: clerkUser.imageUrl || null,
+      id: 'convex-user',
+      email: '',
+      name: 'User',
+      imageUrl: null,
     };
-  }, [isLoaded, isSignedIn, clerkUser]);
+  }, [isLoaded, isAuthenticated]);
 
   useEffect(() => {
-    if (!isPlaywrightTest || !isLoaded || isSignedIn) {
+    if (!isPlaywrightTest || !isLoaded || isAuthenticated) {
       return;
     }
 
@@ -74,14 +78,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isPlaywrightTest, isSignedIn]);
+  }, [isLoaded, isPlaywrightTest, isAuthenticated]);
 
   const resolvedUser = sessionUser ?? fallback.user;
-  const resolvedSignedIn = (isSignedIn ?? false) || !!fallback.user;
+  const resolvedSignedIn = isAuthenticated || !!fallback.user;
   const resolvedLoading =
     !isLoaded ||
     fallback.status === 'loading' ||
-    (isPlaywrightTest && !(isSignedIn ?? false) && fallback.status === 'idle');
+    (isPlaywrightTest && !isAuthenticated && fallback.status === 'idle');
 
   const value = useMemo<SessionContext>(
     () => ({

@@ -6,11 +6,7 @@ export const BENEFITS = [
   { icon: Bell, text: 'Create staff accounts later from the People page' },
 ] as const;
 
-export const POST_SIGN_UP_URL =
-  process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL ||
-  process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL ||
-  process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL ||
-  '/admin/overview';
+export const POST_SIGN_UP_URL = '/onboarding';
 
 /** Shared Tailwind class string for form inputs. */
 export const INPUT_CLASS =

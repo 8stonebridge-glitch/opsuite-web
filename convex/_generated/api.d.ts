@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
 import type * as authHelpers from "../authHelpers.js";
 import type * as availability from "../availability.js";
 import type * as conversations from "../conversations.js";
@@ -21,6 +22,7 @@ import type * as membershipQueries from "../membershipQueries.js";
 import type * as memberships from "../memberships.js";
 import type * as messages from "../messages.js";
 import type * as metrics from "../metrics.js";
+import type * as milestones from "../milestones.js";
 import type * as notifications from "../notifications.js";
 import type * as orgSettings from "../orgSettings.js";
 import type * as organizations from "../organizations.js";
@@ -42,6 +44,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   authHelpers: typeof authHelpers;
   availability: typeof availability;
   conversations: typeof conversations;
@@ -55,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   memberships: typeof memberships;
   messages: typeof messages;
   metrics: typeof metrics;
+  milestones: typeof milestones;
   notifications: typeof notifications;
   orgSettings: typeof orgSettings;
   organizations: typeof organizations;

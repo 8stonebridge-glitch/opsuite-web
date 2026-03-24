@@ -47,8 +47,7 @@ import type {
 interface ConvexApi {
   users: {
     viewer: FunctionReference<'query', 'public', Record<string, never>, ViewerResult | null>;
-    syncFromAuth: FunctionReference<'mutation', 'public', { clerkEmail?: string; clerkName?: string; clerkPhone?: string; clerkAvatarUrl?: string }, UserDoc | null>;
-    syncFromAuthAction: FunctionReference<'action', 'public', Record<string, never>, unknown>;
+    syncFromAuth: FunctionReference<'mutation', 'public', { email?: string; name?: string; phone?: string; avatarUrl?: string }, UserDoc | null>;
     setActiveOrganization: FunctionReference<'mutation', 'public', { organizationId: Id<'organizations'> }, UserDoc | null>;
   };
   organizations: {

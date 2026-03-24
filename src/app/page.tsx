@@ -1,22 +1,15 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
 
 /**
  * Root page — server-side redirect.
  *
- * Authenticated users → admin dashboard (ConvexDataBridge + useRoleRouter
- * handle role-based routing once the app loads).
- * Unauthenticated users → sign-in.
- *
- * NOTE: Middleware already redirects "/" → /admin/overview for authenticated
- * users, so this is a safety net in case middleware doesn't catch it.
+ * With Convex Auth, server-side auth is handled by middleware.
+ * Client-side guards handle role-based routing.
+ * This page simply redirects to sign-in; authenticated users will be
+ * redirected by the client-side RoleRouterBridge / ConvexDataBridge.
  */
-export default async function HomePage() {
-  const { userId } = await auth();
-
-  if (userId) {
-    redirect('/admin/overview');
-  }
-
-  redirect('/sign-in');
+export default function HomePage() {
+  // Redirect to admin overview — client-side auth guards handle unauthenticated users
+  // and let client-side auth guards handle unauthenticated users.
+  redirect('/admin/overview');
 }

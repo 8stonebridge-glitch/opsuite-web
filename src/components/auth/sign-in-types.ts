@@ -1,7 +1,3 @@
-import type { useSignIn } from '@clerk/nextjs';
-
-export type SignInResource = NonNullable<ReturnType<typeof useSignIn>['signIn']>;
-
 export interface SignInFormProps {
   error: string;
   loading: boolean;

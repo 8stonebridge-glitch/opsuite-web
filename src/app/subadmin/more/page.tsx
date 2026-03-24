@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useClerk } from '@clerk/nextjs';
+import { useAuthActions } from '@convex-dev/auth/react';
 import { useApp } from '@/store/AppContext';
 import { useCurrentName, useMyTeam, useIndustryColor } from '@/store/selectors';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
@@ -16,7 +16,7 @@ export default function SubAdminMoreScreen() {
   const team = useMyTeam();
   const color = useIndustryColor();
   const router = useRouter();
-  const { signOut } = useClerk();
+  const { signOut } = useAuthActions();
 
   return (
     <div className="flex-1 bg-surface-50 dark:bg-surface-950 min-h-screen">

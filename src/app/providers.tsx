@@ -1,7 +1,5 @@
 'use client';
 
-import { ConvexProviderWithClerk } from 'convex/react-clerk';
-import { useAuth } from '@clerk/nextjs';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { SessionProvider } from '@/providers/SessionProvider';
 import { AppProvider } from '@/store/AppContext';
@@ -11,14 +9,12 @@ import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { AuthErrorBoundary } from '@/components/auth/AuthErrorBoundary';
 import { SessionExpiryGuard } from '@/components/auth/SessionExpiryGuard';
 import { RoleRouterBridge } from '@/components/auth/RoleRouterBridge';
-import { convex } from '@/lib/convex';
 
 const isE2E = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-      <ThemeProvider>
+    <ThemeProvider>
         <AppErrorBoundary>
           <AuthErrorBoundary>
             <AppProvider>
@@ -34,7 +30,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </AuthErrorBoundary>
         </AppErrorBoundary>
       </ThemeProvider>
-    </ConvexProviderWithClerk>
   );
 }
 

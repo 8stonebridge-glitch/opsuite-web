@@ -1,7 +1,8 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useClerk, useUser } from '@clerk/nextjs'
+import { useAuthActions } from '@convex-dev/auth/react'
+import { useSession } from '@/providers/SessionProvider'
 import {
   Home,
   ClipboardList,
@@ -42,14 +43,12 @@ function isActive(pathname: string, href: string) {
 export default function SubAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { state } = useApp()
-  const { user } = useUser()
-  const { signOut } = useClerk()
+  const { user } = useSession()
+  const { signOut } = useAuthActions()
 
   const activeWorkspace = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
   const orgName = activeWorkspace?.orgName || 'Workspace'
-  const userName = user
-    ? [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Manager'
-    : 'Manager'
+  const userName = user?.name || 'Manager'
 
   return (
     <SidebarLayout

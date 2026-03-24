@@ -4,21 +4,23 @@
  * FEAT-AUTH-08: Session expiry handling with graceful warning and returnTo preservation.
  * FEAT-TIMING-03: Session timeout warning timing and auto-logout countdown.
  *
- * Monitors Clerk session state. When the session expires or becomes invalid:
+ * Monitors Convex Auth session state. When the session expires or becomes invalid:
  * 1. Shows a non-blocking warning banner
  * 2. Preserves the current URL as returnTo
  * 3. After a countdown, redirects to sign-in with returnTo param
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useConvexAuth } from 'convex/react';
 import { usePathname } from 'next/navigation';
 
 const WARNING_SECONDS = 30;
 const CHECK_INTERVAL_MS = 10_000; // check every 10s
 
 export function SessionExpiryGuard() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const isSignedIn = isAuthenticated;
+  const isLoaded = !isLoading;
   const pathname = usePathname();
   const [showWarning, setShowWarning] = useState(false);
   const [countdown, setCountdown] = useState(WARNING_SECONDS);

@@ -1,23 +1,17 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchAction, fetchMutation, fetchQuery } from 'convex/nextjs';
 import { api } from '@/lib/convexApi';
-import { resolveConvexTokenForRequest } from '@/lib/server/adminPeople';
 
 export async function POST(request: Request) {
   if (process.env.PLAYWRIGHT_TEST !== '1') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const { userId, sessionId, getToken } = await auth();
+  const token = await convexAuthNextjsToken();
 
-  if (!userId) {
-    return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
-  }
-
-  const token = await resolveConvexTokenForRequest({ getToken, sessionId });
   if (!token) {
-    return NextResponse.json({ error: 'Missing Convex auth token.' }, { status: 500 });
+    return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
   }
 
   await fetchAction(api.users.syncFromAuthAction, {}, { token });

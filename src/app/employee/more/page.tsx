@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useClerk } from '@clerk/nextjs';
+import { useAuthActions } from '@convex-dev/auth/react';
 import { useApp } from '@/store/AppContext';
 import { useCurrentName, useMyTeam, useIndustryColor, useCheckInStats, useAvailability } from '@/store/selectors';
 import { getToday } from '@/utils/date';
@@ -28,7 +28,7 @@ export default function EmployeeMoreScreen() {
   const stats = useCheckInStats();
   const availability = useAvailability();
   const router = useRouter();
-  const { signOut } = useClerk();
+  const { signOut } = useAuthActions();
   const [showLeaveSheet, setShowLeaveSheet] = useState(false);
   const [isSubmittingSick, setIsSubmittingSick] = useState(false);
   const { isDark } = useTheme();

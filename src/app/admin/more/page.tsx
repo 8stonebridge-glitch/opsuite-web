@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useMutation } from 'convex/react';
-import { useClerk } from '@clerk/nextjs';
+import { useAuthActions } from '@convex-dev/auth/react';
 import { useApp } from '@/store/AppContext';
 import { api } from '@/lib/convexApi';
 import { useIndustryColor, useTeams, useAllEmployees, useOrgMode, useSitesLabel } from '@/store/selectors';
@@ -26,7 +26,7 @@ export default function OwnerMoreScreen() {
   const { state, dispatch } = useApp();
   const color = useIndustryColor();
   const orgMode = useOrgMode();
-  const { signOut } = useClerk();
+  const { signOut } = useAuthActions();
   const { user } = useSession();
   const [showCreateSite, setShowCreateSite] = useState(false);
 

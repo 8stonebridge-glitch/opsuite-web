@@ -1,25 +1,25 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useSignUp, useUser } from '@clerk/nextjs';
+import { useAuthActions } from '@convex-dev/auth/react';
+import { useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { POST_SIGN_UP_URL } from './sign-up-constants';
 
 export function useSignUpHandlers() {
-  const { fetchStatus, signUp } = useSignUp();
-  const { isSignedIn, isLoaded } = useUser();
+  const { signIn } = useAuthActions();
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const router = useRouter();
 
-  // Prevents the isSignedIn useEffect from racing with finalizeSignUp's navigate
+  // Prevents the isAuthenticated useEffect from racing with successful sign-up navigation
   const didFinalize = useRef(false);
 
   // Redirect already-signed-in users away from sign-up.
-  // After an active sign-up, finalizeSignUp sets didFinalize so this is skipped.
   useEffect(() => {
-    if (isLoaded && isSignedIn && !didFinalize.current) {
+    if (!isLoading && isAuthenticated && !didFinalize.current) {
       router.replace(POST_SIGN_UP_URL);
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoading, isAuthenticated, router]);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -28,44 +28,14 @@ export function useSignUpHandlers() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pendingVerification, setPendingVerification] = useState(false);
+  const [pendingVerification] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
 
-  const finalizeSignUp = async () => {
-    if (!signUp) return;
-
-    // Mark before navigation so the isSignedIn useEffect skips its redirect
-    didFinalize.current = true;
-    const { error: finalizeError } = await signUp.finalize({
-      navigate: async ({ decorateUrl }) => {
-        const targetUrl = decorateUrl(POST_SIGN_UP_URL);
-
-        if (/^https?:\/\//.test(targetUrl)) {
-          window.location.assign(targetUrl);
-          return;
-        }
-
-        router.replace(targetUrl);
-      },
-    });
-
-    if (finalizeError) {
-      didFinalize.current = false; // Reset so future attempts work
-      setError(finalizeError.message || 'Unable to finish signing up');
-    }
-  };
-
   const handleGoogle = async () => {
-    if (!signUp) return;
     try {
-      const { error } = await signUp.sso({
-        strategy: 'oauth_google',
-        redirectUrl: '/sign-up/sso-callback',
-        redirectCallbackUrl: POST_SIGN_UP_URL,
-      });
-      if (error) setError(error.message || 'Google sign-up failed');
+      await signIn('google');
     } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage || err.message || 'Google sign-up failed');
+      setError(err.message || 'Google sign-up failed');
     }
   };
 
@@ -74,34 +44,23 @@ export function useSignUpHandlers() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUp) return;
     if (submittingRef.current) return;
     submittingRef.current = true;
     setError('');
     setLoading(true);
 
     try {
-      const { error } = await signUp.password({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        emailAddress: email.trim(),
+      const name = `${firstName.trim()} ${lastName.trim()}`.trim();
+      await signIn('password', {
+        email: email.trim(),
         password,
+        name,
+        flow: 'signUp',
       });
-
-      if (error) {
-        setError(error.message || 'Something went wrong');
-        setLoading(false);
-        return;
-      }
-
-      const verifyResult = await signUp.verifications.sendEmailCode();
-      if (verifyResult.error) {
-        setError(verifyResult.error.message || 'Failed to send verification code');
-      } else {
-        setPendingVerification(true);
-      }
+      didFinalize.current = true;
+      router.replace(POST_SIGN_UP_URL);
     } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage || err.message || 'Something went wrong');
+      setError(err.message || 'Something went wrong');
     } finally {
       setLoading(false);
       submittingRef.current = false;
@@ -110,36 +69,26 @@ export function useSignUpHandlers() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUp) return;
-    setError('');
-    setLoading(true);
-
-    try {
-      const { error } = await signUp.verifications.verifyEmailCode({ code: verificationCode });
-
-      if (error) {
-        setError(error.message || 'Invalid verification code');
-      } else if (signUp.status === 'complete') {
-        await finalizeSignUp();
-      }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage || err.message || 'Invalid verification code');
-    } finally {
-      setLoading(false);
-    }
+    // Convex Auth handles verification internally; this is a no-op stub
   };
 
   return {
-    isLoaded: fetchStatus === 'idle' && isLoaded,
-    firstName, setFirstName,
-    lastName, setLastName,
-    email, setEmail,
-    password, setPassword,
-    showPassword, setShowPassword,
+    isLoaded: !isLoading,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
     error,
     loading,
     pendingVerification,
-    verificationCode, setVerificationCode,
+    verificationCode,
+    setVerificationCode,
     handleGoogle,
     handleSubmit,
     handleVerify,

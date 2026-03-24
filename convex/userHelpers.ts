@@ -77,28 +77,28 @@ export async function maybeClaimSignupDraft(
 }
 
 export const syncFromAuthArgs = {
-  clerkEmail: v.optional(v.string()),
-  clerkName: v.optional(v.string()),
-  clerkPhone: v.optional(v.string()),
-  clerkAvatarUrl: v.optional(v.string()),
+  email: v.optional(v.string()),
+  name: v.optional(v.string()),
+  phone: v.optional(v.string()),
+  avatarUrl: v.optional(v.string()),
 };
 
 /** Resolve identity fields (email, name, phone, avatarUrl) from args + JWT. */
 export function resolveIdentityFields(
   identity: Record<string, unknown>,
-  args: { clerkEmail?: string; clerkName?: string; clerkPhone?: string; clerkAvatarUrl?: string },
+  args: { email?: string; name?: string; phone?: string; avatarUrl?: string },
 ) {
-  const email = args.clerkEmail ||
+  const email = args.email ||
     (typeof identity.email === "string" ? (identity.email as string).trim().toLowerCase() : "") ||
     (typeof (identity as any).emailAddress === "string" ? ((identity as any).emailAddress as string).trim().toLowerCase() : "");
 
   if (!email) {
-    throw new Error("No email available. Call syncFromAuthAction instead.");
+    throw new Error("No email available from identity or args.");
   }
 
-  const name = args.clerkName || displayNameFromIdentity(identity);
-  const phone = args.clerkPhone?.trim() || undefined;
-  const avatarUrl = args.clerkAvatarUrl ||
+  const name = args.name || displayNameFromIdentity(identity);
+  const phone = args.phone?.trim() || undefined;
+  const avatarUrl = args.avatarUrl ||
     (typeof identity.pictureUrl === "string" ? identity.pictureUrl : undefined);
 
   return { email, name, phone, avatarUrl };
@@ -153,9 +153,8 @@ export async function backfillActiveOrg(
 /** Core handler for syncFromAuth mutation and internalMutation. */
 export async function syncFromAuthHandler(
   ctx: MutationCtx,
-  args: { clerkEmail?: string; clerkName?: string; clerkPhone?: string; clerkAvatarUrl?: string },
+  args: { email?: string; name?: string; phone?: string; avatarUrl?: string },
 ) {
-  console.log("[syncFromAuthHandler] v2 — using .first() queries");
   const identity = await requireIdentity(ctx);
   const authUserId = identity.subject;
 
