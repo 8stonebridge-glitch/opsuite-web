@@ -4,12 +4,12 @@ export type Role = 'admin' | 'subadmin' | 'employee';
 export type ClerkRole = 'org:owner_admin' | 'org:subadmin' | 'org:employee';
 
 /** Map Clerk org role to app-level Role */
-export function clerkRoleToAppRole(clerkRole: string): Role {
+export function clerkRoleToAppRole(clerkRole: string): Role | null {
   switch (clerkRole) {
     case 'org:owner_admin': return 'admin';
     case 'org:subadmin': return 'subadmin';
     case 'org:employee': return 'employee';
-    default: return 'employee';
+    default: return null;
   }
 }
 

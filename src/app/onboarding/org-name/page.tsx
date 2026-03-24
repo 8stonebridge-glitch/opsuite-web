@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,10 @@ export default function OrgNamePage() {
   const { state, dispatch } = useApp();
   const [name, setName] = useState(state.onboarding.orgName);
 
+  useEffect(() => {
+    setName(state.onboarding.orgName);
+  }, [state.onboarding.orgName]);
+
   const next = () => {
     if (!name.trim()) return;
     dispatch({ type: 'SET_ORG_NAME', name: name.trim() });
@@ -19,7 +23,7 @@ export default function OrgNamePage() {
 
   return (
     <>
-    <OnboardingProgress currentStep={1} />
+    <OnboardingProgress currentStep={1} role={state.role} />
     <div className="flex-1 px-6 pt-8 pb-8 max-w-lg mx-auto">
       <div className="flex-1">
         <div className="h-12 w-12 rounded-card bg-emerald-600 flex items-center justify-center mb-8">

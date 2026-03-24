@@ -70,7 +70,7 @@ describe('validateAuthEnv', () => {
     delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
     delete process.env.CLERK_SECRET_KEY;
     process.env.NEXT_PUBLIC_CONVEX_URL = 'https://foo.convex.cloud';
-    process.env.NODE_ENV = 'development';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
     process.env.CLERK_KEYLESS_PATH = keylessFile;
 
     writeFileSync(

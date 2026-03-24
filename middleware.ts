@@ -40,7 +40,7 @@ export default clerkMiddleware(
       // Root redirect: use Clerk org role directly
       if (pathname === '/') {
         if (userId && orgId && orgRole) {
-          const dashboard = ROLE_DASHBOARDS[orgRole] || '/admin/overview';
+          const dashboard = ROLE_DASHBOARDS[orgRole] || '/onboarding';
           const url = request.nextUrl.clone();
           url.pathname = dashboard;
           return NextResponse.redirect(url);

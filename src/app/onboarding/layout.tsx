@@ -1,13 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { OnboardingGuard } from '@/components/auth/OnboardingGuard';
-import type { Role } from '@/types';
+import type { Role, Site } from '@/types';
 
 const STORAGE_KEY = 'opsuite_onboarding';
+
+interface StoredOnboardingDraft {
+  orgName?: unknown;
+  industry?: unknown;
+  adminName?: unknown;
+  sites?: unknown;
+}
 
 // ── Role-aware onboarding paths ────────────────────────────────────
 
@@ -56,6 +63,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   const { state, dispatch } = useApp();
   const pathname = usePathname();
   const router = useRouter();
+  const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
 
   const role = state.role;
   const stepRoutes = STEP_ROUTES_BY_ROLE[role];
@@ -65,39 +73,64 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) return;
-      const data = JSON.parse(saved);
-      if (data.orgName && !state.onboarding.orgName) {
+      const data = JSON.parse(saved) as StoredOnboardingDraft;
+      if (typeof data.orgName === 'string' && data.orgName && !state.onboarding.orgName) {
         dispatch({ type: 'SET_ORG_NAME', name: data.orgName });
       }
       if (data.industry && !state.onboarding.industry) {
         dispatch({ type: 'SET_INDUSTRY', industry: data.industry });
       }
-      if (data.adminName && !state.onboarding.adminName) {
+      if (typeof data.adminName === 'string' && data.adminName && !state.onboarding.adminName) {
         dispatch({ type: 'SET_ADMIN_NAME', name: data.adminName });
       }
+      if (Array.isArray(data.sites) && state.onboarding.sites.length === 0) {
+        const sites = data.sites.flatMap((site): Site[] => {
+          if (
+            site &&
+            typeof site === 'object' &&
+            typeof (site as { id?: unknown }).id === 'string' &&
+            typeof (site as { name?: unknown }).name === 'string'
+          ) {
+            return [{
+              id: (site as { id: string }).id,
+              name: (site as { name: string }).name,
+            }];
+          }
+          return [];
+        });
+        if (sites.length > 0) {
+          dispatch({ type: 'SET_ONBOARDING_SITES', sites });
+        }
+      }
     } catch { /* ignore corrupt localStorage */ }
+    finally {
+      setHasHydratedDraft(true);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist onboarding state to localStorage on every change
   useEffect(() => {
+    if (!hasHydratedDraft) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         orgName: state.onboarding.orgName,
         industry: state.onboarding.industry,
         adminName: state.onboarding.adminName,
+        sites: state.onboarding.sites,
       }));
     } catch { /* quota exceeded or private mode */ }
-  }, [state.onboarding.orgName, state.onboarding.industry, state.onboarding.adminName]);
+  }, [hasHydratedDraft, state.onboarding.orgName, state.onboarding.industry, state.onboarding.adminName, state.onboarding.sites]);
 
   // Redirect to the furthest incomplete step if user lands on /onboarding
   useEffect(() => {
+    if (!hasHydratedDraft) return;
     if (pathname === '/onboarding') {
       const step = getResumeStep(state.onboarding, role);
       const target = stepRoutes[step] ?? stepRoutes[0] ?? '/onboarding/org-name';
       router.replace(target);
     }
-  }, [pathname, state.onboarding, role, stepRoutes, router]);
+  }, [hasHydratedDraft, pathname, state.onboarding, role, stepRoutes, router]);
 
   // Clear localStorage when onboarding completes
   useEffect(() => {
@@ -116,4 +149,3 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     </ProtectedRoute>
   );
 }
-

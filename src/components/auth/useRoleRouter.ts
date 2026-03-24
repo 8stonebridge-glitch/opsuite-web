@@ -55,7 +55,7 @@ export function useRoleRouter() {
     // Redirect once to the correct dashboard
     if (!hasRedirected.current) {
       hasRedirected.current = true;
-      const target = ROLE_DASHBOARDS[role] ?? '/admin/overview';
+      const target = ROLE_DASHBOARDS[role] ?? '/onboarding';
       router.replace(target);
     }
   }, [role, isSignedIn, isLoading, pathname, router]);

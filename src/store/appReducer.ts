@@ -64,6 +64,7 @@ export type AppAction =
   | { type: 'SET_ORG_NAME'; name: string }
   | { type: 'SET_INDUSTRY'; industry: OnboardingData['industry'] }
   | { type: 'SET_ADMIN_NAME'; name: string }
+  | { type: 'SET_ONBOARDING_SITES'; sites: Site[] }
   | { type: 'ADD_SITE'; site: Site }
   | { type: 'REMOVE_SITE'; siteId: string }
   | { type: 'ADD_TEAM'; team: Team }
@@ -103,6 +104,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, onboarding: { ...state.onboarding, industry: action.industry } };
     case 'SET_ADMIN_NAME':
       return { ...state, onboarding: { ...state.onboarding, adminName: action.name } };
+    case 'SET_ONBOARDING_SITES':
+      return { ...state, onboarding: { ...state.onboarding, sites: action.sites } };
     case 'ADD_SITE':
       return { ...state, onboarding: { ...state.onboarding, sites: [...state.onboarding.sites, action.site] } };
     case 'REMOVE_SITE':

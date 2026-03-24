@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       'org:subadmin': '/subadmin/overview',
       'org:employee': '/employee/my-day',
     };
-    const dest = dashboards[orgRole] || '/admin/overview';
+    const dest = dashboards[orgRole] || '/onboarding';
     return NextResponse.redirect(new URL(dest, request.url));
   }
 

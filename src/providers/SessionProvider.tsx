@@ -37,7 +37,7 @@ const SessionCtx = createContext<SessionContext>({
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
-  const { membership: clerkMembership } = useOrganization();
+  const { membership: clerkMembership, isLoaded: organizationLoaded } = useOrganization();
   const { state } = useApp();
   const isPlaywrightTest = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
   type FallbackState = { status: 'idle' | 'loading' | 'done'; user: SessionUser | null };
@@ -82,6 +82,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const resolvedSignedIn = (isSignedIn ?? false) || !!fallback.user;
   const resolvedLoading =
     !isLoaded ||
+    (resolvedSignedIn && !organizationLoaded) ||
     fallback.status === 'loading' ||
     (isPlaywrightTest && !(isSignedIn ?? false) && fallback.status === 'idle');
 
@@ -91,8 +92,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const resolvedRole: SessionRole = !resolvedSignedIn
     ? null
     : clerkRole
-      ? (clerkRoleToAppRole(clerkRole) as SessionRole)
-      : (stateRole as SessionRole) || null;
+      ? clerkRoleToAppRole(clerkRole)
+      : organizationLoaded
+        ? (stateRole as SessionRole) || null
+        : null;
 
   const value = useMemo<SessionContext>(
     () => ({

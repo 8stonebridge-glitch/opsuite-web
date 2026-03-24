@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,10 @@ export default function AdminNamePage() {
   const { state, dispatch } = useApp();
   const [name, setName] = useState(state.onboarding.adminName);
 
+  useEffect(() => {
+    setName(state.onboarding.adminName);
+  }, [state.onboarding.adminName]);
+
   const next = () => {
     if (!name.trim()) return;
     dispatch({ type: 'SET_ADMIN_NAME', name: name.trim() });
@@ -19,7 +23,7 @@ export default function AdminNamePage() {
 
   return (
     <>
-    <OnboardingProgress currentStep={3} />
+    <OnboardingProgress currentStep={3} role={state.role} />
     <div className="px-6 pt-4 pb-8 max-w-lg mx-auto">
       <button onClick={() => router.back()} className="flex items-center gap-1 mb-6 text-caption text-surface-400 dark:text-surface-500 hover:text-surface-600">
         &larr; Back
