@@ -7,14 +7,21 @@ import {
 const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)']);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
-  if (!isPublicRoute(request) && !(await convexAuth.isAuthenticated())) {
-    // Preserve returnTo URL so user lands back after sign-in
-    const returnTo = request.nextUrl.pathname + request.nextUrl.search;
-    const signInUrl = new URL('/sign-in', request.url);
-    if (returnTo && returnTo !== '/' && returnTo !== '/sign-in') {
-      signInUrl.searchParams.set('returnTo', returnTo);
+  if (isPublicRoute(request)) return;
+
+  try {
+    const isAuthed = await convexAuth.isAuthenticated();
+    if (!isAuthed) {
+      const returnTo = request.nextUrl.pathname + request.nextUrl.search;
+      const signInUrl = new URL('/sign-in', request.url);
+      if (returnTo && returnTo !== '/' && returnTo !== '/sign-in') {
+        signInUrl.searchParams.set('returnTo', returnTo);
+      }
+      return nextjsMiddlewareRedirect(request, signInUrl.pathname + signInUrl.search);
     }
-    return nextjsMiddlewareRedirect(request, signInUrl.pathname + signInUrl.search);
+  } catch {
+    // Auth check failed (Convex unreachable, etc.) — redirect to sign-in as safe default
+    return nextjsMiddlewareRedirect(request, '/sign-in');
   }
 });
 
