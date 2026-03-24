@@ -231,7 +231,7 @@ export const deduplicateUsers = internalMutation({
 
       const keep = sorted[0];
       for (let i = 1; i < sorted.length; i++) {
-        console.log(`Deleting duplicate user ${sorted[i]._id} for email ${email} (keeping ${keep._id})`);
+        console.warn(`Deleting duplicate user ${sorted[i]._id} for email ${email} (keeping ${keep._id})`);
         await ctx.db.delete(sorted[i]._id);
         deleted++;
       }

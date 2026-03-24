@@ -7,7 +7,8 @@ on:
     branches: [main, master]
 
 jobs:
-  build:
+  aes-verify:
+    name: aes-verify
     runs-on: ubuntu-latest
 
     steps:
@@ -23,17 +24,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Lint
-        run: npx eslint . --max-warnings=10
-
-      - name: Build
-        run: npx next build
-        env:
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_ci-placeholder' }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY || 'sk_test_ci-placeholder' }}
-          NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL || 'https://ci-placeholder.convex.cloud' }}
-          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
-          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+      - name: AES Verify
+        run: npm run verify

@@ -34,7 +34,6 @@ export default function VerificationForm(props: VerificationFormProps) {
             value={verificationCode}
             onChange={(e) => onCodeChange(e.target.value)}
             placeholder="Enter 6-digit code"
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             required
             className={`${INPUT_CLASS} text-center tracking-[0.3em] text-lg font-mono`}

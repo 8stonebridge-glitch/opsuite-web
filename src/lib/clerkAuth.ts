@@ -113,15 +113,17 @@ export function resolveServerAccess(authState: ClerkAuthSnapshot): ServerAccessR
     };
   }
 
-  const appRole = orgRole ? clerkRoleToAppRole(orgRole) : null;
-  if (appRole) {
-    return {
-      status: 'dashboard',
-      destination: APP_ROLE_DASHBOARDS[appRole],
-      orgId,
-      orgRole,
-      appRole,
-    };
+  if (orgRole) {
+    const appRole = clerkRoleToAppRole(orgRole);
+    if (appRole) {
+      return {
+        status: 'dashboard',
+        destination: APP_ROLE_DASHBOARDS[appRole],
+        orgId,
+        orgRole,
+        appRole,
+      };
+    }
   }
 
   return {

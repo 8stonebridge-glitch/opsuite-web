@@ -1,29 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
 import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 
-export default function OrgNamePage() {
-  const router = useRouter();
-  const { state, dispatch } = useApp();
-  const [name, setName] = useState(state.onboarding.orgName);
-
-  useEffect(() => {
-    setName(state.onboarding.orgName);
-  }, [state.onboarding.orgName]);
+function OrgNameStep({
+  initialName,
+  onContinue,
+}: {
+  initialName: string;
+  onContinue: (name: string) => void;
+}) {
+  const [name, setName] = useState(initialName);
 
   const next = () => {
-    if (!name.trim()) return;
-    dispatch({ type: 'SET_ORG_NAME', name: name.trim() });
-    router.push('/onboarding/industry');
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+    onContinue(trimmedName);
   };
 
   return (
-    <>
-    <OnboardingProgress currentStep={1} role={state.role} />
     <div className="flex-1 px-6 pt-8 pb-8 max-w-lg mx-auto">
       <div className="flex-1">
         <div className="h-12 w-12 rounded-card bg-emerald-600 flex items-center justify-center mb-8">
@@ -37,7 +35,6 @@ export default function OrgNamePage() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Skyhomes Properties"
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           onKeyDown={(e) => e.key === 'Enter' && next()}
           className="w-full text-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-card px-5 py-4 text-surface-900 dark:text-surface-100 outline-none focus:border-emerald-500"
@@ -47,6 +44,26 @@ export default function OrgNamePage() {
         <Button onClick={next} disabled={!name.trim()}>Continue</Button>
       </div>
     </div>
+  );
+}
+
+export default function OrgNamePage() {
+  const router = useRouter();
+  const { state, dispatch } = useApp();
+
+  const handleContinue = (name: string) => {
+    dispatch({ type: 'SET_ORG_NAME', name });
+    router.push('/onboarding/industry');
+  };
+
+  return (
+    <>
+      <OnboardingProgress currentStep={1} role={state.role} />
+      <OrgNameStep
+        key={state.onboarding.orgName}
+        initialName={state.onboarding.orgName}
+        onContinue={handleContinue}
+      />
     </>
   );
 }

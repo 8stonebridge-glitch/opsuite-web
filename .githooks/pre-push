@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -eu
+
+echo "[pre-push] Running AES fast verification..."
+npm run verify:fast

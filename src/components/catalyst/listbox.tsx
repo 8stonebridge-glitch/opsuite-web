@@ -21,7 +21,6 @@ export function Listbox<T>({
   return (
     <Headless.Listbox {...props} multiple={false}>
       <Headless.ListboxButton
-        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus={autoFocus}
         data-slot="control"
         aria-label={ariaLabel}

@@ -31,6 +31,7 @@ export interface OrganizationDoc {
   _creationTime: number;
   name: string;
   slug: string;
+  clerkOrgId?: string;
   industryId?: string;
   mode: OrgMode;
   ownerUserId: Id<'users'>;

@@ -220,7 +220,6 @@ export function ApprovalDrawer({
                     placeholder="Enter reason (required)..."
                     rows={3}
                     className="w-full rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 text-caption text-surface-900 dark:text-surface-100 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    // eslint-disable-next-line jsx-a11y/no-autofocus
                     autoFocus
                   />
                   <div className="flex gap-2 justify-end">

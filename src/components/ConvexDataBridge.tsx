@@ -38,12 +38,21 @@ interface ConvexTeamDoc {
   subadminMembershipId?: string;
 }
 
-function viewerIdentityHasEmail(viewer: { identity?: { email?: string | null } | null } | null) {
+type BridgeViewer = {
+  identity?: {
+    subject?: string;
+    issuer?: string;
+    email?: string | null;
+    name?: string | null;
+  } | null;
+} | null;
+
+function viewerIdentityHasEmail(viewer: BridgeViewer) {
   return typeof viewer?.identity?.email === 'string' && viewer.identity.email.trim() !== '';
 }
 
 export async function syncViewerUser(
-  viewer: { identity?: { email?: string | null } | null } | null,
+  viewer: BridgeViewer,
   syncFromAuth: () => Promise<unknown>,
   syncFromAuthAction: () => Promise<unknown>,
 ) {

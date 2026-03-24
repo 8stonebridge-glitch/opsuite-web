@@ -155,7 +155,6 @@ export async function syncFromAuthHandler(
   ctx: MutationCtx,
   args: { clerkEmail?: string; clerkName?: string; clerkPhone?: string; clerkAvatarUrl?: string },
 ) {
-  console.log("[syncFromAuthHandler] v2 — using .first() queries");
   const identity = await requireIdentity(ctx);
   const authUserId = identity.subject;
 

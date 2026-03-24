@@ -55,7 +55,6 @@ export function Combobox<T>({
         ])}
       >
         <Headless.ComboboxInput
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={autoFocus}
           data-slot="control"
           aria-label={ariaLabel}

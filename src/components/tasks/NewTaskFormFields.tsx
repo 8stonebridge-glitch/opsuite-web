@@ -25,7 +25,6 @@ export function TitleField({
         value={title}
         onChangeText={onChangeTitle}
         placeholder="What needs to be done"
-        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
         className="text-xl"
       />
