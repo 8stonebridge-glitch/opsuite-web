@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { PresenceDot } from './PresenceDot';
 
 function relativeTime(iso: string): string {
@@ -65,9 +66,12 @@ export function ConversationItem({
       {/* Avatar */}
       <div className="relative shrink-0">
         {participants[0]?.avatarUrl ? (
-          <img
+          <Image
             src={participants[0].avatarUrl}
             alt=""
+            width={40}
+            height={40}
+            unoptimized
             className="w-10 h-10 rounded-full object-cover"
           />
         ) : (

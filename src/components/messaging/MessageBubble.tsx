@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 interface MessageBubbleProps {
   body: string;
   senderName: string;
@@ -33,9 +35,12 @@ export function MessageBubble({
       {/* Avatar (only for others, only when showing sender) */}
       {!isCurrentUser && showSender ? (
         senderAvatarUrl ? (
-          <img
+          <Image
             src={senderAvatarUrl}
             alt=""
+            width={28}
+            height={28}
+            unoptimized
             className="w-7 h-7 rounded-full object-cover shrink-0"
           />
         ) : (
