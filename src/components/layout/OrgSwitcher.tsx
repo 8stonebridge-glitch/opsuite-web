@@ -29,15 +29,19 @@ export function OrgSwitcher() {
   const { setActive, isLoaded: organizationListLoaded } = useOrganizationList();
   const [switchingWorkspaceId, setSwitchingWorkspaceId] = useState<string | null>(null);
 
-  const workspaces = (organizations ?? []).filter(Boolean).map((entry) => ({
-    id: String(entry.organization._id),
-    orgName: entry.organization.name,
-    industry: entry.organization.industryId
-      ? (INDUSTRIES.find((industry) => industry.id === entry.organization.industryId) ?? null)
-      : null,
-    clerkOrgId: entry.organization.clerkOrgId ?? null,
-    isActive: entry.isActive,
-  }));
+  const workspaces = (organizations ?? []).flatMap((entry) => {
+    if (!entry) return [];
+
+    return [{
+      id: String(entry.organization._id),
+      orgName: entry.organization.name,
+      industry: entry.organization.industryId
+        ? (INDUSTRIES.find((industry) => industry.id === entry.organization.industryId) ?? null)
+        : null,
+      clerkOrgId: entry.organization.clerkOrgId ?? null,
+      isActive: entry.isActive,
+    }];
+  });
 
   const handleSwitch = async (workspaceId: string, clerkOrgId: string | null) => {
     if (!clerkOrgId || switchingWorkspaceId || !organizationListLoaded) return;
