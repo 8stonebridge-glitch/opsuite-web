@@ -88,4 +88,48 @@ describe('OnboardingGuard', () => {
       expect(navigationMock.replace).toHaveBeenCalledWith('/admin/overview');
     });
   });
+
+  it('prefers Clerk role routing when legacy Convex org data conflicts', async () => {
+    clerkMock.user = {
+      organizationMemberships: [
+        {
+          organization: { id: 'org_1' },
+          role: 'admin',
+        },
+      ],
+    };
+    convexMock.isAuthenticated = true;
+    convexMock.activeOrg = {
+      organization: { id: 'legacy_org' },
+      membership: { role: 'employee' },
+    };
+
+    render(
+      <OnboardingGuard>
+        <div>Onboarding content</div>
+      </OnboardingGuard>,
+    );
+
+    await waitFor(() => {
+      expect(navigationMock.replace).toHaveBeenCalledWith('/admin/overview');
+    });
+  });
+
+  it('uses legacy Convex recovery only when Clerk has no org evidence', async () => {
+    convexMock.isAuthenticated = true;
+    convexMock.activeOrg = {
+      organization: { id: 'legacy_org' },
+      membership: { role: 'subadmin' },
+    };
+
+    render(
+      <OnboardingGuard>
+        <div>Onboarding content</div>
+      </OnboardingGuard>,
+    );
+
+    await waitFor(() => {
+      expect(navigationMock.replace).toHaveBeenCalledWith('/subadmin/overview');
+    });
+  });
 });

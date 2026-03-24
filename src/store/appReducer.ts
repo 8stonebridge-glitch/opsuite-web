@@ -72,7 +72,7 @@ export type AppAction =
   | { type: 'ADD_STANDALONE_EMPLOYEE'; employee: Employee }
   | { type: 'REASSIGN_EMPLOYEE'; employeeId: string; newTeamId?: string; siteId?: string; siteName?: string }
   | { type: 'FINISH_ONBOARDING' }
-  | { type: 'SWITCH_USER'; role: Role; userId: string | null }
+  | { type: 'SWITCH_USER'; role?: Role | null; userId: string | null }
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'UPDATE_TASK'; taskId: string; updates: Partial<Task> }
   | { type: 'ADD_AUDIT'; entry: Omit<AuditEntry, 'id'> }
@@ -153,7 +153,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, onboardingComplete: true, categories };
     }
     case 'SWITCH_USER':
-      return { ...state, role: action.role, userId: action.userId };
+      return { ...state, role: action.role ?? state.role, userId: action.userId };
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.task] };
     case 'UPDATE_TASK':

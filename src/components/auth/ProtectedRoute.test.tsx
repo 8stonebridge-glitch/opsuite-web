@@ -10,9 +10,20 @@ const sessionMock = vi.hoisted(() => ({
   isLoading: false,
   isSignedIn: true,
 }));
+const navigationMock = vi.hoisted(() => ({
+  replace: vi.fn(),
+  pathname: '/onboarding/add-sites',
+  searchParams: new URLSearchParams(),
+}));
 
 vi.mock('@/providers/SessionProvider', () => ({
   useSession: () => sessionMock,
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: navigationMock.replace }),
+  usePathname: () => navigationMock.pathname,
+  useSearchParams: () => navigationMock.searchParams,
 }));
 
 describe('ProtectedRoute', () => {
@@ -20,6 +31,9 @@ describe('ProtectedRoute', () => {
     cleanup();
     sessionMock.isLoading = false;
     sessionMock.isSignedIn = true;
+    navigationMock.replace.mockReset();
+    navigationMock.pathname = '/onboarding/add-sites';
+    navigationMock.searchParams = new URLSearchParams();
   });
 
   afterEach(() => {
@@ -50,16 +64,32 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Secret content')).toBeDefined();
   });
 
-  it('renders nothing for a resolved signed-out state', () => {
+  it('redirects to sign-in for a resolved signed-out state', () => {
     sessionMock.isLoading = false;
     sessionMock.isSignedIn = false;
 
-    const { container } = render(
+    render(
       <ProtectedRoute>
         <div>Secret content</div>
       </ProtectedRoute>,
     );
 
-    expect(container.firstChild).toBeNull();
+    expect(screen.getByText('Redirecting to sign in')).toBeDefined();
+    expect(screen.getByText('This page requires an active session.')).toBeDefined();
+    expect(navigationMock.replace).toHaveBeenCalledWith('/sign-in?returnTo=%2Fonboarding%2Fadd-sites');
+  });
+
+  it('preserves the current query string when redirecting to sign-in', () => {
+    sessionMock.isLoading = false;
+    sessionMock.isSignedIn = false;
+    navigationMock.searchParams = new URLSearchParams('invite=abc');
+
+    render(
+      <ProtectedRoute>
+        <div>Secret content</div>
+      </ProtectedRoute>,
+    );
+
+    expect(navigationMock.replace).toHaveBeenCalledWith('/sign-in?returnTo=%2Fonboarding%2Fadd-sites%3Finvite%3Dabc');
   });
 });

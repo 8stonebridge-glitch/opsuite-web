@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useAction, useConvexAuth } from 'convex/react';
 import { usePathname } from 'next/navigation';
 import { api } from '@/lib/convexApi';
+import { useSession } from '@/providers/SessionProvider';
 import { useApp } from '@/store/AppContext';
 import { INDUSTRIES } from '@/constants/industries';
 import type { Team, Employee, Role, Site } from '@/types';
@@ -37,19 +38,57 @@ interface ConvexTeamDoc {
   subadminMembershipId?: string;
 }
 
+function viewerIdentityHasEmail(viewer: { identity?: { email?: string | null } | null } | null) {
+  return typeof viewer?.identity?.email === 'string' && viewer.identity.email.trim() !== '';
+}
+
+export async function syncViewerUser(
+  viewer: { identity?: { email?: string | null } | null } | null,
+  syncFromAuth: () => Promise<unknown>,
+  syncFromAuthAction: () => Promise<unknown>,
+) {
+  const hasViewerEmail = viewerIdentityHasEmail(viewer);
+
+  try {
+    if (hasViewerEmail) {
+      await syncFromAuth();
+      return 'mutation';
+    }
+
+    await syncFromAuthAction();
+    return 'action';
+  } catch (error) {
+    if (!hasViewerEmail) {
+      throw error;
+    }
+
+    await syncFromAuthAction();
+    return 'action-fallback';
+  }
+}
+
+export function buildBridgeUserSyncAction(sessionRole: Role | null, viewerUserId: string | null) {
+  return {
+    type: 'SWITCH_USER' as const,
+    role: sessionRole ?? undefined,
+    userId: viewerUserId,
+  };
+}
+
 /**
  * ConvexDataBridge subscribes to real-time Convex queries and
  * feeds the data into AppContext so all existing selectors and
  * components keep working without changes.
  *
- * It also calls syncFromAuth on mount to ensure the user record
- * exists in Convex. If the mutation fails (e.g. JWT missing email
- * claim), it falls back to syncFromAuthAction which fetches the
- * email from the Clerk API server-side.
+ * It also calls a user-sync mutation/action on mount to ensure the
+ * user record exists in Convex. If the JWT already exposes email,
+ * the direct mutation is used. Otherwise it skips straight to the
+ * server-side Clerk fetch action to avoid a guaranteed error first.
  */
 export function ConvexDataBridge() {
   const { dispatch } = useApp();
-  const { isAuthenticated, isLoading: isConvexLoading } = useConvexAuth();
+  const { isAuthenticated } = useConvexAuth();
+  const { role: sessionRole } = useSession();
   const syncFromAuth = useMutation(api.users.syncFromAuth);
   const syncFromAuthAction = useAction(api.users.syncFromAuthAction);
   const hasSynced = useRef(false);
@@ -74,18 +113,30 @@ export function ConvexDataBridge() {
   // Only query when authenticated to avoid "Unauthenticated" errors
   const viewer = useQuery(api.users.viewer, isAuthenticated ? {} : 'skip');
 
+  useEffect(() => {
+    dispatch(
+      buildBridgeUserSyncAction(
+        sessionRole,
+        viewer?.user ? String(viewer.user._id) : null,
+      ),
+    );
+  }, [dispatch, sessionRole, viewer?.user]);
+
   // ── 2. Sync user on first auth ──
-  // Try mutation first; fall back to action if JWT lacks email claim
+  // Use the direct mutation when JWT includes email; otherwise go
+  // straight to the Clerk-backed action to avoid noisy expected failures.
   useEffect(() => {
     if (viewer?.identity && !hasSynced.current) {
       hasSynced.current = true;
-      syncFromAuth({}).catch((_err: unknown) => {
-        syncFromAuthAction({}).catch(() => {
-          // both sync paths failed — user will see Unauthenticated errors
-        });
+      syncViewerUser(
+        viewer,
+        () => syncFromAuth({}),
+        () => syncFromAuthAction({}),
+      ).catch(() => {
+        // both sync paths failed — user will see Unauthenticated errors
       });
     }
-  }, [viewer?.identity, syncFromAuth, syncFromAuthAction]);
+  }, [viewer, syncFromAuth, syncFromAuthAction]);
 
   // ── 3. Active organization ──
   // Deliberately NOT gated on viewer?.user — that caused a sequential waterfall.
@@ -116,7 +167,6 @@ export function ConvexDataBridge() {
     if (!activeOrg) return;
 
     const org = activeOrg.organization;
-    const membership = activeOrg.membership;
     const settings = activeOrg.settings;
 
     // Map Convex industry ID to our Industry type
@@ -146,20 +196,6 @@ export function ConvexDataBridge() {
         },
       });
     }
-
-    // Role is now primarily resolved from Clerk org membership (SessionProvider).
-    // Keep Convex role as fallback for backward compat + set userId.
-    const roleMap: Record<string, Role> = {
-      owner_admin: 'admin',
-      subadmin: 'subadmin',
-      employee: 'employee',
-    };
-    const role = roleMap[membership.role] ?? 'employee';
-    dispatch({
-      type: 'SWITCH_USER',
-      role,
-      userId: viewer?.user ? String(viewer.user._id) : null,
-    });
 
     // Mark onboarding as complete since they have an org
     dispatch({ type: 'FINISH_ONBOARDING' });

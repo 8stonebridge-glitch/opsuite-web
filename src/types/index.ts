@@ -1,13 +1,26 @@
 export type Role = 'admin' | 'subadmin' | 'employee';
 
 /** Clerk organization role keys */
-export type ClerkRole = 'org:owner_admin' | 'org:subadmin' | 'org:employee';
+export type ClerkRole =
+  | 'org:owner_admin'
+  | 'org:admin'
+  | 'org:subadmin'
+  | 'org:employee'
+  | 'owner_admin'
+  | 'admin'
+  | 'subadmin'
+  | 'employee';
 
 /** Map Clerk org role to app-level Role */
 export function clerkRoleToAppRole(clerkRole: string): Role | null {
   switch (clerkRole) {
+    case 'admin':
+    case 'org:admin':
+    case 'owner_admin':
     case 'org:owner_admin': return 'admin';
+    case 'subadmin':
     case 'org:subadmin': return 'subadmin';
+    case 'employee':
     case 'org:employee': return 'employee';
     default: return null;
   }

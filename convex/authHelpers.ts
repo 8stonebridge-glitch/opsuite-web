@@ -4,6 +4,12 @@ import type { Doc, Id } from "./_generated/dataModel";
 
 type AuthCtx = QueryCtx | MutationCtx;
 
+type IdentityLike = Record<string, unknown> | null | undefined;
+
+type IdentityOrganization = {
+  id?: unknown;
+};
+
 export async function requireIdentity(ctx: AuthCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
@@ -30,20 +36,40 @@ export async function requireCurrentUser(ctx: AuthCtx) {
   return { identity, user };
 }
 
+function getIdentityOrganization(identity: IdentityLike): IdentityOrganization | null {
+  const organization = identity?.o;
+  if (organization && typeof organization === "object") {
+    return organization as IdentityOrganization;
+  }
+  return null;
+}
+
+export function resolveIdentityClerkOrgId(identity: IdentityLike): string | null {
+  const directOrgId = identity?.org_id;
+  if (typeof directOrgId === "string" && directOrgId.length > 0) {
+    return directOrgId;
+  }
+
+  const compactOrgId = getIdentityOrganization(identity)?.id;
+  return typeof compactOrgId === "string" && compactOrgId.length > 0 ? compactOrgId : null;
+}
+
+export async function resolveActiveOrganizationFromIdentity(
+  ctx: AuthCtx,
+  identity: IdentityLike,
+) {
+  const clerkOrgId = resolveIdentityClerkOrgId(identity);
+  if (!clerkOrgId) {
+    return null;
+  }
+
+  return await resolveOrganizationByClerkId(ctx, clerkOrgId);
+}
+
 export async function requireActiveOrganizationMembership(ctx: AuthCtx) {
   const { identity, user } = await requireCurrentUser(ctx);
 
-  // Try Clerk org_id from JWT first, fall back to user.activeOrganizationId
-  const clerkOrgId = (identity as any).org_id as string | undefined;
-  let organization: Doc<"organizations"> | null = null;
-
-  if (clerkOrgId) {
-    organization = await resolveOrganizationByClerkId(ctx, clerkOrgId);
-  }
-
-  if (!organization && user.activeOrganizationId) {
-    organization = await ctx.db.get(user.activeOrganizationId);
-  }
+  const organization = await resolveActiveOrganizationFromIdentity(ctx, identity);
 
   if (!organization) {
     throw new Error("No active organization selected");
@@ -85,17 +111,7 @@ export async function getActiveOrganizationMembership(ctx: AuthCtx) {
     .first();
   if (!user) return null;
 
-  // Try Clerk org_id from JWT first, fall back to user.activeOrganizationId
-  const clerkOrgId = (identity as any).org_id as string | undefined;
-  let organization: Doc<"organizations"> | null = null;
-
-  if (clerkOrgId) {
-    organization = await resolveOrganizationByClerkId(ctx, clerkOrgId);
-  }
-
-  if (!organization && user.activeOrganizationId) {
-    organization = await ctx.db.get(user.activeOrganizationId);
-  }
+  const organization = await resolveActiveOrganizationFromIdentity(ctx, identity);
 
   if (!organization) return null;
 

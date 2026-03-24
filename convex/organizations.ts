@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { requireCurrentUser, requireOwnerMembership, slugifyOrganizationName, resolveOrganizationByClerkId } from "./authHelpers";
+import { requireCurrentUser, requireOwnerMembership, resolveActiveOrganizationFromIdentity, slugifyOrganizationName, resolveOrganizationByClerkId } from "./authHelpers";
 
 /** One-time bootstrap: create org + membership for an existing user (no auth required).
  *  Call via: npx convex run organizations:bootstrapOwner --prod '{"userId":"...","orgName":"..."}' */
@@ -114,7 +114,9 @@ export async function createOrganizationForOwner(
 export const listForViewer = query({
   args: {},
   handler: async (ctx) => {
-    const { user } = await requireCurrentUser(ctx);
+    const { identity, user } = await requireCurrentUser(ctx);
+    const activeOrganization = await resolveActiveOrganizationFromIdentity(ctx, identity);
+    const activeOrganizationId = activeOrganization?._id ?? null;
 
     const memberships = await ctx.db
       .query("memberships")
@@ -130,7 +132,7 @@ export const listForViewer = query({
           ? {
               organization,
               membership,
-              isActive: user.activeOrganizationId === organization._id,
+              isActive: activeOrganizationId === organization._id,
             }
           : null;
       }),
@@ -333,15 +335,7 @@ export const active = query({
 
     if (!user) return null;
 
-    // Try Clerk org_id from JWT first, fall back to user.activeOrganizationId
-    const clerkOrgId = (identity as any).org_id as string | undefined;
-    let organization = clerkOrgId
-      ? await resolveOrganizationByClerkId(ctx, clerkOrgId)
-      : null;
-
-    if (!organization && user.activeOrganizationId) {
-      organization = await ctx.db.get(user.activeOrganizationId);
-    }
+    const organization = await resolveActiveOrganizationFromIdentity(ctx, identity);
 
     if (!organization) return null;
 

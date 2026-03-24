@@ -5,9 +5,9 @@ import { useSignIn, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
 // Stable fallback used for post-auth completion and SSO redirectCallbackUrl.
-// We intentionally route through the server callback so Clerk org membership
-// can resolve the correct admin/subadmin/employee destination.
-export const POST_SIGN_IN_URL = '/api/auth/callback';
+// We intentionally land on "/" so the existing Clerk-aware middleware can
+// resolve the correct admin/subadmin/employee/onboarding destination.
+export const POST_SIGN_IN_URL = '/';
 
 // FEAT-AUTH-08: Resolve post-sign-in URL per-mount so ?returnTo is always
 // read from the current URL (module-level caching missed subsequent navigations).

@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useAuth, useUser, useOrganization } from '@clerk/nextjs';
-import { useApp } from '@/store/AppContext';
 import { clerkRoleToAppRole } from '@/types';
 import { resolveClientClerkOrgRole } from '@/lib/clerkClientOrg';
 
@@ -40,7 +39,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const { orgId } = useAuth();
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const { membership: clerkMembership, isLoaded: organizationLoaded } = useOrganization();
-  const { state } = useApp();
   const isPlaywrightTest = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
   type FallbackState = { status: 'idle' | 'loading' | 'done'; user: SessionUser | null };
   const [fallback, setFallback] = useState<FallbackState>({ status: 'idle', user: null });
@@ -88,20 +86,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     fallback.status === 'loading' ||
     (isPlaywrightTest && !(isSignedIn ?? false) && fallback.status === 'idle');
 
-  // Resolve role from Clerk org membership first, fall back to app state (Convex-derived)
+  // Role is resolved only from Clerk org membership.
   const clerkRole = resolveClientClerkOrgRole({
     activeOrgId: orgId,
     membershipRole: clerkMembership?.role ?? null,
     organizationMemberships: clerkUser?.organizationMemberships ?? null,
   });
-  const stateRole = state.role;
   const resolvedRole: SessionRole = !resolvedSignedIn
     ? null
     : clerkRole
       ? clerkRoleToAppRole(clerkRole)
-      : organizationLoaded
-        ? (stateRole as SessionRole) || null
-        : null;
+      : null;
 
   const value = useMemo<SessionContext>(
     () => ({

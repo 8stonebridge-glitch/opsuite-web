@@ -79,4 +79,16 @@ describe('useRoleRouter', () => {
       expect(navigationMock.replace).not.toHaveBeenCalled();
     });
   });
+
+  it('does not redirect when the user is signed in but role is still unresolved', async () => {
+    sessionMock.role = null;
+    sessionMock.isSignedIn = true;
+    navigationMock.pathname = '/';
+
+    render(<Probe />);
+
+    await waitFor(() => {
+      expect(navigationMock.replace).not.toHaveBeenCalled();
+    });
+  });
 });

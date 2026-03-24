@@ -48,8 +48,9 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Fallback: check Convex org (for users who onboarded before migration)
-    if (activeOrg?.organization) {
+    // Legacy recovery path: only trust Convex org state when Clerk does not
+    // have any org evidence for this session.
+    if (!activeClerkOrgId && activeOrg?.organization) {
       const role = activeOrg.membership?.role;
       const dest =
         role === 'subadmin'
@@ -67,7 +68,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     !clerkLoaded ||
     isConvexLoading ||
     (isAuthenticated && activeOrg === undefined) ||
-    (!!activeClerkOrgId && !clerkDashboard && activeOrg === undefined);
+    (!!activeClerkOrgId && !clerkDashboard);
 
   if (isResolvingOnboarding) {
     return (
@@ -86,7 +87,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Org exists and we have a redirect target — render nothing while redirect kicks in
-  if (clerkDashboard || activeOrg?.organization) {
+  if (clerkDashboard || (!activeClerkOrgId && activeOrg?.organization)) {
     return null;
   }
 

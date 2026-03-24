@@ -263,9 +263,9 @@ test.describe('AUTH-VERIFY-05: returnTo redirect', () => {
       if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
         return returnTo;
       }
-      return '/api/auth/callback';
+      return '/';
     });
-    expect(resolvedUrl).toBe('/api/auth/callback');
+    expect(resolvedUrl).toBe('/');
 
     // Also verify the middleware sets returnTo by making an unauthenticated
     // request and checking the redirect URL. Use fetch to avoid navigation.

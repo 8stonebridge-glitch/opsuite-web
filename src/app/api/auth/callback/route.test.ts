@@ -23,43 +23,27 @@ describe('GET /api/auth/callback', () => {
     expect(response.headers.get('location')).toBe('http://localhost/sign-in');
   });
 
-  it('routes owner_admin users to the admin dashboard', async () => {
+  it('redirects signed-in users to the root role router', async () => {
     authMock.mockResolvedValueOnce({ userId: 'user_1', orgId: 'org_1', orgRole: 'org:owner_admin' });
 
     const response = await GET(new Request('http://localhost/api/auth/callback'));
 
-    expect(response.headers.get('location')).toBe('http://localhost/admin/overview');
+    expect(response.headers.get('location')).toBe('http://localhost/');
   });
 
-  it('routes subadmin users to the subadmin dashboard', async () => {
-    authMock.mockResolvedValueOnce({ userId: 'user_1', orgId: 'org_1', orgRole: 'org:subadmin' });
-
-    const response = await GET(new Request('http://localhost/api/auth/callback'));
-
-    expect(response.headers.get('location')).toBe('http://localhost/subadmin/overview');
-  });
-
-  it('routes employee users to the employee dashboard', async () => {
-    authMock.mockResolvedValueOnce({ userId: 'user_1', orgId: 'org_1', orgRole: 'org:employee' });
-
-    const response = await GET(new Request('http://localhost/api/auth/callback'));
-
-    expect(response.headers.get('location')).toBe('http://localhost/employee/my-day');
-  });
-
-  it('routes unknown roles to onboarding', async () => {
-    authMock.mockResolvedValueOnce({ userId: 'user_1', orgId: 'org_1', orgRole: 'org:custom_role' });
-
-    const response = await GET(new Request('http://localhost/api/auth/callback'));
-
-    expect(response.headers.get('location')).toBe('http://localhost/onboarding');
-  });
-
-  it('routes signed-in users without an org to onboarding', async () => {
+  it('redirects signed-in users without an org to the root role router', async () => {
     authMock.mockResolvedValueOnce({ userId: 'user_1', orgId: null, orgRole: null });
 
     const response = await GET(new Request('http://localhost/api/auth/callback'));
 
-    expect(response.headers.get('location')).toBe('http://localhost/onboarding');
+    expect(response.headers.get('location')).toBe('http://localhost/');
+  });
+
+  it('falls back to root if Clerk auth throws during the callback handoff', async () => {
+    authMock.mockRejectedValueOnce(new Error('auth context missing'));
+
+    const response = await GET(new Request('http://localhost/api/auth/callback'));
+
+    expect(response.headers.get('location')).toBe('http://localhost/');
   });
 });

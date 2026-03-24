@@ -3,27 +3,20 @@ import { NextResponse } from 'next/server';
 
 /**
  * Post-auth callback handler.
- * Clerk redirects here after sign-in/sign-up.
- * Checks if user has a Clerk org — if yes, route to dashboard. If no, route to onboarding.
+ * Keep this route as a compatibility shim for older auth redirects.
+ * The primary post-auth landing route is now "/",
+ * where middleware performs the role-aware redirect.
  */
 export async function GET(request: Request) {
-  const { userId, orgId, orgRole } = await auth();
+  try {
+    const { userId } = await auth();
 
-  if (!userId) {
-    return NextResponse.redirect(new URL('/sign-in', request.url));
+    if (!userId) {
+      return NextResponse.redirect(new URL('/sign-in', request.url));
+    }
+
+    return NextResponse.redirect(new URL('/', request.url));
+  } catch {
+    return NextResponse.redirect(new URL('/', request.url));
   }
-
-  // User has an org with a role — send to their dashboard
-  if (orgId && orgRole) {
-    const dashboards: Record<string, string> = {
-      'org:owner_admin': '/admin/overview',
-      'org:subadmin': '/subadmin/overview',
-      'org:employee': '/employee/my-day',
-    };
-    const dest = dashboards[orgRole] || '/onboarding';
-    return NextResponse.redirect(new URL(dest, request.url));
-  }
-
-  // No org — needs onboarding
-  return NextResponse.redirect(new URL('/onboarding', request.url));
 }

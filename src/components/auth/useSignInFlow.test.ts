@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { POST_SIGN_IN_URL, resolvePostSignInUrl } from './useSignInFlow';
 
 describe('resolvePostSignInUrl', () => {
-  it('falls back to the role-aware auth callback when no returnTo exists', () => {
+  it('falls back to the role-aware root redirect when no returnTo exists', () => {
     expect(resolvePostSignInUrl('')).toBe(POST_SIGN_IN_URL);
-    expect(POST_SIGN_IN_URL).toBe('/api/auth/callback');
+    expect(POST_SIGN_IN_URL).toBe('/');
   });
 
   it('keeps a safe relative returnTo path', () => {

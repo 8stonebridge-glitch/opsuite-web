@@ -1,21 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { resolveServerAccess } from '@/lib/clerkAuth';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/api/auth/callback(.*)',
 ]);
 
 const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 const isSubadminRoute = createRouteMatcher(['/subadmin(.*)']);
 const isEmployeeRoute = createRouteMatcher(['/employee(.*)']);
-
-// Map Clerk org role → dashboard path
-const ROLE_DASHBOARDS: Record<string, string> = {
-  'org:owner_admin': '/admin/overview',
-  'org:subadmin': '/subadmin/overview',
-  'org:employee': '/employee/my-day',
-};
 
 export default clerkMiddleware(
   async (auth, request) => {
@@ -35,41 +30,42 @@ export default clerkMiddleware(
       isAdminRoute(request) || isSubadminRoute(request) || isEmployeeRoute(request);
 
     if (needsRoleCheck || pathname === '/') {
-      const { userId, orgId, orgRole } = await auth();
+      const authState = await auth();
+      const access = resolveServerAccess(authState);
 
-      // Root redirect: use Clerk org role directly
       if (pathname === '/') {
-        if (userId && orgId && orgRole) {
-          const dashboard = ROLE_DASHBOARDS[orgRole] || '/onboarding';
+        if (access.destination) {
           const url = request.nextUrl.clone();
-          url.pathname = dashboard;
-          return NextResponse.redirect(url);
-        }
-        if (userId && !orgId) {
-          // No org — send to onboarding
-          const url = request.nextUrl.clone();
-          url.pathname = '/onboarding';
+          url.pathname = access.destination;
           return NextResponse.redirect(url);
         }
         return;
       }
 
-      // Role enforcement on route groups
-      if (!orgId || !orgRole) {
+      if (access.status === 'needs_onboarding') {
         const url = request.nextUrl.clone();
         url.pathname = '/onboarding';
         return NextResponse.redirect(url);
       }
 
+      if (access.status === 'unresolved_role') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+
+      if (access.status !== 'dashboard') {
+        return;
+      }
+
       const allowed =
-        (isAdminRoute(request) && orgRole === 'org:owner_admin') ||
-        (isSubadminRoute(request) && orgRole === 'org:subadmin') ||
-        (isEmployeeRoute(request) && orgRole === 'org:employee');
+        (isAdminRoute(request) && access.appRole === 'admin') ||
+        (isSubadminRoute(request) && access.appRole === 'subadmin') ||
+        (isEmployeeRoute(request) && access.appRole === 'employee');
 
       if (!allowed) {
-        const correctDashboard = ROLE_DASHBOARDS[orgRole] || '/onboarding';
         const url = request.nextUrl.clone();
-        url.pathname = correctDashboard;
+        url.pathname = access.destination;
         return NextResponse.redirect(url);
       }
     }
