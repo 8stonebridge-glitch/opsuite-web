@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthActions } from '@convex-dev/auth/react';
+import { useClerk } from '@clerk/nextjs';
 import { useApp } from '@/store/AppContext';
 import { useCurrentName, useMyTeam, useIndustryColor, useCheckInStats, useAvailability } from '@/store/selectors';
 import { getToday } from '@/utils/date';
@@ -18,7 +18,6 @@ const LeaveRequestSheet = dynamic(
   { ssr: false }
 );
 import { AvailabilityHistory } from '@/components/availability/AvailabilityHistory';
-import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 
 export default function EmployeeMoreScreen() {
   const { state, dispatch } = useApp();
@@ -28,7 +27,7 @@ export default function EmployeeMoreScreen() {
   const stats = useCheckInStats();
   const availability = useAvailability();
   const router = useRouter();
-  const { signOut } = useAuthActions();
+  const { signOut } = useClerk();
   const [showLeaveSheet, setShowLeaveSheet] = useState(false);
   const [isSubmittingSick, setIsSubmittingSick] = useState(false);
   const { isDark } = useTheme();
@@ -137,8 +136,6 @@ export default function EmployeeMoreScreen() {
           <Card>
             <ThemeSwitcher />
           </Card>
-
-          <NotificationPreferences />
 
           <Card>
             <SettingRow icon="ℹ️" label="Version" value="1.0.0" last />

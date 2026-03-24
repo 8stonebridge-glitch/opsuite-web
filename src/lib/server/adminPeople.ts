@@ -1,6 +1,7 @@
-import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import { api } from '@/lib/convexApi';
+import { upsertClerkUser } from './adminPeopleClerk';
 
 type MembershipRole = 'owner_admin' | 'subadmin' | 'employee';
 type ManagedRole = 'subadmin' | 'employee';
@@ -58,11 +59,45 @@ export function normalizePhone(value: string) {
   return value.trim();
 }
 
-export async function requireOwnerContext() {
-  const token = await convexAuthNextjsToken();
+type ClerkAuthContext = Awaited<ReturnType<typeof auth>>;
+type ClerkGetToken = ClerkAuthContext['getToken'];
 
-  if (!token) {
+export async function resolveConvexTokenForRequest(params: {
+  getToken: ClerkGetToken;
+  sessionId: string | null;
+}) {
+  const { getToken, sessionId } = params;
+
+  try {
+    const token = await getToken({ template: 'convex' });
+    if (token) {
+      return token;
+    }
+  } catch (error) {
+    if (process.env.PLAYWRIGHT_TEST !== '1' || !sessionId) {
+      throw error;
+    }
+  }
+
+  if (process.env.PLAYWRIGHT_TEST === '1' && sessionId) {
+    const client = await clerkClient();
+    const token = await client.sessions.getToken(sessionId, 'convex');
+    return token.jwt;
+  }
+
+  return null;
+}
+
+export async function requireOwnerContext() {
+  const { userId, sessionId, getToken } = await auth();
+
+  if (!userId) {
     throw new AdminPeopleError(401, 'You need to be signed in to manage people.');
+  }
+
+  const token = await resolveConvexTokenForRequest({ getToken, sessionId });
+  if (!token) {
+    throw new AdminPeopleError(500, 'Unable to create a Convex auth token for this request.');
   }
 
   const active = await fetchQuery(api.organizations.active, {}, { token });
@@ -113,24 +148,35 @@ export async function createProvisionedPerson(input: CreatePersonInput) {
     throw new AdminPeopleError(400, 'A site must be selected.');
   }
 
-  // With Convex Auth, user provisioning is handled entirely through Convex
-  // mutations. The createProvisionedMember mutation will upsert the user
-  // record. The provisioned user can later sign in via the Password provider
-  // which will link their auth account.
-  const result = await fetchMutation(
-    api.memberships.createProvisionedMember,
-    {
-      name: input.name.trim(),
-      email,
-      phone,
-      role: input.role,
-      siteIds: [input.siteId],
-      teamIds: input.teamId ? [input.teamId] : [],
-    },
-    { token },
-  );
+  const { user, created } = await upsertClerkUser({
+    name: input.name,
+    email,
+    password: input.password,
+  });
 
-  return result;
+  try {
+    const result = await fetchMutation(
+      api.memberships.createProvisionedMember,
+      {
+        name: input.name.trim(),
+        email,
+        phone,
+        role: input.role,
+        siteIds: [input.siteId],
+        teamIds: input.teamId ? [input.teamId] : [],
+        authUserId: user.id,
+      },
+      { token },
+    );
+
+    return result;
+  } catch (error) {
+    if (created) {
+      const client = await clerkClient();
+      await client.users.deleteUser(user.id).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 export async function updateProvisionedPerson(userId: string, input: UpdatePersonInput) {
@@ -155,7 +201,14 @@ export async function updateProvisionedPerson(userId: string, input: UpdatePerso
     throw new AdminPeopleError(400, 'A site must be selected.');
   }
 
-  // Update user profile in Convex directly (no external auth provider needed)
+  const { user } = await upsertClerkUser({
+    existingAuthUserId: target.user.authUserId,
+    name: input.name,
+    email,
+    password: input.password?.trim() || undefined,
+    previousEmail: target.user.email,
+  });
+
   await fetchMutation(
     api.memberships.updateMember,
     {
@@ -179,7 +232,7 @@ export async function updateProvisionedPerson(userId: string, input: UpdatePerso
 
   return {
     userId: target.user._id,
-    authUserId: target.user.authUserId,
+    authUserId: user.id,
     email,
     phone,
   };
@@ -188,15 +241,26 @@ export async function updateProvisionedPerson(userId: string, input: UpdatePerso
 export async function deleteProvisionedPerson(userId: string) {
   const { token } = await requireOwnerContext();
   const target = await getManagedMember(token, userId);
+  const activeMembershipCount = (await fetchQuery(
+    api.memberships.activeMembershipCountForUser,
+    { userId: target.user._id },
+    { token },
+  )) as number;
 
-  // Remove the membership via Convex mutation.
-  // With Convex Auth, user/auth account cleanup is handled server-side
-  // within the Convex backend if needed.
   await fetchMutation(
     api.memberships.removeMember,
     { userId: target.user._id },
     { token },
   );
+
+  if (
+    activeMembershipCount <= 1 &&
+    target.user.authUserId &&
+    !target.user.authUserId.startsWith('pending:')
+  ) {
+    const client = await clerkClient();
+    await client.users.deleteUser(target.user.authUserId).catch(() => undefined);
+  }
 
   return { removed: true };
 }
