@@ -1,24 +1,12 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
-
-export const dynamic = 'force-dynamic';
 
 /**
- * Root page — server-side redirect.
+ * Root page — simple redirect fallback.
  *
- * Authenticated users → admin dashboard (ConvexDataBridge + useRoleRouter
- * handle role-based routing once the app loads).
- * Unauthenticated users → sign-in.
- *
- * NOTE: Middleware already redirects "/" → /admin/overview for authenticated
- * users, so this is a safety net in case middleware doesn't catch it.
+ * The middleware handles auth checks and role-based routing.
+ * This page only runs if middleware doesn't redirect first,
+ * which means the user is unauthenticated.
  */
-export default async function HomePage() {
-  const { userId } = await auth();
-
-  if (userId) {
-    redirect('/admin/overview');
-  }
-
+export default function HomePage() {
   redirect('/sign-in');
 }

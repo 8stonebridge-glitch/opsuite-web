@@ -1,7 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { fetchQuery } from 'convex/nextjs';
 import { NextResponse } from 'next/server';
-import { api } from '@/lib/convexApi';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
@@ -50,13 +48,24 @@ export default clerkMiddleware(
     // Single auth() call covers both role-check and root-redirect paths to avoid
     // redundant authentication round-trips within the same request.
     if (needsRoleCheck || pathname === '/') {
+      let fetchQuery: typeof import('convex/nextjs').fetchQuery | undefined;
+      let api: any;
+      try {
+        const convexNextjs = await import('convex/nextjs');
+        fetchQuery = convexNextjs.fetchQuery;
+        const convexApi = await import('./src/lib/convexApi');
+        api = convexApi.api;
+      } catch {
+        // Convex imports failed — skip role checks, let client handle it
+      }
+
       const { userId, getToken } = await auth();
 
       const token = await getToken({ template: 'convex' });
 
       // Server-side redirect: send "/" to the correct role dashboard instantly.
       if (pathname === '/') {
-        if (userId && token) {
+        if (userId && token && fetchQuery && api) {
           try {
             const active = await fetchQuery(api.organizations.active, {}, { token });
             const role = active?.membership?.role;
@@ -65,7 +74,6 @@ export default clerkMiddleware(
             url.pathname = dashboard;
             return NextResponse.redirect(url);
           } catch {
-            // Convex unavailable — send to onboarding as safe default
             const url = request.nextUrl.clone();
             url.pathname = '/onboarding';
             return NextResponse.redirect(url);
@@ -76,46 +84,40 @@ export default clerkMiddleware(
           url.pathname = '/onboarding';
           return NextResponse.redirect(url);
         }
-        return; // Unauthenticated — auth.protect() already redirected above.
+        return;
       }
 
       if (!token) {
-        // No Convex token — user may not have completed onboarding yet.
-        // Redirect to onboarding instead of blocking.
         const url = request.nextUrl.clone();
         url.pathname = '/onboarding';
         return NextResponse.redirect(url);
       }
 
-      try {
-        const active = await fetchQuery(api.organizations.active, {}, { token });
-        const role = active?.membership?.role;
+      if (fetchQuery && api) {
+        try {
+          const active = await fetchQuery(api.organizations.active, {}, { token });
+          const role = active?.membership?.role;
 
-        if (!role) {
-          // No org/membership — redirect to onboarding
-          const url = request.nextUrl.clone();
-          url.pathname = '/onboarding';
-          return NextResponse.redirect(url);
+          if (!role) {
+            const url = request.nextUrl.clone();
+            url.pathname = '/onboarding';
+            return NextResponse.redirect(url);
+          }
+
+          const allowed =
+            (isAdminRoute(request) && role === 'owner_admin') ||
+            (isSubadminRoute(request) && role === 'subadmin') ||
+            (isEmployeeRoute(request) && role === 'employee');
+
+          if (!allowed) {
+            const correctDashboard = ROLE_DASHBOARDS[role] || '/onboarding';
+            const url = request.nextUrl.clone();
+            url.pathname = correctDashboard;
+            return NextResponse.redirect(url);
+          }
+        } catch {
+          // Convex query failed — let client-side guards handle it
         }
-
-        // Check role against route group
-        const allowed =
-          (isAdminRoute(request) && role === 'owner_admin') ||
-          (isSubadminRoute(request) && role === 'subadmin') ||
-          (isEmployeeRoute(request) && role === 'employee');
-
-        if (!allowed) {
-          // Redirect to the user's correct dashboard instead of showing a 403
-          const correctDashboard = ROLE_DASHBOARDS[role] || '/onboarding';
-          const url = request.nextUrl.clone();
-          url.pathname = correctDashboard;
-          return NextResponse.redirect(url);
-        }
-      } catch {
-        // Convex query failed (network, cold start, etc.) — let client-side
-        // guards handle it rather than redirecting to onboarding (which would
-        // loop for users who already have an org). The AppShell role guard
-        // and useRoleRouter will redirect if the role doesn't match.
       }
     }
   },
