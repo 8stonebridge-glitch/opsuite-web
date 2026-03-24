@@ -10,7 +10,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { InboxButton } from '@/components/inbox/InboxButton';
 import { InboxProvider } from '@/components/inbox/InboxProvider';
 import { getSidebarItems, isPathActive } from '@/components/navigation/nav-config';
-import { useAuthActions } from '@convex-dev/auth/react';
+import { SignOutButton } from '@clerk/nextjs';
 
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout';
 import {
@@ -31,7 +31,6 @@ import { LogOut, ChevronDown } from 'lucide-react';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { state } = useApp();
   const { user } = useSession();
-  const { signOut } = useAuthActions();
   const router = useRouter();
   const pathname = usePathname();
   const isMounted = useHydrated();
@@ -127,17 +126,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       </div>
                     </div>
                   </SidebarItem>
-                  <SidebarItem
-                    onClick={async () => {
-                      if (window.confirm('Are you sure you want to sign out?')) {
-                        await signOut();
-                        window.location.href = '/sign-in';
-                      }
-                    }}
-                  >
-                    <LogOut data-slot="icon" className="size-5" />
-                    <SidebarLabel>Sign out</SidebarLabel>
-                  </SidebarItem>
+                  <SignOutButton>
+                    <SidebarItem>
+                      <LogOut data-slot="icon" className="size-5" />
+                      <SidebarLabel>Sign out</SidebarLabel>
+                    </SidebarItem>
+                  </SignOutButton>
                 </SidebarSection>
               )}
             </SidebarFooter>

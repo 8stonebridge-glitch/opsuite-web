@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import { requireCurrentUser } from "./authHelpers";
+import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { displayNameFromIdentity, requireCurrentUser } from "./authHelpers";
 import {
   syncFromAuthArgs,
   syncFromAuthHandler,
@@ -12,18 +13,10 @@ export const viewer = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
 
-    // Try by authUserId first, then fall back to email
-    let user = await ctx.db
+    const user = await ctx.db
       .query("users")
       .withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject))
       .first();
-
-    if (!user && typeof identity.email === "string") {
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email as string))
-        .first();
-    }
 
     return {
       identity: {
@@ -37,14 +30,96 @@ export const viewer = query({
   },
 });
 
-// Public mutation — syncs identity into the users table on sign-in
-export const syncFromAuth = mutation({
+// Action wrapper: fetches email/name from Clerk API if JWT doesn't include them,
+// then calls the syncFromAuth mutation with the resolved values.
+export const syncFromAuthAction: ReturnType<typeof action> = action({
+  args: {},
+  handler: async (ctx): Promise<unknown> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const jwtEmail =
+      (typeof identity.email === "string" ? identity.email.trim().toLowerCase() : "") ||
+      (typeof (identity as any).emailAddress === "string" ? (identity as any).emailAddress.trim().toLowerCase() : "");
+
+    let email = jwtEmail;
+    let name = "";
+    let phone: string | undefined;
+    let avatarUrl: string | undefined;
+
+    if (jwtEmail) {
+      name = displayNameFromIdentity(identity as unknown as Record<string, unknown>);
+      avatarUrl = typeof identity.pictureUrl === "string" ? identity.pictureUrl : undefined;
+      phone = resolvePhone(identity);
+    } else {
+      const result = await fetchClerkUser(identity.subject);
+      email = result.email;
+      name = result.name;
+      phone = result.phone;
+      avatarUrl = result.avatarUrl;
+    }
+
+    return await ctx.runMutation(internal.users.syncFromAuthInternal, {
+      clerkEmail: email,
+      clerkName: name,
+      clerkPhone: phone,
+      clerkAvatarUrl: avatarUrl,
+    });
+  },
+});
+
+function resolvePhone(identity: Record<string, unknown>): string | undefined {
+  if (typeof (identity as any).phoneNumber === "string") {
+    return (identity as any).phoneNumber.trim();
+  }
+  if (typeof (identity as any).phone_number === "string") {
+    return (identity as any).phone_number.trim();
+  }
+  return undefined;
+}
+
+async function fetchClerkUser(subject: string) {
+  const clerkSecret = process.env.CLERK_SECRET_KEY;
+  if (!clerkSecret) {
+    throw new Error("CLERK_SECRET_KEY not set and JWT is missing email claim");
+  }
+
+  const res = await fetch(`https://api.clerk.com/v1/users/${subject}`, {
+    headers: { Authorization: `Bearer ${clerkSecret}` },
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch user from Clerk: ${res.status}`);
+  }
+
+  const clerkUser = await res.json() as {
+    email_addresses?: { email_address: string }[];
+    phone_numbers?: { phone_number: string }[];
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
+  };
+
+  const primaryEmail = clerkUser.email_addresses?.[0]?.email_address;
+  if (!primaryEmail) {
+    throw new Error("Clerk user has no email address");
+  }
+
+  return {
+    email: primaryEmail.trim().toLowerCase(),
+    name: [clerkUser.first_name, clerkUser.last_name].filter(Boolean).join(" ") || primaryEmail.trim().toLowerCase(),
+    phone: clerkUser.phone_numbers?.[0]?.phone_number?.trim() || undefined,
+    avatarUrl: clerkUser.image_url,
+  };
+}
+
+// Internal mutation called by syncFromAuthAction (avoids circular type ref)
+export const syncFromAuthInternal = internalMutation({
   args: syncFromAuthArgs,
   handler: syncFromAuthHandler,
 });
 
-// Internal mutation (for internal calls)
-export const syncFromAuthInternal = internalMutation({
+// Public mutation (can be called directly if JWT has email claim)
+export const syncFromAuth = mutation({
   args: syncFromAuthArgs,
   handler: syncFromAuthHandler,
 });
@@ -90,7 +165,7 @@ export const debugListAll = internalQuery({
   },
 });
 
-// One-time cleanup — internal only
+// One-time cleanup — internal only, not callable from client browsers
 export const deduplicateUsers = internalMutation({
   args: {},
   handler: async (ctx) => {

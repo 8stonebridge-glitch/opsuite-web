@@ -121,6 +121,7 @@ export function displayNameFromIdentity(identity: Record<string, unknown>) {
 }
 
 export function emailFromIdentity(identity: Record<string, unknown>) {
+  // Clerk may expose the email as "email" or "emailAddress" depending on the JWT template
   const email =
     (typeof identity.email === "string" ? identity.email.trim().toLowerCase() : "") ||
     (typeof identity.emailAddress === "string" ? identity.emailAddress.trim().toLowerCase() : "");

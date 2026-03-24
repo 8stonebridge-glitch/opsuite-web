@@ -1,13 +1,15 @@
 /**
  * Server-side helpers for calling Convex mutations from Next.js API routes.
- * Resolves Convex Auth session, gets an auth token, and calls the appropriate mutation.
+ * Follows the same pattern as adminPeople.ts — resolves Clerk auth, gets
+ * a Convex token, and calls the appropriate mutation.
  *
  * These helpers resolve userId → membershipId server-side so the frontend
  * never needs to know about membership IDs.
  */
-import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import { api } from '@/lib/convexApi';
+import { resolveConvexTokenForRequest } from './adminPeople';
 
 export class ConvexActionError extends Error {
   status: number;
@@ -19,14 +21,19 @@ export class ConvexActionError extends Error {
 }
 
 /**
- * Resolve the Convex Auth session and obtain a Convex token.
+ * Resolve the Clerk auth context and obtain a Convex token.
  * Returns the token and active organization context (membership, org, etc.)
  */
 export async function requireAuthContext() {
-  const token = await convexAuthNextjsToken();
+  const { userId, sessionId, getToken } = await auth();
 
-  if (!token) {
+  if (!userId) {
     throw new ConvexActionError(401, 'You need to be signed in.');
+  }
+
+  const token = await resolveConvexTokenForRequest({ getToken, sessionId });
+  if (!token) {
+    throw new ConvexActionError(500, 'Unable to create a Convex auth token.');
   }
 
   const active = await fetchQuery(api.organizations.active, {}, { token });

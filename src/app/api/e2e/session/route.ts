@@ -1,30 +1,25 @@
 import { NextResponse } from 'next/server';
-import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
-import { fetchQuery } from 'convex/nextjs';
-import { api } from '@/lib/convexApi';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 
 export async function GET() {
   if (process.env.PLAYWRIGHT_TEST !== '1') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const token = await convexAuthNextjsToken();
-  if (!token) {
+  const { userId } = await auth();
+  if (!userId) {
     return NextResponse.json({ user: null }, { status: 200 });
   }
 
-  // Fetch the current user's info from Convex instead of Clerk
-  const active = await fetchQuery(api.organizations.active, {}, { token }) as any;
-  if (!active?.user) {
-    return NextResponse.json({ user: null }, { status: 200 });
-  }
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
 
   return NextResponse.json({
     user: {
-      id: String(active.user._id),
-      email: active.user.email || '',
-      name: active.user.name || active.user.email || 'User',
-      imageUrl: active.user.imageUrl || null,
+      id: user.id,
+      email: user.emailAddresses[0]?.emailAddress || '',
+      name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.emailAddresses[0]?.emailAddress || 'User',
+      imageUrl: user.imageUrl || null,
     },
   });
 }

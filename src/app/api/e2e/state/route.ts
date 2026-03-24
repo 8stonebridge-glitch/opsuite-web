@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server';
-import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
-import { fetchMutation, fetchQuery } from 'convex/nextjs';
+import { auth } from '@clerk/nextjs/server';
+import { fetchAction, fetchQuery } from 'convex/nextjs';
 import { api } from '@/lib/convexApi';
+import { resolveConvexTokenForRequest } from '@/lib/server/adminPeople';
 
 export async function GET() {
   if (process.env.PLAYWRIGHT_TEST !== '1') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const token = await convexAuthNextjsToken();
+  const { userId, sessionId, getToken } = await auth();
+  if (!userId) {
+    return NextResponse.json({ state: null }, { status: 200 });
+  }
+
+  const token = await resolveConvexTokenForRequest({ getToken, sessionId });
   if (!token) {
     return NextResponse.json({ state: null }, { status: 200 });
   }
 
-  await fetchMutation(api.users.syncFromAuth, {}, { token });
+  await fetchAction(api.users.syncFromAuthAction, {}, { token });
 
   const [activeOrg, sitesData, membershipsData] = await Promise.all([
     fetchQuery(api.organizations.active, {}, { token }),
@@ -31,9 +37,6 @@ export async function GET() {
   }));
   const siteMap = new Map(sites.map((site) => [site.id, site.name]));
 
-  // With Convex Auth, we identify the current user via the active org context
-  const currentUserId = (activeOrg as any).user ? String((activeOrg as any).user._id) : undefined;
-
   const standaloneEmployees = (membershipsData as any[])
     .filter((entry) => entry.membership.role !== 'owner_admin')
     .map((entry) => ({
@@ -50,15 +53,9 @@ export async function GET() {
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Find the current user's name from membership data
-  const currentUserEntry = currentUserId
-    ? (membershipsData as any[]).find((entry) => String(entry.user._id) === currentUserId)
-    : undefined;
-  const viewerName = currentUserEntry?.user?.name;
-
   return NextResponse.json({
     state: {
-      adminName: viewerName,
+      adminName: (membershipsData as any[]).find((entry) => String(entry.user.authUserId) === userId)?.user?.name ?? undefined,
       membershipRole: activeOrg.membership.role,
       orgName: activeOrg.organization.name,
       orgMode: activeOrg.organization.mode,
@@ -70,7 +67,7 @@ export async function GET() {
         : null,
       sites,
       standaloneEmployees,
-      viewerName,
+      viewerName: (membershipsData as any[]).find((entry) => String(entry.user.authUserId) === userId)?.user?.name,
     },
   });
 }
