@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '@/store/AppContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { OnboardingGuard } from '@/components/auth/OnboardingGuard';
-import type { Role, Site } from '@/types';
+import type { Industry, Role, Site } from '@/types';
 
 const STORAGE_KEY = 'opsuite_onboarding';
 
@@ -14,6 +14,15 @@ interface StoredOnboardingDraft {
   industry?: unknown;
   adminName?: unknown;
   sites?: unknown;
+}
+
+function isStoredIndustry(value: unknown): value is Industry {
+  return !!value &&
+    typeof value === 'object' &&
+    typeof (value as { id?: unknown }).id === 'string' &&
+    typeof (value as { name?: unknown }).name === 'string' &&
+    typeof (value as { sitesLabel?: unknown }).sitesLabel === 'string' &&
+    typeof (value as { color?: unknown }).color === 'string';
 }
 
 // ── Role-aware onboarding paths ────────────────────────────────────
@@ -77,7 +86,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       if (typeof data.orgName === 'string' && data.orgName && !state.onboarding.orgName) {
         dispatch({ type: 'SET_ORG_NAME', name: data.orgName });
       }
-      if (data.industry && !state.onboarding.industry) {
+      if (isStoredIndustry(data.industry) && !state.onboarding.industry) {
         dispatch({ type: 'SET_INDUSTRY', industry: data.industry });
       }
       if (typeof data.adminName === 'string' && data.adminName && !state.onboarding.adminName) {
