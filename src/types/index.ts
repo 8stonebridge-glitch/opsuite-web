@@ -1,5 +1,18 @@
 export type Role = 'admin' | 'subadmin' | 'employee';
 
+/** Clerk organization role keys */
+export type ClerkRole = 'org:owner_admin' | 'org:subadmin' | 'org:employee';
+
+/** Map Clerk org role to app-level Role */
+export function clerkRoleToAppRole(clerkRole: string): Role {
+  switch (clerkRole) {
+    case 'org:owner_admin': return 'admin';
+    case 'org:subadmin': return 'subadmin';
+    case 'org:employee': return 'employee';
+    default: return 'employee';
+  }
+}
+
 /** Organization management mode: 'managed' has subadmin leads, 'direct' is admin→employees */
 export type OrgMode = 'managed' | 'direct';
 

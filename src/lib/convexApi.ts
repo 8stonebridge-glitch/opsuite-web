@@ -55,6 +55,7 @@ interface ConvexApi {
     active: FunctionReference<'query', 'public', Record<string, never>, ActiveOrgResult | null>;
     listForViewer: FunctionReference<'query', 'public', Record<string, never>, Array<{ organization: OrganizationDoc; membership: MembershipDoc; isActive: boolean } | null>>;
     create: FunctionReference<'mutation', 'public', { name: string; industryId?: string; mode: OrgMode }, { organizationId: Id<'organizations'>; membershipId: Id<'memberships'> }>;
+    createFromClerkOrg: FunctionReference<'mutation', 'public', { clerkOrgId: string; name: string; industryId?: string; mode: OrgMode }, { organizationId: Id<'organizations'>; membershipId: Id<'memberships'> }>;
     storeSignupDraft: FunctionReference<'mutation', 'public', { email: string; organizationName: string; industryId?: string; mode: OrgMode }, Id<'signupDrafts'>>;
     updateMode: FunctionReference<'mutation', 'public', { mode: OrgMode }, { id: Id<'organizations'>; mode: OrgMode }>;
   };

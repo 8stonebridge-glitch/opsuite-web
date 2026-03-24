@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
+import { useOrganizationList } from '@clerk/nextjs';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/ui/Button';
 import { uid } from '@/utils/id';
@@ -15,7 +16,8 @@ export default function AddSitesPage() {
   const [siteName, setSiteName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  const createOrg = useMutation(api.organizations.create);
+  const { createOrganization, setActive } = useOrganizationList();
+  const createFromClerkOrg = useMutation(api.organizations.createFromClerkOrg);
   const createSite = useMutation(api.sites.create);
 
   const sitesLabel = state.onboarding.industry?.sitesLabel || 'Teams';
@@ -31,22 +33,31 @@ export default function AddSitesPage() {
     setIsCreating(true);
 
     try {
-      // 1. Create the organization in Convex
-      const result = await createOrg({
-        name: state.onboarding.orgName || 'My Organization',
+      const orgName = state.onboarding.orgName || 'My Organization';
+
+      // 1. Create the organization in Clerk
+      const clerkOrg = await createOrganization!({ name: orgName });
+
+      // 2. Set it as the active org in Clerk session
+      await setActive!({ organization: clerkOrg.id });
+
+      // 3. Create linked Convex org with clerkOrgId
+      await createFromClerkOrg({
+        clerkOrgId: clerkOrg.id,
+        name: orgName,
         industryId: state.onboarding.industry?.id,
         mode: 'managed',
       });
 
-      // 2. Create sites in Convex
+      // 4. Create sites in Convex
       for (const site of state.onboarding.sites) {
         await createSite({ name: site.name });
       }
 
-      // 3. Mark onboarding complete locally
+      // 5. Mark onboarding complete locally
       dispatch({ type: 'FINISH_ONBOARDING' });
 
-      // 4. Navigate to dashboard — ConvexDataBridge will pick up the new org
+      // 6. Navigate to dashboard
       router.replace('/admin/overview');
     } catch (err) {
       console.error('Failed to create organization:', err);

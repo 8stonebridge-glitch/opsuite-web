@@ -147,7 +147,8 @@ export function ConvexDataBridge() {
       });
     }
 
-    // Map the user's role from membership — never default to admin
+    // Role is now primarily resolved from Clerk org membership (SessionProvider).
+    // Keep Convex role as fallback for backward compat + set userId.
     const roleMap: Record<string, Role> = {
       owner_admin: 'admin',
       subadmin: 'subadmin',

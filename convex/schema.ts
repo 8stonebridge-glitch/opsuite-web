@@ -84,11 +84,13 @@ export default defineSchema({
     industryId: v.optional(v.string()),
     mode: v.union(v.literal('managed'), v.literal('direct')),
     ownerUserId: v.id('users'),
+    clerkOrgId: v.optional(v.string()),
     createdAt: v.string(),
     updatedAt: v.string(),
   })
     .index('by_owner_user_id', ['ownerUserId'])
-    .index('by_slug', ['slug']),
+    .index('by_slug', ['slug'])
+    .index('by_clerk_org_id', ['clerkOrgId']),
 
   memberships: defineTable({
     userId: v.id('users'),

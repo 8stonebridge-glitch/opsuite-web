@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useOrganization } from '@clerk/nextjs';
 import { useApp } from '@/store/AppContext';
+import { clerkRoleToAppRole } from '@/types';
 
 export interface SessionUser {
   id: string;
@@ -20,7 +21,7 @@ export interface SessionContext {
   isLoading: boolean;
   /** True if the user has been authenticated */
   isSignedIn: boolean;
-  /** The resolved role for this user (resolved from Convex membership via ConvexDataBridge) */
+  /** The resolved role for this user (from Clerk org membership) */
   role: SessionRole;
   /** Re-fetch session (e.g. after org switch) */
   refresh: () => Promise<void>;
@@ -36,6 +37,7 @@ const SessionCtx = createContext<SessionContext>({
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const { membership: clerkMembership } = useOrganization();
   const { state } = useApp();
   const isPlaywrightTest = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === '1';
   type FallbackState = { status: 'idle' | 'loading' | 'done'; user: SessionUser | null };
@@ -83,15 +85,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     fallback.status === 'loading' ||
     (isPlaywrightTest && !(isSignedIn ?? false) && fallback.status === 'idle');
 
+  // Resolve role from Clerk org membership first, fall back to app state (Convex-derived)
+  const resolvedRole = useMemo<SessionRole>(() => {
+    if (!resolvedSignedIn) return null;
+    if (clerkMembership?.role) {
+      return clerkRoleToAppRole(clerkMembership.role) as SessionRole;
+    }
+    return (state.role as SessionRole) || null;
+  }, [resolvedSignedIn, clerkMembership?.role, state.role]);
+
   const value = useMemo<SessionContext>(
     () => ({
       user: resolvedUser,
       isLoading: resolvedLoading,
       isSignedIn: resolvedSignedIn,
-      role: resolvedSignedIn ? (state.role as SessionRole) : null,
+      role: resolvedRole,
       refresh: async () => {},
     }),
-    [resolvedUser, resolvedLoading, resolvedSignedIn, state.role],
+    [resolvedUser, resolvedLoading, resolvedSignedIn, resolvedRole],
   );
 
   return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;

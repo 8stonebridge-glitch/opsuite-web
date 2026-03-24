@@ -1,7 +1,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import { api } from '@/lib/convexApi';
-import { upsertClerkUser } from './adminPeopleClerk';
+import { upsertClerkUser, addMemberToClerkOrg, removeMemberFromClerkOrg } from './adminPeopleClerk';
 
 type MembershipRole = 'owner_admin' | 'subadmin' | 'employee';
 type ManagedRole = 'subadmin' | 'employee';
@@ -128,7 +128,7 @@ export async function getManagedMember(token: string, userId: string) {
 }
 
 export async function createProvisionedPerson(input: CreatePersonInput) {
-  const { token } = await requireOwnerContext();
+  const { token, active } = await requireOwnerContext();
   const email = normalizeEmail(input.email);
   const phone = normalizePhone(input.phone);
 
@@ -168,6 +168,14 @@ export async function createProvisionedPerson(input: CreatePersonInput) {
       },
       { token },
     );
+
+    // Also add the user to the Clerk organization with the correct role
+    if (active?.organization) {
+      const clerkOrgId = (active.organization as any).clerkOrgId;
+      if (clerkOrgId) {
+        await addMemberToClerkOrg(clerkOrgId, user.id, input.role);
+      }
+    }
 
     return result;
   } catch (error) {
@@ -239,7 +247,7 @@ export async function updateProvisionedPerson(userId: string, input: UpdatePerso
 }
 
 export async function deleteProvisionedPerson(userId: string) {
-  const { token } = await requireOwnerContext();
+  const { token, active } = await requireOwnerContext();
   const target = await getManagedMember(token, userId);
   const activeMembershipCount = (await fetchQuery(
     api.memberships.activeMembershipCountForUser,
@@ -252,6 +260,14 @@ export async function deleteProvisionedPerson(userId: string) {
     { userId: target.user._id },
     { token },
   );
+
+  // Remove from Clerk org
+  if (active?.organization) {
+    const clerkOrgId = (active.organization as any).clerkOrgId;
+    if (clerkOrgId && target.user.authUserId && !target.user.authUserId.startsWith('pending:')) {
+      await removeMemberFromClerkOrg(clerkOrgId, target.user.authUserId);
+    }
+  }
 
   if (
     activeMembershipCount <= 1 &&

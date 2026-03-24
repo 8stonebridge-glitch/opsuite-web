@@ -1,6 +1,54 @@
 import { clerkClient } from '@clerk/nextjs/server';
 import { normalizeEmail, AdminPeopleError } from './adminPeople';
 
+type ClerkOrgRole = 'org:owner_admin' | 'org:subadmin' | 'org:employee';
+
+/** Map Convex role to Clerk org role key */
+function toClerkOrgRole(role: string): ClerkOrgRole {
+  switch (role) {
+    case 'owner_admin': return 'org:owner_admin';
+    case 'subadmin': return 'org:subadmin';
+    case 'employee': return 'org:employee';
+    default: return 'org:employee';
+  }
+}
+
+/** Add a user to a Clerk organization with the specified role */
+export async function addMemberToClerkOrg(clerkOrgId: string, clerkUserId: string, role: string) {
+  const client = await clerkClient();
+  try {
+    await client.organizations.createOrganizationMembership({
+      organizationId: clerkOrgId,
+      userId: clerkUserId,
+      role: toClerkOrgRole(role),
+    });
+  } catch (err: any) {
+    // If already a member, update role instead
+    if (err?.errors?.[0]?.code === 'duplicate_record') {
+      await client.organizations.updateOrganizationMembership({
+        organizationId: clerkOrgId,
+        userId: clerkUserId,
+        role: toClerkOrgRole(role),
+      });
+    } else {
+      throw err;
+    }
+  }
+}
+
+/** Remove a user from a Clerk organization */
+export async function removeMemberFromClerkOrg(clerkOrgId: string, clerkUserId: string) {
+  const client = await clerkClient();
+  try {
+    await client.organizations.deleteOrganizationMembership({
+      organizationId: clerkOrgId,
+      userId: clerkUserId,
+    });
+  } catch {
+    // Ignore if not a member
+  }
+}
+
 export async function findClerkUserByEmail(email: string) {
   const client = await clerkClient();
   const result = await client.users.getUserList({ emailAddress: [email], limit: 1 });

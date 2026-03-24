@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { requireCurrentUser, requireOwnerMembership, slugifyOrganizationName } from "./authHelpers";
+import { requireCurrentUser, requireOwnerMembership, slugifyOrganizationName, resolveOrganizationByClerkId } from "./authHelpers";
 
 /** One-time bootstrap: create org + membership for an existing user (no auth required).
  *  Call via: npx convex run organizations:bootstrapOwner --prod '{"userId":"...","orgName":"..."}' */
@@ -184,6 +184,105 @@ export const create = mutation({
   },
 });
 
+/**
+ * Create a Convex organization linked to a Clerk Organization.
+ * Called after the frontend creates the Clerk org via useOrganizationList().createOrganization().
+ */
+export const createFromClerkOrg = mutation({
+  args: {
+    clerkOrgId: v.string(),
+    name: v.string(),
+    industryId: v.optional(v.string()),
+    mode: v.union(v.literal("managed"), v.literal("direct")),
+  },
+  handler: async (ctx, args) => {
+    const { user } = await requireCurrentUser(ctx);
+
+    // Check if a Convex org already exists for this Clerk org
+    const existing = await ctx.db
+      .query("organizations")
+      .withIndex("by_clerk_org_id", (q) => q.eq("clerkOrgId", args.clerkOrgId))
+      .first();
+
+    if (existing) {
+      // Already linked — ensure user has active membership
+      const membership = await ctx.db
+        .query("memberships")
+        .withIndex("by_organization_user", (q) =>
+          q.eq("organizationId", existing._id).eq("userId", user._id),
+        )
+        .first();
+
+      if (membership) {
+        await ctx.db.patch(user._id, {
+          activeOrganizationId: existing._id,
+          updatedAt: new Date().toISOString(),
+        });
+        return { organizationId: existing._id, membershipId: membership._id };
+      }
+    }
+
+    // Guard: prevent provisioned employees from creating a new org
+    const existingMembership = await ctx.db
+      .query("memberships")
+      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+      .filter((q) => q.eq(q.field("status"), "active"))
+      .first();
+
+    if (existingMembership) {
+      await ctx.db.patch(user._id, {
+        activeOrganizationId: existingMembership.organizationId,
+        updatedAt: new Date().toISOString(),
+      });
+      return {
+        organizationId: existingMembership.organizationId,
+        membershipId: existingMembership._id,
+      };
+    }
+
+    const now = new Date().toISOString();
+    const slug = await uniqueOrganizationSlug(ctx, slugifyOrganizationName(args.name));
+
+    const organizationId = await ctx.db.insert("organizations", {
+      name: args.name.trim(),
+      slug,
+      industryId: args.industryId,
+      mode: args.mode,
+      ownerUserId: user._id,
+      clerkOrgId: args.clerkOrgId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const membershipId = await ctx.db.insert("memberships", {
+      userId: user._id,
+      organizationId,
+      role: "owner_admin",
+      siteIds: [],
+      teamIds: [],
+      status: "active",
+      joinedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert("orgSettings", {
+      organizationId,
+      noChangeAlertWorkdays: 3,
+      reworkAlertCycles: 3,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.patch(user._id, {
+      activeOrganizationId: organizationId,
+      updatedAt: now,
+    });
+
+    return { organizationId, membershipId };
+  },
+});
+
 export const storeSignupDraft = mutation({
   args: {
     email: v.string(),
@@ -224,8 +323,6 @@ export const storeSignupDraft = mutation({
 export const active = query({
   args: {},
   handler: async (ctx) => {
-    // Use getUserIdentity directly so we never throw for unauthenticated or
-    // not-yet-bootstrapped users — both cases just return null gracefully.
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
 
@@ -234,29 +331,34 @@ export const active = query({
       .withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject))
       .first();
 
-    // User not bootstrapped in Convex yet (syncFromAuth hasn't run) — return null,
-    // ConvexDataBridge will call syncFromAuth and the query will re-run reactively.
     if (!user) return null;
-    if (!user.activeOrganizationId) return null;
 
-    const organization = await ctx.db.get(user.activeOrganizationId);
+    // Try Clerk org_id from JWT first, fall back to user.activeOrganizationId
+    const clerkOrgId = (identity as any).org_id as string | undefined;
+    let organization = clerkOrgId
+      ? await resolveOrganizationByClerkId(ctx, clerkOrgId)
+      : null;
+
+    if (!organization && user.activeOrganizationId) {
+      organization = await ctx.db.get(user.activeOrganizationId);
+    }
+
     if (!organization) return null;
 
     const membership = await ctx.db
       .query("memberships")
       .withIndex("by_organization_user", (q) =>
-        q.eq("organizationId", user.activeOrganizationId!).eq("userId", user._id),
+        q.eq("organizationId", organization!._id).eq("userId", user._id),
       )
       .unique();
 
-    // Only return the active org if the user has a valid, active membership
     if (!membership || membership.status !== "active") {
       return null;
     }
 
     const settings = await ctx.db
       .query("orgSettings")
-      .withIndex("by_organization_id", (q) => q.eq("organizationId", user.activeOrganizationId!))
+      .withIndex("by_organization_id", (q) => q.eq("organizationId", organization!._id))
       .unique();
 
     return {

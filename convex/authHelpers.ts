@@ -1,5 +1,6 @@
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
+// Doc is used for organization type annotation in dual-read helpers
 
 type AuthCtx = QueryCtx | MutationCtx;
 
@@ -32,24 +33,31 @@ export async function requireCurrentUser(ctx: AuthCtx) {
 export async function requireActiveOrganizationMembership(ctx: AuthCtx) {
   const { identity, user } = await requireCurrentUser(ctx);
 
-  if (!user.activeOrganizationId) {
+  // Try Clerk org_id from JWT first, fall back to user.activeOrganizationId
+  const clerkOrgId = (identity as any).org_id as string | undefined;
+  let organization: Doc<"organizations"> | null = null;
+
+  if (clerkOrgId) {
+    organization = await resolveOrganizationByClerkId(ctx, clerkOrgId);
+  }
+
+  if (!organization && user.activeOrganizationId) {
+    organization = await ctx.db.get(user.activeOrganizationId);
+  }
+
+  if (!organization) {
     throw new Error("No active organization selected");
   }
 
   const membership = await ctx.db
     .query("memberships")
     .withIndex("by_organization_user", (q) =>
-      q.eq("organizationId", user.activeOrganizationId as Id<"organizations">).eq("userId", user._id),
+      q.eq("organizationId", organization!._id).eq("userId", user._id),
     )
     .first();
 
   if (!membership || membership.status !== "active") {
     throw new Error("You do not have access to the active organization");
-  }
-
-  const organization = await ctx.db.get(user.activeOrganizationId);
-  if (!organization) {
-    throw new Error("Active organization not found");
   }
 
   return {
@@ -75,18 +83,29 @@ export async function getActiveOrganizationMembership(ctx: AuthCtx) {
     .query("users")
     .withIndex("by_auth_user_id", (q) => q.eq("authUserId", identity.subject))
     .first();
-  if (!user || !user.activeOrganizationId) return null;
+  if (!user) return null;
+
+  // Try Clerk org_id from JWT first, fall back to user.activeOrganizationId
+  const clerkOrgId = (identity as any).org_id as string | undefined;
+  let organization: Doc<"organizations"> | null = null;
+
+  if (clerkOrgId) {
+    organization = await resolveOrganizationByClerkId(ctx, clerkOrgId);
+  }
+
+  if (!organization && user.activeOrganizationId) {
+    organization = await ctx.db.get(user.activeOrganizationId);
+  }
+
+  if (!organization) return null;
 
   const membership = await ctx.db
     .query("memberships")
     .withIndex("by_organization_user", (q) =>
-      q.eq("organizationId", user.activeOrganizationId as Id<"organizations">).eq("userId", user._id),
+      q.eq("organizationId", organization!._id).eq("userId", user._id),
     )
     .first();
   if (!membership || membership.status !== "active") return null;
-
-  const organization = await ctx.db.get(user.activeOrganizationId);
-  if (!organization) return null;
 
   return {
     identity,
@@ -130,6 +149,17 @@ export function emailFromIdentity(identity: Record<string, unknown>) {
     throw new Error("Authenticated identity is missing an email address");
   }
   return email;
+}
+
+/**
+ * Resolve a Convex organization document by its linked Clerk org ID.
+ * Returns null if no match found.
+ */
+export async function resolveOrganizationByClerkId(ctx: AuthCtx, clerkOrgId: string) {
+  return await ctx.db
+    .query("organizations")
+    .withIndex("by_clerk_org_id", (q) => q.eq("clerkOrgId", clerkOrgId))
+    .first();
 }
 
 export function slugifyOrganizationName(name: string) {
