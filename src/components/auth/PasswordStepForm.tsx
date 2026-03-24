@@ -13,8 +13,7 @@ export default function PasswordStepForm({
   loading,
   onBack,
   onSubmit,
-  onForgotPassword,
-}: PasswordStepFormProps & { onForgotPassword?: () => void }) {
+}: PasswordStepFormProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <button
@@ -37,7 +36,6 @@ export default function PasswordStepForm({
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             autoComplete="current-password"
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             required
             className="w-full px-4 py-3 pr-11 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-caption text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
@@ -51,18 +49,6 @@ export default function PasswordStepForm({
           </button>
         </div>
       </div>
-
-      {onForgotPassword && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={onForgotPassword}
-            className="text-[13px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
-          >
-            Forgot password?
-          </button>
-        </div>
-      )}
 
       {error && (
         <p className="text-caption text-red-500 dark:text-red-400">{error}</p>

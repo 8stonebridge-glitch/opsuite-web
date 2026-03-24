@@ -106,7 +106,6 @@ function NameFields(props: {
           onChange={(e) => props.onFirstNameChange(e.target.value)}
           placeholder="John"
           autoComplete="given-name"
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           required
           className={INPUT_CLASS}
