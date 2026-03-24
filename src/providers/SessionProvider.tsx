@@ -86,13 +86,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     (isPlaywrightTest && !(isSignedIn ?? false) && fallback.status === 'idle');
 
   // Resolve role from Clerk org membership first, fall back to app state (Convex-derived)
-  const resolvedRole = useMemo<SessionRole>(() => {
-    if (!resolvedSignedIn) return null;
-    if (clerkMembership?.role) {
-      return clerkRoleToAppRole(clerkMembership.role) as SessionRole;
-    }
-    return (state.role as SessionRole) || null;
-  }, [resolvedSignedIn, clerkMembership?.role, state.role]);
+  const clerkRole = clerkMembership?.role ?? null;
+  const stateRole = state.role;
+  const resolvedRole: SessionRole = !resolvedSignedIn
+    ? null
+    : clerkRole
+      ? (clerkRoleToAppRole(clerkRole) as SessionRole)
+      : (stateRole as SessionRole) || null;
 
   const value = useMemo<SessionContext>(
     () => ({
