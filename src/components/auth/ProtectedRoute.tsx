@@ -4,14 +4,26 @@ import { useSession } from '@/providers/SessionProvider';
 
 /**
  * Client-side auth fallback. Middleware already blocks unauthenticated
- * requests server-side, so this component just hides children if
- * the client-side auth state hasn't resolved yet — no spinner needed.
+ * requests server-side. While Clerk hydrates on the client, keep a
+ * visible loading shell instead of flashing a blank page.
  */
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isSignedIn } = useSession();
+  const { isLoading, isSignedIn } = useSession();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface-50 dark:bg-surface-950 flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <p className="text-lg font-semibold text-surface-900 dark:text-surface-100">
+            Loading your workspace
+          </p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-surface-200 border-t-emerald-600 dark:border-surface-700 dark:border-t-emerald-400" />
+        </div>
+      </div>
+    );
+  }
 
   // Middleware already redirects unauthenticated users.
-  // Render nothing briefly while Clerk hydrates on the client.
   if (isSignedIn === false) {
     return null;
   }
