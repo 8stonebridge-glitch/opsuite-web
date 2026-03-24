@@ -4,24 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSignIn, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
-// Stable fallback used for SSO OAuth redirectCallbackUrl (doesn't read returnTo,
-// since OAuth flows don't preserve query params through the provider round-trip).
-export const POST_SIGN_IN_URL =
-  process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL ||
-  process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL ||
-  process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL ||
-  '/admin/overview';
+// Stable fallback used for post-auth completion and SSO redirectCallbackUrl.
+// We intentionally route through the server callback so Clerk org membership
+// can resolve the correct admin/subadmin/employee destination.
+export const POST_SIGN_IN_URL = '/api/auth/callback';
 
 // FEAT-AUTH-08: Resolve post-sign-in URL per-mount so ?returnTo is always
 // read from the current URL (module-level caching missed subsequent navigations).
-function resolvePostSignInUrl(): string {
-  if (typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search);
-    const returnTo = params.get('returnTo');
-    // Only accept relative paths to prevent open redirect
-    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
-      return returnTo;
-    }
+export function resolvePostSignInUrl(search = typeof window !== 'undefined' ? window.location.search : ''): string {
+  const params = new URLSearchParams(search);
+  const returnTo = params.get('returnTo');
+  // Only accept relative paths to prevent open redirect
+  if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+    return returnTo;
   }
   return POST_SIGN_IN_URL;
 }
