@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 /**
  * FEAT-AUTH-01: Production env safety for Clerk/Convex auth configuration.
  *
@@ -15,19 +18,42 @@ interface EnvValidationResult {
 }
 
 const REQUIRED_CLIENT_VARS = [
-  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-  'NEXT_PUBLIC_CLERK_SIGN_IN_URL',
-  'NEXT_PUBLIC_CLERK_SIGN_UP_URL',
   'NEXT_PUBLIC_CONVEX_URL',
 ] as const;
 
 const REQUIRED_SERVER_VARS = [
-  'CLERK_SECRET_KEY',
 ] as const;
+
+type KeylessConfig = {
+  publishableKey?: string;
+  secretKey?: string;
+};
+
+function readLocalClerkKeylessConfig(): KeylessConfig | null {
+  const keylessPath =
+    process.env.CLERK_KEYLESS_PATH || join(process.cwd(), '.clerk', '.tmp', 'keyless.json');
+
+  if (!existsSync(keylessPath)) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(readFileSync(keylessPath, 'utf8')) as KeylessConfig;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 export function validateAuthEnv(): EnvValidationResult {
   const missing: string[] = [];
   const warnings: string[] = [];
+  const keylessConfig =
+    process.env.NODE_ENV === 'production' ? null : readLocalClerkKeylessConfig();
+  const effectivePublishableKey =
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() || keylessConfig?.publishableKey?.trim() || '';
+  const effectiveSecretKey =
+    process.env.CLERK_SECRET_KEY?.trim() || keylessConfig?.secretKey?.trim() || '';
 
   // Client vars (available via NEXT_PUBLIC_)
   for (const key of REQUIRED_CLIENT_VARS) {
@@ -51,13 +77,31 @@ export function validateAuthEnv(): EnvValidationResult {
       }
     }
 
+    if (!effectivePublishableKey) {
+      missing.push('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY');
+    } else if (
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.trim()
+    ) {
+      warnings.push('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY has leading/trailing whitespace — may cause auth failures');
+    }
+
+    if (!effectiveSecretKey) {
+      missing.push('CLERK_SECRET_KEY');
+    } else if (
+      process.env.CLERK_SECRET_KEY &&
+      process.env.CLERK_SECRET_KEY !== process.env.CLERK_SECRET_KEY.trim()
+    ) {
+      warnings.push('CLERK_SECRET_KEY has leading/trailing whitespace');
+    }
+
     // Validate Clerk key format
-    const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
+    const pubKey = effectivePublishableKey;
     if (pubKey && !pubKey.startsWith('pk_')) {
       warnings.push('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY should start with pk_test_ or pk_live_');
     }
 
-    const secKey = process.env.CLERK_SECRET_KEY ?? '';
+    const secKey = effectiveSecretKey;
     if (secKey && !secKey.startsWith('sk_')) {
       warnings.push('CLERK_SECRET_KEY should start with sk_test_ or sk_live_');
     }
