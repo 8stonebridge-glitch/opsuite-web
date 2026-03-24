@@ -79,8 +79,8 @@ export default function RootLayout({
         <ClerkProvider
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
-          signInFallbackRedirectUrl="/onboarding"
-          signUpFallbackRedirectUrl="/onboarding"
+          signInFallbackRedirectUrl="/api/auth/callback"
+          signUpFallbackRedirectUrl="/api/auth/callback"
           afterSignOutUrl="/sign-in"
         >
           {/* CSS-only loader — visible immediately, no JS dependency.
