@@ -1,9 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useUser, useOrganization } from '@clerk/nextjs';
+import { useAuth, useUser, useOrganization } from '@clerk/nextjs';
 import { useApp } from '@/store/AppContext';
 import { clerkRoleToAppRole } from '@/types';
+import { resolveClientClerkOrgRole } from '@/lib/clerkClientOrg';
 
 export interface SessionUser {
   id: string;
@@ -36,6 +37,7 @@ const SessionCtx = createContext<SessionContext>({
 });
 
 export function SessionProvider({ children }: { children: ReactNode }) {
+  const { orgId } = useAuth();
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const { membership: clerkMembership, isLoaded: organizationLoaded } = useOrganization();
   const { state } = useApp();
@@ -87,7 +89,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     (isPlaywrightTest && !(isSignedIn ?? false) && fallback.status === 'idle');
 
   // Resolve role from Clerk org membership first, fall back to app state (Convex-derived)
-  const clerkRole = clerkMembership?.role ?? null;
+  const clerkRole = resolveClientClerkOrgRole({
+    activeOrgId: orgId,
+    membershipRole: clerkMembership?.role ?? null,
+    organizationMemberships: clerkUser?.organizationMemberships ?? null,
+  });
   const stateRole = state.role;
   const resolvedRole: SessionRole = !resolvedSignedIn
     ? null

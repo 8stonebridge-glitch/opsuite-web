@@ -1,14 +1,20 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useOrganization } from '@clerk/nextjs';
+import { useAuth, useOrganization, useUser } from '@clerk/nextjs';
 import { useQuery, useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/convexApi';
+import { resolveClientClerkOrgId, resolveClientClerkOrgRole } from '@/lib/clerkClientOrg';
 
 const CLERK_ROLE_DASHBOARDS: Record<string, string> = {
+  'admin': '/admin/overview',
+  'org:admin': '/admin/overview',
+  'owner_admin': '/admin/overview',
   'org:owner_admin': '/admin/overview',
+  'subadmin': '/subadmin/overview',
   'org:subadmin': '/subadmin/overview',
+  'employee': '/employee/my-day',
   'org:employee': '/employee/my-day',
 };
 
@@ -17,16 +23,28 @@ const CLERK_ROLE_DASHBOARDS: Record<string, string> = {
  * re-entering onboarding. Checks Clerk org first, falls back to Convex.
  */
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const { orgId } = useAuth();
+  const { user } = useUser();
   const { organization: clerkOrg, membership: clerkMembership, isLoaded: clerkLoaded } = useOrganization();
   const { isAuthenticated, isLoading: isConvexLoading } = useConvexAuth();
   const activeOrg = useQuery(api.organizations.active, isAuthenticated ? {} : 'skip');
   const router = useRouter();
+  const organizationMemberships = user?.organizationMemberships ?? null;
+  const activeClerkOrgId = resolveClientClerkOrgId({
+    activeOrgId: clerkOrg?.id ?? orgId ?? null,
+    organizationMemberships,
+  });
+  const derivedClerkRole = resolveClientClerkOrgRole({
+    activeOrgId: activeClerkOrgId,
+    membershipRole: clerkMembership?.role ?? null,
+    organizationMemberships,
+  });
+  const clerkDashboard = derivedClerkRole ? (CLERK_ROLE_DASHBOARDS[derivedClerkRole] ?? '/onboarding') : null;
 
   useEffect(() => {
     // Check Clerk org first
-    if (clerkLoaded && clerkOrg && clerkMembership) {
-      const dest = CLERK_ROLE_DASHBOARDS[clerkMembership.role] || '/onboarding';
-      router.replace(dest);
+    if (clerkLoaded && activeClerkOrgId && clerkDashboard) {
+      router.replace(clerkDashboard);
       return;
     }
 
@@ -43,12 +61,13 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
               : '/onboarding';
       router.replace(dest);
     }
-  }, [clerkLoaded, clerkOrg, clerkMembership, activeOrg, router]);
+  }, [clerkDashboard, clerkLoaded, activeClerkOrgId, activeOrg, router]);
 
   const isResolvingOnboarding =
     !clerkLoaded ||
     isConvexLoading ||
-    (isAuthenticated && activeOrg === undefined);
+    (isAuthenticated && activeOrg === undefined) ||
+    (!!activeClerkOrgId && !clerkDashboard && activeOrg === undefined);
 
   if (isResolvingOnboarding) {
     return (
@@ -66,8 +85,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Org exists — render nothing while redirect kicks in
-  if (clerkOrg || activeOrg?.organization) {
+  // Org exists and we have a redirect target — render nothing while redirect kicks in
+  if (clerkDashboard || activeOrg?.organization) {
     return null;
   }
 

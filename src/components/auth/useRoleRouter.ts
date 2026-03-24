@@ -12,12 +12,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from '@/providers/SessionProvider';
 
 const ROLE_DASHBOARDS: Record<string, string> = {
+  admin: '/admin/overview',
   owner_admin: '/admin/overview',
   subadmin: '/subadmin/overview',
   employee: '/employee/my-day',
 };
 
 const ROLE_PREFIXES: Record<string, string> = {
+  admin: '/admin',
   owner_admin: '/admin',
   subadmin: '/subadmin',
   employee: '/employee',
