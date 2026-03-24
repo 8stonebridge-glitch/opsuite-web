@@ -165,6 +165,43 @@ export const debugListAll = internalQuery({
   },
 });
 
+/** Delete a user and all their memberships by authUserId. Called by Clerk webhook on user.deleted. */
+export const deleteByAuthUserId = internalMutation({
+  args: { authUserId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_auth_user_id", (q) => q.eq("authUserId", args.authUserId))
+      .first();
+
+    if (!user) return { deleted: false };
+
+    // Delete all memberships for this user
+    const memberships = await ctx.db
+      .query("memberships")
+      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+      .collect();
+
+    for (const m of memberships) {
+      await ctx.db.delete(m._id);
+    }
+
+    // Delete notification preferences
+    const notifPrefs = await ctx.db
+      .query("notificationPreferences")
+      .filter((q) => q.eq(q.field("membershipId"), memberships[0]?._id))
+      .collect();
+    for (const np of notifPrefs) {
+      await ctx.db.delete(np._id);
+    }
+
+    // Delete the user record
+    await ctx.db.delete(user._id);
+
+    return { deleted: true, userId: user._id };
+  },
+});
+
 // One-time cleanup — internal only, not callable from client browsers
 export const deduplicateUsers = internalMutation({
   args: {},
