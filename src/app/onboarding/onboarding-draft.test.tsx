@@ -13,6 +13,8 @@ const navigationMock = vi.hoisted(() => ({
 }));
 
 const clerkMock = vi.hoisted(() => ({
+  orgId: null as string | null,
+  user: null as { organizationMemberships?: Array<{ organization: { id: string }; role: string }> } | null,
   organization: null as { id: string } | null,
   membership: null as { role: string } | null,
   isLoaded: true,
@@ -36,6 +38,12 @@ vi.mock('@/components/auth/ProtectedRoute', () => ({
 }));
 
 vi.mock('@clerk/nextjs', () => ({
+  useAuth: () => ({
+    orgId: clerkMock.orgId,
+  }),
+  useUser: () => ({
+    user: clerkMock.user,
+  }),
   useOrganization: () => clerkMock,
 }));
 
@@ -66,6 +74,8 @@ describe('OnboardingLayout draft hydration', () => {
     localStorage.clear();
     navigationMock.pathname = '/onboarding';
     navigationMock.replace.mockReset();
+    clerkMock.orgId = null;
+    clerkMock.user = null;
     clerkMock.organization = null;
     clerkMock.membership = null;
     clerkMock.isLoaded = true;

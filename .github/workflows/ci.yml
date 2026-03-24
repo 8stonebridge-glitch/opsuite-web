@@ -9,20 +9,9 @@ on:
 jobs:
   aes-verify:
     name: aes-verify
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: AES Verify
-        run: npm run verify
+    uses: 8stonebridge-glitch/aes-platform/.github/workflows/aes-verify.yml@main
+    with:
+      node-version: '20'
+      install-command: npm ci
+      verify-command: npm run verify
+    secrets: inherit
