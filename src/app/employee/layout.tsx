@@ -1,8 +1,10 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useSession } from '@/providers/SessionProvider'
+import { useHydrated } from '@/hooks/useHydrated'
 import {
   Sun,
   ClipboardList,
@@ -42,9 +44,19 @@ function isActive(pathname: string, href: string) {
 
 export default function EmployeeLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { state } = useApp()
   const { user } = useSession()
   const { signOut } = useAuthActions()
+  const isMounted = useHydrated()
+
+  // Role guard — redirect non-employees away
+  useEffect(() => {
+    if (!isMounted || !state.onboardingComplete) return
+    if (state.role !== 'employee') {
+      router.push('/')
+    }
+  }, [isMounted, state.onboardingComplete, state.role, router])
 
   const activeWorkspace = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
   const orgName = activeWorkspace?.orgName || 'Workspace'

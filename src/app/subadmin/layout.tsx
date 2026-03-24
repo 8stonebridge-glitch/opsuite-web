@@ -1,8 +1,11 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useSession } from '@/providers/SessionProvider'
+import { useHydrated } from '@/hooks/useHydrated'
+import { useOrgMode } from '@/store/selectors-user'
 import {
   Home,
   ClipboardList,
@@ -42,9 +45,28 @@ function isActive(pathname: string, href: string) {
 
 export default function SubAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { state } = useApp()
   const { user } = useSession()
   const { signOut } = useAuthActions()
+  const isMounted = useHydrated()
+  const orgMode = useOrgMode()
+
+  // Role guard — redirect non-subadmins away
+  useEffect(() => {
+    if (!isMounted || !state.onboardingComplete) return
+    if (state.role !== 'subadmin') {
+      router.push('/')
+    }
+  }, [isMounted, state.onboardingComplete, state.role, router])
+
+  // Direct org mode guard — subadmin routes are inaccessible in direct orgs
+  useEffect(() => {
+    if (!isMounted || !state.onboardingComplete) return
+    if (orgMode === 'direct') {
+      router.push('/')
+    }
+  }, [isMounted, state.onboardingComplete, orgMode, router])
 
   const activeWorkspace = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
   const orgName = activeWorkspace?.orgName || 'Workspace'
