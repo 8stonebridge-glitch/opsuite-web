@@ -57,9 +57,6 @@ export default function SignUpPage() {
           <SignInLink />
         </div>
 
-        {/* Clerk bot protection CAPTCHA — required when Smart CAPTCHA is enabled */}
-        <div id="clerk-captcha" className="mt-4" />
-
         <TermsFooter />
       </div>
     </div>

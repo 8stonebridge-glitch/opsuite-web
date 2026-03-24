@@ -12,7 +12,7 @@ export default function SSOCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/admin/overview');
+    router.replace('/');
   }, [router]);
 
   return (
