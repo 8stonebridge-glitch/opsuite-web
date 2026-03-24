@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
-import { fetchAction, fetchQuery } from 'convex/nextjs';
+import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import { api } from '@/lib/convexApi';
 
 export async function GET() {
@@ -13,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ state: null }, { status: 200 });
   }
 
-  await fetchAction(api.users.syncFromAuthAction, {}, { token });
+  await fetchMutation(api.users.syncFromAuth, {}, { token });
 
   const [activeOrg, sitesData, membershipsData] = await Promise.all([
     fetchQuery(api.organizations.active, {}, { token }),

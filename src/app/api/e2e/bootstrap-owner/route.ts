@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
-import { fetchAction, fetchMutation, fetchQuery } from 'convex/nextjs';
+import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import { api } from '@/lib/convexApi';
 
 export async function POST(request: Request) {
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'You must be signed in.' }, { status: 401 });
   }
 
-  await fetchAction(api.users.syncFromAuthAction, {}, { token });
+  await fetchMutation(api.users.syncFromAuth, {}, { token });
 
   const activeOrg = await fetchQuery(api.organizations.active, {}, { token });
   if (!activeOrg?.organization) {
